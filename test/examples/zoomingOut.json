@@ -1,0 +1,310 @@
+{
+  "title": "[autoGen]Walkthrough-1",
+  "data": [
+    {"date": "2018-01-01", "profit": 6.59590809, "store": "A"},
+    {"date": "2018-02-01", "profit": 7.898718931, "store": "A"},
+    {"date": "2018-03-01", "profit": 6.451510153, "store": "A"},
+    {"date": "2018-04-01", "profit": 8.318280993, "store": "A"},
+    {"date": "2018-05-01", "profit": 8.518436929, "store": "A"},
+    {"date": "2018-06-01", "profit": 10.16869626, "store": "A"},
+    {"date": "2018-07-01", "profit": 11.88419085, "store": "A"},
+    {"date": "2018-08-01", "profit": 11.33665296, "store": "A"},
+    {"date": "2018-09-01", "profit": 13.1077477, "store": "A"},
+    {"date": "2018-10-01", "profit": 13.44549033, "store": "A"},
+    {"date": "2018-11-01", "profit": 15.91314074, "store": "A"},
+    {"date": "2018-12-01", "profit": 16.43881722, "store": "A"},
+    {"date": "2019-01-01", "profit": 17.37635023, "store": "A"},
+    {"date": "2019-02-01", "profit": 19.89388304, "store": "A"},
+    {"date": "2019-03-01", "profit": 20.93403592, "store": "A"},
+    {"date": "2019-04-01", "profit": 19.39222348, "store": "A"},
+    {"date": "2019-05-01", "profit": 20.63455864, "store": "A"},
+    {"date": "2019-06-01", "profit": 21.59472759, "store": "A"},
+    {"date": "2019-07-01", "profit": 23.16384094, "store": "A"},
+    {"date": "2019-08-01", "profit": 23.7688693, "store": "A"},
+    {"date": "2019-09-01", "profit": 25.9522324, "store": "A"},
+    {"date": "2019-10-01", "profit": 25.12723589, "store": "A"},
+    {"date": "2019-11-01", "profit": 27.1943141, "store": "A"},
+    {"date": "2019-12-01", "profit": 29.45257591, "store": "A"},
+    {"date": "2018-01-01", "profit": 5.398071496, "store": "B"},
+    {"date": "2018-02-01", "profit": 6.926709601, "store": "B"},
+    {"date": "2018-03-01", "profit": 4.576648312, "store": "B"},
+    {"date": "2018-04-01", "profit": 7.708084161, "store": "B"},
+    {"date": "2018-05-01", "profit": 5.935464759, "store": "B"},
+    {"date": "2018-06-01", "profit": 6.456619035, "store": "B"},
+    {"date": "2018-07-01", "profit": 8.073038905, "store": "B"},
+    {"date": "2018-08-01", "profit": 7.538287722, "store": "B"},
+    {"date": "2018-09-01", "profit": 10.17429813, "store": "B"},
+    {"date": "2018-10-01", "profit": 9.2699546, "store": "B"},
+    {"date": "2018-11-01", "profit": 9.352371174, "store": "B"},
+    {"date": "2018-12-01", "profit": 11.14263362, "store": "B"},
+    {"date": "2019-01-01", "profit": 12.08796226, "store": "B"},
+    {"date": "2019-02-01", "profit": 10.52532404, "store": "B"},
+    {"date": "2019-03-01", "profit": 11.78213126, "store": "B"},
+    {"date": "2019-04-01", "profit": 12.62979584, "store": "B"},
+    {"date": "2019-05-01", "profit": 11.59071038, "store": "B"},
+    {"date": "2019-06-01", "profit": 12.58061309, "store": "B"},
+    {"date": "2019-07-01", "profit": 14.17871238, "store": "B"},
+    {"date": "2019-08-01", "profit": 14.48875526, "store": "B"},
+    {"date": "2019-09-01", "profit": 15.79461445, "store": "B"},
+    {"date": "2019-10-01", "profit": 14.50010807, "store": "B"},
+    {"date": "2019-11-01", "profit": 14.58511294, "store": "B"},
+    {"date": "2019-12-01", "profit": 17.0407644, "store": "B"},
+    {"date": "2018-01-01", "profit": 4.886706865, "store": "C"},
+    {"date": "2018-02-01", "profit": 5.254454288, "store": "C"},
+    {"date": "2018-03-01", "profit": 5.585253168, "store": "C"},
+    {"date": "2018-04-01", "profit": 4.272580314, "store": "C"},
+    {"date": "2018-05-01", "profit": 6.631580765, "store": "C"},
+    {"date": "2018-06-01", "profit": 5.228257124, "store": "C"},
+    {"date": "2018-07-01", "profit": 5.672071137, "store": "C"},
+    {"date": "2018-08-01", "profit": 6.890599589, "store": "C"},
+    {"date": "2018-09-01", "profit": 6.90408401, "store": "C"},
+    {"date": "2018-10-01", "profit": 7.09585618, "store": "C"},
+    {"date": "2018-11-01", "profit": 8.503094902, "store": "C"},
+    {"date": "2018-12-01", "profit": 7.683581733, "store": "C"},
+    {"date": "2019-01-01", "profit": 6.40682794, "store": "C"},
+    {"date": "2019-02-01", "profit": 6.769971168, "store": "C"},
+    {"date": "2019-03-01", "profit": 8.382471434, "store": "C"},
+    {"date": "2019-04-01", "profit": 9.610133535, "store": "C"},
+    {"date": "2019-05-01", "profit": 8.284641239, "store": "C"},
+    {"date": "2019-06-01", "profit": 9.837778476, "store": "C"},
+    {"date": "2019-07-01", "profit": 8.575649752, "store": "C"},
+    {"date": "2019-08-01", "profit": 9.299889533, "store": "C"},
+    {"date": "2019-09-01", "profit": 8.556770758, "store": "C"},
+    {"date": "2019-10-01", "profit": 9.98786372, "store": "C"},
+    {"date": "2019-11-01", "profit": 9.69727001, "store": "C"},
+    {"date": "2019-12-01", "profit": 11.72923271, "store": "C"}
+  ],
+  "sSpec": {
+    "$schema": "https://vega.github.io/schema/vega/v5.json",
+    "description": "Stock prices of 5 Tech Companies over Time.",
+    "autosize": "pad",
+    "padding": 5,
+    "width": 200,
+    "height": 200,
+    "style": "cell",
+    "data": [
+      {"name": "source_0", "values": []},
+      {
+        "name": "data_0",
+        "source": "source_0",
+        "transform": [
+          {"type": "formula", "expr": "toDate(datum[\"date\"])", "as": "date"},
+          {"type": "filter", "expr": "year(datum.date) < 2019"}
+        ]
+      }
+    ],
+    "marks": [
+      {
+        "name": "pathgroup",
+        "type": "group",
+        "from": {
+          "facet": {
+            "name": "faceted_path_main",
+            "data": "data_0",
+            "groupby": ["store"]
+          }
+        },
+        "encode": {
+          "update": {
+            "width": {"field": {"group": "width"}},
+            "height": {"field": {"group": "height"}}
+          }
+        },
+        "marks": [
+          {
+            "name": "marks",
+            "type": "line",
+            "style": ["line"],
+            "sort": {"field": "datum[\"date\"]"},
+            "from": {"data": "faceted_path_main"},
+            "encode": {
+              "update": {
+                "stroke": {"scale": "color", "field": "store"},
+                "tooltip": {
+                  "signal": "{\"date\": timeFormat(datum[\"date\"], '%b %d, %Y'), \"profit\": format(datum[\"profit\"], \"\"), \"store\": ''+datum[\"store\"]}"
+                },
+                "x": {"scale": "x", "field": "date"},
+                "y": {"scale": "y", "field": "profit"},
+                "defined": {
+                  "signal": "datum[\"date\"] !== null && !isNaN(datum[\"date\"]) && datum[\"profit\"] !== null && !isNaN(datum[\"profit\"])"
+                }
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "scales": [
+      {
+        "name": "x",
+        "type": "time",
+        "domain": {"data": "data_0", "field": "date"},
+        "range": [0, {"signal": "width"}]
+      },
+      {
+        "name": "y",
+        "type": "linear",
+        "domain": {"data": "data_0", "field": "profit"},
+        "range": [{"signal": "height"}, 0],
+        "nice": true,
+        "zero": true
+      },
+      {
+        "name": "color",
+        "type": "ordinal",
+        "domain": {"data": "data_0", "field": "store", "sort": true},
+        "range": "category"
+      }
+    ],
+    "axes": [
+      {
+        "scale": "x",
+        "orient": "bottom",
+        "grid": true,
+        "title": "date",
+        "labelFlush": true,
+        "labelOverlap": true,
+        "tickCount": {"signal": "ceil(width/40)"},
+        "zindex": 0,
+        "gridScale": "y",
+        "encode": {"axis": {"name": "x"}}
+      },
+      {
+        "scale": "y",
+        "orient": "left",
+        "grid": true,
+        "title": "profit",
+        "labelOverlap": true,
+        "tickCount": {"signal": "ceil(height/40)"},
+        "zindex": 0,
+        "gridScale": "x",
+        "encode": {"axis": {"name": "y"}}
+      }
+    ],
+    "legends": [
+      {
+        "stroke": "color",
+        "gradientLength": {"signal": "clamp(height, 64, 200)"},
+        "symbolType": "stroke",
+        "title": "store",
+        "encode": {"legend": {"name": "legend0"}}
+      }
+    ]
+  },
+  "eSpec": {
+    "$schema": "https://vega.github.io/schema/vega/v5.json",
+    "description": "Stock prices of 5 Tech Companies over Time.",
+    "autosize": "pad",
+    "padding": 5,
+    "width": 200,
+    "height": 200,
+    "style": "cell",
+    "data": [
+      {"name": "source_0", "values": []},
+      {
+        "name": "data_0",
+        "source": "source_0",
+        "transform": [
+          {"type": "formula", "expr": "toDate(datum[\"date\"])", "as": "date"},
+          {
+            "type": "filter",
+            "expr": "datum[\"date\"] !== null && !isNaN(datum[\"date\"]) && datum[\"profit\"] !== null && !isNaN(datum[\"profit\"])"
+          }
+        ]
+      }
+    ],
+    "marks": [
+      {
+        "name": "marks",
+        "type": "symbol",
+        "style": ["point"],
+        "from": {"data": "data_0"},
+        "encode": {
+          "update": {
+            "opacity": {"value": 0.7},
+            "fill": {"value": "transparent"},
+            "stroke": {"scale": "color", "field": "store"},
+            "tooltip": {
+              "signal": "{\"date\": timeFormat(datum[\"date\"], '%b %d, %Y'), \"profit\": format(datum[\"profit\"], \"\"), \"store\": ''+datum[\"store\"]}"
+            },
+            "x": {"scale": "x", "field": "date"},
+            "y": {"scale": "y", "field": "profit"}
+          }
+        }
+      }
+    ],
+    "scales": [
+      {
+        "name": "x",
+        "type": "time",
+        "domain": {"data": "data_0", "field": "date"},
+        "range": [0, {"signal": "width"}]
+      },
+      {
+        "name": "y",
+        "type": "linear",
+        "domain": {"data": "data_0", "field": "profit"},
+        "range": [{"signal": "height"}, 0],
+        "nice": true,
+        "zero": true
+      },
+      {
+        "name": "color",
+        "type": "ordinal",
+        "domain": {"data": "data_0", "field": "store", "sort": true},
+        "range": "category"
+      }
+    ],
+    "axes": [
+      {
+        "scale": "x",
+        "orient": "bottom",
+        "grid": true,
+        "title": "date",
+        "labelFlush": true,
+        "labelOverlap": true,
+        "tickCount": {"signal": "ceil(width/40)"},
+        "zindex": 0,
+        "gridScale": "y",
+        "encode": {"axis": {"name": "x"}}
+      },
+      {
+        "scale": "y",
+        "orient": "left",
+        "grid": true,
+        "title": "profit",
+        "labelOverlap": true,
+        "tickCount": {"signal": "ceil(height/40)"},
+        "zindex": 0,
+        "gridScale": "x",
+        "encode": {"axis": {"name": "y"}}
+      }
+    ],
+    "legends": [
+      {
+        "stroke": "color",
+        "gradientLength": {"signal": "clamp(height, 64, 200)"},
+        "symbolType": "circle",
+        "title": "store",
+        "encode": {
+          "symbols": {
+            "update": {
+              "fill": {"value": "transparent"},
+              "opacity": {"value": 0.7}
+            }
+          },
+          "legend": {"name": "legend0"}
+        }
+      }
+    ]
+  },
+  "recommend": true,
+  "userInput": {
+    "marks": { "marks": {"change": {"data": ["date", "store"]}}},
+    "axes": {"x": {"change": {"sameDomain": true}}, "y": {"change": {"sameDomain": true}} },
+    "scales": {
+      "x": {"sameDomain": true},
+      "y": {"sameDomain": true}
+    }
+  }
+}

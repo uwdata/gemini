@@ -1,0 +1,1836 @@
+{
+  "title": "Moving Points Along Trajectories",
+  "data": [
+    {
+      "Code": "KOR",
+      "Entity": "South Korea",
+      "GDP per capita": 6589.721775416,
+      "Number of Records": 1,
+      "Political Regime Score": -5,
+      "Population by country": 40300401,
+      "Year": 1984
+    },
+    {
+      "Code": "KOR",
+      "Entity": "South Korea",
+      "GDP per capita": 6929.803933725,
+      "Number of Records": 1,
+      "Political Regime Score": -5,
+      "Population by country": 40808569,
+      "Year": 1985
+    },
+    {
+      "Code": "KOR",
+      "Entity": "South Korea",
+      "GDP per capita": 7929.274019177,
+      "Number of Records": 1,
+      "Political Regime Score": -5,
+      "Population by country": 41269319,
+      "Year": 1986
+    },
+    {
+      "Code": "KOR",
+      "Entity": "South Korea",
+      "GDP per capita": 8999.648555628,
+      "Number of Records": 1,
+      "Political Regime Score": 1,
+      "Population by country": 41690833,
+      "Year": 1987
+    },
+    {
+      "Code": "KOR",
+      "Entity": "South Korea",
+      "GDP per capita": 10151.81905451,
+      "Number of Records": 1,
+      "Political Regime Score": 6,
+      "Population by country": 42091026,
+      "Year": 1988
+    },
+    {
+      "Code": "KOR",
+      "Entity": "South Korea",
+      "GDP per capita": 10949.380033057,
+      "Number of Records": 1,
+      "Political Regime Score": 6,
+      "Population by country": 42495728,
+      "Year": 1989
+    },
+    {
+      "Code": "KOR",
+      "Entity": "South Korea",
+      "GDP per capita": 12048.115686461,
+      "Number of Records": 1,
+      "Political Regime Score": 6,
+      "Population by country": 42923131,
+      "Year": 1990
+    },
+    {
+      "Code": "KOR",
+      "Entity": "South Korea",
+      "GDP per capita": 13360.854597263,
+      "Number of Records": 1,
+      "Political Regime Score": 6,
+      "Population by country": 43378101,
+      "Year": 1991
+    },
+    {
+      "Code": "KOR",
+      "Entity": "South Korea",
+      "GDP per capita": 14303.368512111,
+      "Number of Records": 1,
+      "Political Regime Score": 6,
+      "Population by country": 43853448,
+      "Year": 1992
+    },
+    {
+      "Code": "KOR",
+      "Entity": "South Korea",
+      "GDP per capita": 15512.248331423,
+      "Number of Records": 1,
+      "Political Regime Score": 6,
+      "Population by country": 44340558,
+      "Year": 1993
+    },
+    {
+      "Code": "KOR",
+      "Entity": "South Korea",
+      "GDP per capita": 17150.893284619,
+      "Number of Records": 1,
+      "Political Regime Score": 6,
+      "Population by country": 44825885,
+      "Year": 1994
+    },
+    {
+      "Code": "KOR",
+      "Entity": "South Korea",
+      "GDP per capita": 18982.775264745,
+      "Number of Records": 1,
+      "Political Regime Score": 6,
+      "Population by country": 45298611,
+      "Year": 1995
+    },
+    {
+      "Code": "KOR",
+      "Entity": "South Korea",
+      "GDP per capita": 20005.212504647,
+      "Number of Records": 1,
+      "Political Regime Score": 6,
+      "Population by country": 45757361,
+      "Year": 1996
+    },
+    {
+      "Code": "KOR",
+      "Entity": "South Korea",
+      "GDP per capita": 20825.185669029,
+      "Number of Records": 1,
+      "Political Regime Score": 6,
+      "Population by country": 46202604,
+      "Year": 1997
+    },
+    {
+      "Code": "KOR",
+      "Entity": "South Korea",
+      "GDP per capita": 19560.541241081,
+      "Number of Records": 1,
+      "Political Regime Score": 8,
+      "Population by country": 46627442,
+      "Year": 1998
+    },
+    {
+      "Code": "KOR",
+      "Entity": "South Korea",
+      "GDP per capita": 21360.178344194,
+      "Number of Records": 1,
+      "Political Regime Score": 8,
+      "Population by country": 47023880,
+      "Year": 1999
+    },
+    {
+      "Code": "KOR",
+      "Entity": "South Korea",
+      "GDP per capita": 22541.253112592,
+      "Number of Records": 1,
+      "Political Regime Score": 8,
+      "Population by country": 47386312,
+      "Year": 2000
+    },
+    {
+      "Code": "KOR",
+      "Entity": "South Korea",
+      "GDP per capita": 23344.423479454,
+      "Number of Records": 1,
+      "Political Regime Score": 8,
+      "Population by country": 47712788,
+      "Year": 2001
+    },
+    {
+      "Code": "KOR",
+      "Entity": "South Korea",
+      "GDP per capita": 25177.648060505,
+      "Number of Records": 1,
+      "Political Regime Score": 8,
+      "Population by country": 48004786,
+      "Year": 2002
+    },
+    {
+      "Code": "KOR",
+      "Entity": "South Korea",
+      "GDP per capita": 26008.467718356,
+      "Number of Records": 1,
+      "Political Regime Score": 8,
+      "Population by country": 48265026,
+      "Year": 2003
+    },
+    {
+      "Code": "KOR",
+      "Entity": "South Korea",
+      "GDP per capita": 27283.870205472,
+      "Number of Records": 1,
+      "Political Regime Score": 8,
+      "Population by country": 48498083,
+      "Year": 2004
+    },
+    {
+      "Code": "KOR",
+      "Entity": "South Korea",
+      "GDP per capita": 28119.199309547,
+      "Number of Records": 1,
+      "Political Regime Score": 8,
+      "Population by country": 48708497,
+      "Year": 2005
+    },
+    {
+      "Code": "KOR",
+      "Entity": "South Korea",
+      "GDP per capita": 28867.005668261,
+      "Number of Records": 1,
+      "Political Regime Score": 8,
+      "Population by country": 48895845,
+      "Year": 2006
+    },
+    {
+      "Code": "KOR",
+      "Entity": "South Korea",
+      "GDP per capita": 30238.909349396,
+      "Number of Records": 1,
+      "Political Regime Score": 8,
+      "Population by country": 49062429,
+      "Year": 2007
+    },
+    {
+      "Code": "KOR",
+      "Entity": "South Korea",
+      "GDP per capita": 29981.562813583,
+      "Number of Records": 1,
+      "Political Regime Score": 8,
+      "Population by country": 49218985,
+      "Year": 2008
+    },
+    {
+      "Code": "KOR",
+      "Entity": "South Korea",
+      "GDP per capita": 30426.985978005,
+      "Number of Records": 1,
+      "Political Regime Score": 8,
+      "Population by country": 49379208,
+      "Year": 2009
+    },
+    {
+      "Code": "KOR",
+      "Entity": "South Korea",
+      "GDP per capita": 32326.617938657,
+      "Number of Records": 1,
+      "Political Regime Score": 8,
+      "Population by country": 49552855,
+      "Year": 2010
+    },
+    {
+      "Code": "KOR",
+      "Entity": "South Korea",
+      "GDP per capita": 32543.393507815,
+      "Number of Records": 1,
+      "Political Regime Score": 8,
+      "Population by country": 49744659,
+      "Year": 2011
+    },
+    {
+      "Code": "KOR",
+      "Entity": "South Korea",
+      "GDP per capita": 33044.56381837,
+      "Number of Records": 1,
+      "Political Regime Score": 8,
+      "Population by country": 49952244,
+      "Year": 2012
+    },
+    {
+      "Code": "KOR",
+      "Entity": "South Korea",
+      "GDP per capita": 34122.727063723,
+      "Number of Records": 1,
+      "Political Regime Score": 8,
+      "Population by country": 50169242,
+      "Year": 2013
+    },
+    {
+      "Code": "KOR",
+      "Entity": "South Korea",
+      "GDP per capita": 35103.957109742,
+      "Number of Records": 1,
+      "Political Regime Score": 8,
+      "Population by country": 50385560,
+      "Year": 2014
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 3094.870672668,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 85658683,
+      "Year": 1952
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 3199.848200003,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 86869425,
+      "Year": 1953
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 3357.923967603,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 87980318,
+      "Year": 1954
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 3602.462672726,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 89018257,
+      "Year": 1955
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 3815.42087994,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 90004313,
+      "Year": 1956
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 4046.81554705,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 90953954,
+      "Year": 1957
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 4358.176535369,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 91877704,
+      "Year": 1958
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 4749.468675766,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 92782224,
+      "Year": 1959
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 5351.014876574,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 93673615,
+      "Year": 1960
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 5894.798911086,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 94560845,
+      "Year": 1961
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 6401.463886854,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 95458881,
+      "Year": 1962
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 6869.083856862,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 96389953,
+      "Year": 1963
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 7593.875216534,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 97379848,
+      "Year": 1964
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 7996.004558173,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 98447002,
+      "Year": 1965
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 8735.127841002,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 99595128,
+      "Year": 1966
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 9574.463023901,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 100820021,
+      "Year": 1967
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 10671.724678628,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 102120482,
+      "Year": 1968
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 11833.999061103,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 103491930,
+      "Year": 1969
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 12955.738694286,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 104925645,
+      "Year": 1970
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 13601.489877464,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 106425269,
+      "Year": 1971
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 14655.634794359,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 107977039,
+      "Year": 1972
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 15607.997148264,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 109532878,
+      "Year": 1973
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 14984.576517809,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 111030141,
+      "Year": 1974
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 15304.70860128,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 112423055,
+      "Year": 1975
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 16087.067132442,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 113690108,
+      "Year": 1976
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 16988.579503167,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 114839120,
+      "Year": 1977
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 18250.852988491,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 115890284,
+      "Year": 1978
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 19103.217289039,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 116878026,
+      "Year": 1979
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 19459.268464318,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 117827355,
+      "Year": 1980
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 19224.294530747,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 118743180,
+      "Year": 1981
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 18763.093899452,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 119615624,
+      "Year": 1982
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 18361.608989506,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 120438087,
+      "Year": 1983
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 18383.410875799,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 121199799,
+      "Year": 1984
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 18731.869693389,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 121894038,
+      "Year": 1985
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 19988.531038468,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 122519652,
+      "Year": 1986
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 21228.263115836,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 123083205,
+      "Year": 1987
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 23331.527288534,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 123594968,
+      "Year": 1988
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 25167.918271932,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 124068903,
+      "Year": 1989
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 27080.929348585,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 124515561,
+      "Year": 1990
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 28689.934804684,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 124940015,
+      "Year": 1991
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 29601.925492065,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 125341476,
+      "Year": 1992
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 30338.013645185,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 125717524,
+      "Year": 1993
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 31357.345056765,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 126063174,
+      "Year": 1994
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 32830.052993853,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 126375466,
+      "Year": 1995
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 33539.403723794,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 126654021,
+      "Year": 1996
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 33751.368989664,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 126902628,
+      "Year": 1997
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 32906.906012141,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 127127265,
+      "Year": 1998
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 32495.960545437,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 127335858,
+      "Year": 1999
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 33155.532821888,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 127533934,
+      "Year": 2000
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 33278.903447432,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 127723513,
+      "Year": 2001
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 33293.598789362,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 127902617,
+      "Year": 2002
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 33695.306097306,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 128067794,
+      "Year": 2003
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 34279.856304825,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 128213632,
+      "Year": 2004
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 34359.413386589,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 128335767,
+      "Year": 2005
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 34749.036343404,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 128432994,
+      "Year": 2006
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 35470.298372853,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 128505251,
+      "Year": 2007
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 34651.608297027,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 128550508,
+      "Year": 2008
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 33380.010146623,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 128566659,
+      "Year": 2009
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 34847.564403218,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 128551873,
+      "Year": 2010
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 34450.617628361,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 128505399,
+      "Year": 2011
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 35011.572023528,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 128426384,
+      "Year": 2012
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 35418.315352674,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 128312920,
+      "Year": 2013
+    },
+    {
+      "Code": "JPN",
+      "Entity": "Japan",
+      "GDP per capita": 35358.459846906,
+      "Number of Records": 1,
+      "Political Regime Score": 10,
+      "Population by country": 128162873,
+      "Year": 2014
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 910.377463517,
+      "Number of Records": 1,
+      "Political Regime Score": -8,
+      "Population by country": 582029301,
+      "Year": 1952
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 983.454742872,
+      "Number of Records": 1,
+      "Political Regime Score": -8,
+      "Population by country": 592567861,
+      "Year": 1953
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 986.300763695,
+      "Number of Records": 1,
+      "Political Regime Score": -8,
+      "Population by country": 601971218,
+      "Year": 1954
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 1022.293454296,
+      "Number of Records": 1,
+      "Political Regime Score": -8,
+      "Population by country": 610834396,
+      "Year": 1955
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 1071.909497459,
+      "Number of Records": 1,
+      "Political Regime Score": -8,
+      "Population by country": 619597547,
+      "Year": 1956
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 1137.936307785,
+      "Number of Records": 1,
+      "Political Regime Score": -8,
+      "Population by country": 628551405,
+      "Year": 1957
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 1238.414977753,
+      "Number of Records": 1,
+      "Political Regime Score": -8,
+      "Population by country": 637853609,
+      "Year": 1958
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 1222.654616709,
+      "Number of Records": 1,
+      "Political Regime Score": -8,
+      "Population by country": 647555963,
+      "Year": 1959
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 1154.186537895,
+      "Number of Records": 1,
+      "Political Regime Score": -8,
+      "Population by country": 657686143,
+      "Year": 1960
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 848.699257263,
+      "Number of Records": 1,
+      "Political Regime Score": -8,
+      "Population by country": 668334897,
+      "Year": 1961
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 934.906244643,
+      "Number of Records": 1,
+      "Political Regime Score": -8,
+      "Population by country": 679732315,
+      "Year": 1962
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 1005.54496213,
+      "Number of Records": 1,
+      "Political Regime Score": -8,
+      "Population by country": 692280490,
+      "Year": 1963
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 1110.825426096,
+      "Number of Records": 1,
+      "Political Regime Score": -8,
+      "Population by country": 706460953,
+      "Year": 1964
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 1174.655724745,
+      "Number of Records": 1,
+      "Political Regime Score": -8,
+      "Population by country": 722562183,
+      "Year": 1965
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 1231.732736039,
+      "Number of Records": 1,
+      "Political Regime Score": -9,
+      "Population by country": 740745642,
+      "Year": 1966
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 1155.278374941,
+      "Number of Records": 1,
+      "Political Regime Score": -9,
+      "Population by country": 760771063,
+      "Year": 1967
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 1075.991559259,
+      "Number of Records": 1,
+      "Political Regime Score": -9,
+      "Population by country": 782008729,
+      "Year": 1968
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 1176.317598204,
+      "Number of Records": 1,
+      "Political Regime Score": -8,
+      "Population by country": 803577221,
+      "Year": 1969
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 1284.627072097,
+      "Number of Records": 1,
+      "Political Regime Score": -8,
+      "Population by country": 824788457,
+      "Year": 1970
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 1341.645885536,
+      "Number of Records": 1,
+      "Political Regime Score": -8,
+      "Population by country": 845481578,
+      "Year": 1971
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 1309.870240329,
+      "Number of Records": 1,
+      "Political Regime Score": -8,
+      "Population by country": 865686530,
+      "Year": 1972
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 1366.94282981,
+      "Number of Records": 1,
+      "Political Regime Score": -8,
+      "Population by country": 885145933,
+      "Year": 1973
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 1350.828026712,
+      "Number of Records": 1,
+      "Political Regime Score": -8,
+      "Population by country": 903613538,
+      "Year": 1974
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 1390.57372755,
+      "Number of Records": 1,
+      "Political Regime Score": -8,
+      "Population by country": 920945083,
+      "Year": 1975
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 1362.670425164,
+      "Number of Records": 1,
+      "Political Regime Score": -7,
+      "Population by country": 937018252,
+      "Year": 1976
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 1379.967188968,
+      "Number of Records": 1,
+      "Political Regime Score": -7,
+      "Population by country": 951927444,
+      "Year": 1977
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 1535.721137816,
+      "Number of Records": 1,
+      "Political Regime Score": -7,
+      "Population by country": 966039822,
+      "Year": 1978
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 1585.047239325,
+      "Number of Records": 1,
+      "Political Regime Score": -7,
+      "Population by country": 979880619,
+      "Year": 1979
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 1598.930018667,
+      "Number of Records": 1,
+      "Political Regime Score": -7,
+      "Population by country": 993877310,
+      "Year": 1980
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 1642.036672524,
+      "Number of Records": 1,
+      "Political Regime Score": -7,
+      "Population by country": 1008000152,
+      "Year": 1981
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 1772.498236979,
+      "Number of Records": 1,
+      "Political Regime Score": -7,
+      "Population by country": 1022253396,
+      "Year": 1982
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 1862.258473026,
+      "Number of Records": 1,
+      "Political Regime Score": -7,
+      "Population by country": 1037123834,
+      "Year": 1983
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 2051.474341037,
+      "Number of Records": 1,
+      "Political Regime Score": -7,
+      "Population by country": 1053210735,
+      "Year": 1984
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 2180.36161704,
+      "Number of Records": 1,
+      "Political Regime Score": -7,
+      "Population by country": 1070863389,
+      "Year": 1985
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 2253.752262563,
+      "Number of Records": 1,
+      "Political Regime Score": -7,
+      "Population by country": 1090348056,
+      "Year": 1986
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 2380.209364264,
+      "Number of Records": 1,
+      "Political Regime Score": -7,
+      "Population by country": 1111341725,
+      "Year": 1987
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 2407.53830216,
+      "Number of Records": 1,
+      "Political Regime Score": -7,
+      "Population by country": 1132866344,
+      "Year": 1988
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 2360.89474381,
+      "Number of Records": 1,
+      "Political Regime Score": -7,
+      "Population by country": 1153565894,
+      "Year": 1989
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 2386.483823687,
+      "Number of Records": 1,
+      "Political Regime Score": -7,
+      "Population by country": 1172445200,
+      "Year": 1990
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 2505.260407829,
+      "Number of Records": 1,
+      "Political Regime Score": -7,
+      "Population by country": 1189183522,
+      "Year": 1991
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 2686.664882309,
+      "Number of Records": 1,
+      "Political Regime Score": -7,
+      "Population by country": 1204003901,
+      "Year": 1992
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 2895.558898422,
+      "Number of Records": 1,
+      "Political Regime Score": -7,
+      "Population by country": 1217129133,
+      "Year": 1993
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 3095.422932129,
+      "Number of Records": 1,
+      "Political Regime Score": -7,
+      "Population by country": 1228991932,
+      "Year": 1994
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 3438.690786289,
+      "Number of Records": 1,
+      "Political Regime Score": -7,
+      "Population by country": 1239940004,
+      "Year": 1995
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 3523.102662211,
+      "Number of Records": 1,
+      "Political Regime Score": -7,
+      "Population by country": 1249981441,
+      "Year": 1996
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 3734.585972885,
+      "Number of Records": 1,
+      "Political Regime Score": -7,
+      "Population by country": 1259066974,
+      "Year": 1997
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 3706.091160533,
+      "Number of Records": 1,
+      "Political Regime Score": -7,
+      "Population by country": 1267441503,
+      "Year": 1998
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 3901.115265602,
+      "Number of Records": 1,
+      "Political Regime Score": -7,
+      "Population by country": 1275406699,
+      "Year": 1999
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 4117.929693477,
+      "Number of Records": 1,
+      "Political Regime Score": -7,
+      "Population by country": 1283198970,
+      "Year": 2000
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 4400.834909616,
+      "Number of Records": 1,
+      "Political Regime Score": -7,
+      "Population by country": 1290937649,
+      "Year": 2001
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 4865.592168542,
+      "Number of Records": 1,
+      "Political Regime Score": -7,
+      "Population by country": 1298646577,
+      "Year": 2002
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 5242.522709632,
+      "Number of Records": 1,
+      "Political Regime Score": -7,
+      "Population by country": 1306343911,
+      "Year": 2003
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 5796.006324114,
+      "Number of Records": 1,
+      "Political Regime Score": -7,
+      "Population by country": 1314007478,
+      "Year": 2004
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 6400.315539063,
+      "Number of Records": 1,
+      "Political Regime Score": -7,
+      "Population by country": 1321623490,
+      "Year": 2005
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 7125.512533084,
+      "Number of Records": 1,
+      "Political Regime Score": -7,
+      "Population by country": 1329209094,
+      "Year": 2006
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 7858.489685992,
+      "Number of Records": 1,
+      "Political Regime Score": -7,
+      "Population by country": 1336800506,
+      "Year": 2007
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 8033.571437675,
+      "Number of Records": 1,
+      "Political Regime Score": -7,
+      "Population by country": 1344415227,
+      "Year": 2008
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 8709.03470392,
+      "Number of Records": 1,
+      "Political Regime Score": -7,
+      "Population by country": 1352068091,
+      "Year": 2009
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 9456.309942295,
+      "Number of Records": 1,
+      "Political Regime Score": -7,
+      "Population by country": 1359755102,
+      "Year": 2010
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 10205.055966057,
+      "Number of Records": 1,
+      "Political Regime Score": -7,
+      "Population by country": 1367480264,
+      "Year": 2011
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 10944.681869713,
+      "Number of Records": 1,
+      "Political Regime Score": -7,
+      "Population by country": 1375198619,
+      "Year": 2012
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 11673.137277844,
+      "Number of Records": 1,
+      "Political Regime Score": -7,
+      "Population by country": 1382793212,
+      "Year": 2013
+    },
+    {
+      "Code": "CHN",
+      "Entity": "China",
+      "GDP per capita": 12472.512856336,
+      "Number of Records": 1,
+      "Political Regime Score": -7,
+      "Population by country": 1390110388,
+      "Year": 2014
+    }
+  ],
+  "sSpec": {
+    "$schema": "https://vega.github.io/schema/vega/v5.json",
+    "autosize": "pad",
+    "padding": 5,
+    "width": 200,
+    "height": 200,
+    "style": "cell",
+    "data": [
+      {
+        "name": "names",
+        "values": [
+          {"code": "CHN", "name": "A"},
+          {"code": "KOR", "name": "B"},
+          {"code": "JPN", "name": "C"}
+        ]
+      },
+      {"name": "source_0", "values": []},
+      {
+        "name": "data_0",
+        "source": "source_0",
+        "transform": [
+          {
+            "type": "formula",
+            "expr": "toNumber(datum[\"Political Regime Score\"])",
+            "as": "Political Regime Score"
+          },
+          {
+            "type": "lookup",
+            "from": "names",
+            "key": "code",
+            "fields": ["Code"],
+            "values": ["name"],
+            "as": ["Country"],
+            "default": "-"
+          },
+          {"type": "filter", "expr": "datum.Year >= 1984"}
+        ]
+      },
+      {
+        "name": "data_4",
+        "source": "data_0",
+        "transform": [
+          {"type": "filter", "expr": "datum.Year <= 1984", "name": "untilYear"},
+          {
+            "type": "joinaggregate",
+            "fields": ["Year"],
+            "ops": ["max"],
+            "as": ["maxYear"]
+          }
+        ]
+      },
+      {
+        "name": "data_1",
+        "source": "data_4",
+        "transform": [{"type": "filter", "expr": "datum.Year == datum.maxYear"}]
+      },
+      {
+        "name": "data_3",
+        "source": "data_1",
+        "transform": [
+          {
+            "type": "filter",
+            "expr": "datum[\"Political Regime Score\"] !== null && !isNaN(datum[\"Political Regime Score\"]) && datum[\"GDP per capita\"] !== null && !isNaN(datum[\"GDP per capita\"])"
+          }
+        ]
+      },
+      {
+        "name": "data_2",
+        "source": "data_1",
+        "transform": [
+          {
+            "type": "filter",
+            "expr": "datum[\"Political Regime Score\"] !== null && !isNaN(datum[\"Political Regime Score\"]) && datum[\"GDP per capita\"] !== null && !isNaN(datum[\"GDP per capita\"])"
+          }
+        ]
+      }
+    ],
+    "marks": [
+      {
+        "name": "layer_0_pathgroup",
+        "type": "group",
+        "from": {
+          "facet": {
+            "name": "faceted_path_layer_0_main",
+            "data": "data_4",
+            "groupby": ["Country"]
+          }
+        },
+        "encode": {
+          "update": {
+            "width": {"field": {"group": "width"}},
+            "height": {"field": {"group": "height"}}
+          }
+        },
+        "marks": [
+          {
+            "name": "line",
+            "type": "line",
+            "style": ["line"],
+            "sort": {"field": "datum[\"Political Regime Score\"]"},
+            "from": {"data": "faceted_path_layer_0_main"},
+            "encode": {
+              "update": {
+                "stroke": {"scale": "color", "field": "Country"},
+                "x": {"scale": "x", "field": "Political Regime Score"},
+                "y": {"scale": "y", "field": "GDP per capita"},
+                "defined": {
+                  "signal": "datum[\"Political Regime Score\"] !== null && !isNaN(datum[\"Political Regime Score\"]) && datum[\"GDP per capita\"] !== null && !isNaN(datum[\"GDP per capita\"])"
+                }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "circle",
+        "type": "symbol",
+        "style": ["circle"],
+        "from": {"data": "data_2"},
+        "encode": {
+          "update": {
+            "opacity": {"value": 0.7},
+            "fill": {"scale": "color", "field": "Country"},
+            "x": {"scale": "x", "field": "Political Regime Score"},
+            "y": {"scale": "y", "field": "GDP per capita"},
+            "shape": {"value": "circle"}
+          }
+        }
+      }
+    ],
+    "scales": [
+      {
+        "name": "x",
+        "type": "linear",
+        "domain": [-10, 10],
+        "range": [0, {"signal": "width"}],
+        "nice": true,
+        "zero": true
+      },
+      {
+        "name": "y",
+        "type": "log",
+        "domain": [1000, 100000],
+        "range": [{"signal": "height"}, 0],
+        "nice": true
+      },
+      {
+        "name": "color",
+        "type": "ordinal",
+        "domain": {
+          "fields": [
+            {"data": "data_4", "field": "Country"},
+            {"data": "data_2", "field": "Country"},
+            {"data": "data_3", "field": "Country"}
+          ],
+          "sort": true
+        },
+        "range": "category"
+      }
+    ],
+    "axes": [
+      {
+        "scale": "x",
+        "orient": "bottom",
+        "gridScale": "y",
+        "grid": true,
+        "title": "Political Regime Score",
+        "labelFlush": true,
+        "labelOverlap": true,
+        "tickCount": {"signal": "ceil(width/40)"},
+        "zindex": 0,
+        "encode": {"axis": {"name": "x"}}
+      },
+      {
+        "scale": "y",
+        "orient": "left",
+        "gridScale": "x",
+        "grid": true,
+        "title": "GDP per capita",
+        "labelOverlap": "greedy",
+        "zindex": 0,
+        "encode": {"axis": {"name": "y"}}
+      }
+    ],
+    "legends": [
+      {
+        "stroke": "color",
+        "gradientLength": {"signal": "clamp(height, 64, 200)"},
+        "symbolType": "circle",
+        "title": "Country",
+        "fill": "color",
+        "encode": {"symbols": {"update": {"opacity": {"value": 0.7}}}}
+      }
+    ],
+    "config": {}
+  },
+  "eSpec": {
+    "$schema": "https://vega.github.io/schema/vega/v5.json",
+    "autosize": "pad",
+    "padding": 5,
+    "width": 200,
+    "height": 200,
+    "style": "cell",
+    "data": [
+      {
+        "name": "names",
+        "values": [
+          {"code": "CHN", "name": "A"},
+          {"code": "KOR", "name": "B"},
+          {"code": "JPN", "name": "C"}
+        ]
+      },
+      {"name": "source_0", "values": []},
+      {
+        "name": "data_0",
+        "source": "source_0",
+        "transform": [
+          {
+            "type": "formula",
+            "expr": "toNumber(datum[\"Political Regime Score\"])",
+            "as": "Political Regime Score"
+          },
+          {
+            "type": "lookup",
+            "from": "names",
+            "key": "code",
+            "fields": ["Code"],
+            "values": ["name"],
+            "as": ["Country"],
+            "default": "-"
+          },
+          {"type": "filter", "expr": "datum.Year >= 1984"}
+        ]
+      },
+      {
+        "name": "data_4",
+        "source": "data_0",
+        "transform": [
+          {"type": "filter", "expr": "datum.Year <= 2014", "name": "untilYear"},
+          {
+            "type": "joinaggregate",
+            "fields": ["Year"],
+            "ops": ["max"],
+            "as": ["maxYear"]
+          }
+        ]
+      },
+      {
+        "name": "data_1",
+        "source": "data_4",
+        "transform": [{"type": "filter", "expr": "datum.Year == datum.maxYear"}]
+      },
+      {
+        "name": "data_3",
+        "source": "data_1",
+        "transform": [
+          {
+            "type": "filter",
+            "expr": "datum[\"Political Regime Score\"] !== null && !isNaN(datum[\"Political Regime Score\"]) && datum[\"GDP per capita\"] !== null && !isNaN(datum[\"GDP per capita\"])"
+          }
+        ]
+      },
+      {
+        "name": "data_2",
+        "source": "data_1",
+        "transform": [
+          {
+            "type": "filter",
+            "expr": "datum[\"Political Regime Score\"] !== null && !isNaN(datum[\"Political Regime Score\"]) && datum[\"GDP per capita\"] !== null && !isNaN(datum[\"GDP per capita\"])"
+          }
+        ]
+      }
+    ],
+    "marks": [
+      {
+        "name": "layer_0_pathgroup",
+        "type": "group",
+        "from": {
+          "facet": {
+            "name": "faceted_path_layer_0_main",
+            "data": "data_4",
+            "groupby": ["Country"]
+          }
+        },
+        "encode": {
+          "update": {
+            "width": {"field": {"group": "width"}},
+            "height": {"field": {"group": "height"}}
+          }
+        },
+        "marks": [
+          {
+            "name": "line",
+            "type": "line",
+            "style": ["line"],
+            "sort": {"field": "datum[\"Political Regime Score\"]"},
+            "from": {"data": "faceted_path_layer_0_main"},
+            "encode": {
+              "update": {
+                "stroke": {"scale": "color", "field": "Country"},
+                "x": {"scale": "x", "field": "Political Regime Score"},
+                "y": {"scale": "y", "field": "GDP per capita"},
+                "defined": {
+                  "signal": "datum[\"Political Regime Score\"] !== null && !isNaN(datum[\"Political Regime Score\"]) && datum[\"GDP per capita\"] !== null && !isNaN(datum[\"GDP per capita\"])"
+                }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "circle",
+        "type": "symbol",
+        "style": ["circle"],
+        "from": {"data": "data_2"},
+        "encode": {
+          "update": {
+            "opacity": {"value": 0.7},
+            "fill": {"scale": "color", "field": "Country"},
+            "x": {"scale": "x", "field": "Political Regime Score"},
+            "y": {"scale": "y", "field": "GDP per capita"},
+            "shape": {"value": "circle"}
+          }
+        }
+      }
+    ],
+    "scales": [
+      {
+        "name": "x",
+        "type": "linear",
+        "domain": [-10, 10],
+        "range": [0, {"signal": "width"}],
+        "nice": true,
+        "zero": true
+      },
+      {
+        "name": "y",
+        "type": "log",
+        "domain": [1000, 100000],
+        "range": [{"signal": "height"}, 0],
+        "nice": true
+      },
+      {
+        "name": "color",
+        "type": "ordinal",
+        "domain": {
+          "fields": [
+            {"data": "data_4", "field": "Country"},
+            {"data": "data_2", "field": "Country"},
+            {"data": "data_3", "field": "Country"}
+          ],
+          "sort": true
+        },
+        "range": "category"
+      }
+    ],
+    "axes": [
+      {
+        "scale": "x",
+        "orient": "bottom",
+        "gridScale": "y",
+        "grid": true,
+        "title": "Political Regime Score",
+        "labelFlush": true,
+        "labelOverlap": true,
+        "tickCount": {"signal": "ceil(width/40)"},
+        "zindex": 0,
+        "encode": {"axis": {"name": "x"}}
+      },
+      {
+        "scale": "y",
+        "orient": "left",
+        "gridScale": "x",
+        "grid": true,
+        "title": "GDP per capita",
+        "labelOverlap": "greedy",
+        "zindex": 0,
+        "encode": {"axis": {"name": "y"}}
+      }
+    ],
+    "legends": [
+      {
+        "stroke": "color",
+        "gradientLength": {"signal": "clamp(height, 64, 200)"},
+        "symbolType": "circle",
+        "title": "Country",
+        "fill": "color",
+        "encode": {"symbols": {"update": {"opacity": {"value": 0.7}}}}
+      }
+    ],
+    "config": {}
+  },
+  "gemSpecs": [
+    {
+      "meta": {"name": "NYT Style"},
+      "timeline": {
+        "sync": [
+          {
+            "component": {"mark": "circle"},
+            "change": {"data": ["Country"]},
+            "enumerator": "until",
+            "timing": {"duration": {"ratio": 1}, "staggering": "stg"}
+          },
+          {
+            "component": {"mark": "line"},
+            "timing": {"duration": {"ratio": 1}, "staggering": "stg"},
+            "enumerator": "until"
+          }
+        ]
+      },
+      "totalDuration": 6000,
+      "enumerators": [{"name": "until", "filter": "untilYear", "stepSize": 1}],
+      "staggerings": [
+        {"name": "stg", "overlap": 0.8, "by": "Country", "order": "ascending"}
+      ]
+    }
+  ],
+  "noRecom": true
+}

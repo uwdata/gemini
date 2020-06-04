@@ -1,0 +1,12 @@
+node_modules
+test_deprecated
+notes
+yarn-error.log
+bug
+paper
+editor/test
+exp
+user_study/
+editor/
+etc/
+.vscode
