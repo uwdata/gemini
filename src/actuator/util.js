@@ -87,6 +87,7 @@ function propMap(prop) {
       { type: "style", val: "opacity" },
       { type: "style", val: "font" },
       { type: "style", val: "fontSize" },
+      { type: "style", val: "fontWeight" },
       { type: "style", val: "fill" }
     ]);
     break;
@@ -118,6 +119,7 @@ function propMap(prop) {
       { type: "attr", val: "y2" },
       { type: "style", val: "strokeWidth" },
       { type: "style", val: "stroke" },
+      { type: "style", val: "strokeDasharray" },
       { type: "style", val: "opacity" }
     ]);
     break;

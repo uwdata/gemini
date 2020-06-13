@@ -42,6 +42,8 @@ function getStyle(attr) {
     return "font-weight";
   case "strokeWidth":
     return "stroke-width";
+  case "strokeDasharray":
+    return "stroke-dasharray";
   }
   return attr;
 }

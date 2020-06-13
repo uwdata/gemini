@@ -154,7 +154,12 @@ function lableAngle(orient, scaleType) {
   }
   return 0;
 }
-function axisTextDpos(attr, orient) {
+function axisTextDpos(attr, spec) {
+  let orient = spec.orient;
+
+  if (spec.ticks === false) {
+    return 0;
+  }
   if (attr === "dx") {
     if (orient === "right") {
       return 7;

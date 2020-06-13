@@ -14,9 +14,11 @@ export const DEFAULT_ENCODE_AXIS = {
     const defaultEncode = {
       ...vg.axisCompPos(spec),
       text: { field: "label" },
-      fontSize: { value: vgConfig.style["guide-label"].fontSize },
-      dx: { value: vg.axisTextDpos("dx", orient) },
-      dy: { value: vg.axisTextDpos("dy", orient) },
+      fontSize: {
+        value: spec.labelFontSize || vgConfig.style["guide-label"].fontSize
+      },
+      dx: { value: vg.axisTextDpos("dx", spec) },
+      dy: { value: vg.axisTextDpos("dy", spec) },
       align: { value: vg.axisLabelAlign(spec) },
       baseline: {
         value: spec && spec.baseline ? spec.baseline : vg.baseline(orient)
@@ -52,7 +54,7 @@ export const DEFAULT_ENCODE_AXIS = {
   grid: spec => {
     const orient = spec ? spec.orient : undefined;
     const gridScale = spec ? spec.gridScale : undefined;
-    const defaultEncode = Object.assign(
+    let defaultEncode = Object.assign(
       {},
       vg.axisCompPos(spec),
       vg.gridLength(orient, gridScale),
@@ -61,6 +63,9 @@ export const DEFAULT_ENCODE_AXIS = {
         stroke: { value: vgConfig.axis.gridColor }
       }
     );
+    if (spec.gridDash) {
+      defaultEncode.strokeDasharray = {"value": spec.gridDash.join(",")};
+    }
 
     return {
       enter: { ...defaultEncode, opacity: { value: 0 } },

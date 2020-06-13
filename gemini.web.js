@@ -10343,7 +10343,12 @@
     }
     return 0;
   }
-  function axisTextDpos(attr, orient) {
+  function axisTextDpos(attr, spec) {
+    let orient = spec.orient;
+
+    if (spec.ticks === false) {
+      return 0;
+    }
     if (attr === "dx") {
       if (orient === "right") {
         return 7;
@@ -10611,9 +10616,11 @@
       const defaultEncode = {
         ...axisCompPos(spec),
         text: { field: "label" },
-        fontSize: { value: vegaConfig.style["guide-label"].fontSize },
-        dx: { value: axisTextDpos("dx", orient) },
-        dy: { value: axisTextDpos("dy", orient) },
+        fontSize: {
+          value: spec.labelFontSize || vegaConfig.style["guide-label"].fontSize
+        },
+        dx: { value: axisTextDpos("dx", spec) },
+        dy: { value: axisTextDpos("dy", spec) },
         align: { value: axisLabelAlign(spec) },
         baseline: {
           value: spec && spec.baseline ? spec.baseline : baseline(orient)
@@ -10649,7 +10656,7 @@
     grid: spec => {
       const orient = spec ? spec.orient : undefined;
       const gridScale = spec ? spec.gridScale : undefined;
-      const defaultEncode = Object.assign(
+      let defaultEncode = Object.assign(
         {},
         axisCompPos(spec),
         gridLength(orient, gridScale),
@@ -10658,6 +10665,9 @@
           stroke: { value: vegaConfig.axis.gridColor }
         }
       );
+      if (spec.gridDash) {
+        defaultEncode.strokeDasharray = {"value": spec.gridDash.join(",")};
+      }
 
       return {
         enter: { ...defaultEncode, opacity: { value: 0 } },
@@ -10788,6 +10798,7 @@
         { type: "style", val: "opacity" },
         { type: "style", val: "font" },
         { type: "style", val: "fontSize" },
+        { type: "style", val: "fontWeight" },
         { type: "style", val: "fill" }
       ]);
       break;
@@ -10819,6 +10830,7 @@
         { type: "attr", val: "y2" },
         { type: "style", val: "strokeWidth" },
         { type: "style", val: "stroke" },
+        { type: "style", val: "strokeDasharray" },
         { type: "style", val: "opacity" }
       ]);
       break;
@@ -14047,6 +14059,8 @@
       return "font-weight";
     case "strokeWidth":
       return "stroke-width";
+    case "strokeDasharray":
+      return "stroke-dasharray";
     }
     return attr;
   }
@@ -14950,7 +14964,6 @@
     computeId,
     getPath
   ) {
-    const t = Date.now();
     // 1) calculate two anchors between dataA and dataB
     const _encodes = encodes.initial && encodes.final ? encodes : {
       initial: encodes,
@@ -15072,7 +15085,7 @@
         body = getBody(dataA, dataB, scales, _encodes, signals, getPath);
       }
     }
-    console.log(Date.now() - t);
+
     if (head && tail && body) {
       return t => {
         if (t === 1) {
@@ -15301,7 +15314,7 @@
         if (oldD && oldD.align !== d.align) {
           const alignFactor = { right: -0.5, center: 0, left: 0.5 };
           trfD.x +=
-            this.getBBox().width *
+            vega.textMetrics.width(d,d.text) *
             (alignFactor[d.align] - alignFactor[oldD.align]);
         }
 
@@ -20741,10 +20754,10 @@
       ? getMarkData(rawInfo.eVis.view, match.final, match.compName)
       : [];
 
-    if (computeHasFacet(match.initial) || isGroupingMarktype(match.initial.type)) {
+    if (match.initial && (computeHasFacet(match.initial) || isGroupingMarktype(match.initial.type))) {
       iData = unpackData(iData);
     }
-    if (computeHasFacet(match.final) || isGroupingMarktype(match.final.type)) {
+    if (match.final && (computeHasFacet(match.final) || isGroupingMarktype(match.final.type))) {
       fData = unpackData(fData);
     }
     if (!markDiffs.data) {

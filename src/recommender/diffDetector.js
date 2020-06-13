@@ -188,10 +188,10 @@ function detectMarkDiffs(match, rawInfo, scaleDiffs) {
     ? getMarkData(rawInfo.eVis.view, match.final, match.compName)
     : [];
 
-  if (computeHasFacet(match.initial) || isGroupingMarktype(match.initial.type)) {
+  if (match.initial && (computeHasFacet(match.initial) || isGroupingMarktype(match.initial.type))) {
     iData = unpackData(iData);
   }
-  if (computeHasFacet(match.final) || isGroupingMarktype(match.final.type)) {
+  if (match.final && (computeHasFacet(match.final) || isGroupingMarktype(match.final.type))) {
     fData = unpackData(fData);
   }
   if (!markDiffs.data) {

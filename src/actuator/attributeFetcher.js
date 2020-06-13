@@ -95,7 +95,7 @@ export function getPropVal(propInfo, encodes, scales, signals, d, oldD) {
       if (oldD && oldD.align !== d.align) {
         const alignFactor = { right: -0.5, center: 0, left: 0.5 };
         trfD.x +=
-          this.getBBox().width *
+          vega.textMetrics.width(d,d.text) *
           (alignFactor[d.align] - alignFactor[oldD.align]);
       }
 
