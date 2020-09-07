@@ -10344,7 +10344,7 @@
     return 0;
   }
   function axisTextDpos(attr, spec) {
-    let orient = spec.orient;
+    const orient = spec ? spec.orient : undefined;
 
     if (spec.ticks === false) {
       return 0;
@@ -10610,6 +10610,10 @@
       return copy(EMPTY_ENCODE);
     },
     labels: spec => {
+      if (!spec) {
+        return copy(EMPTY_ENCODE);
+      }
+
       const orient = spec ? spec.orient : undefined;
       const scaleType = spec ? spec.scaleType : undefined;
 
@@ -10617,7 +10621,7 @@
         ...axisCompPos(spec),
         text: { field: "label" },
         fontSize: {
-          value: spec.labelFontSize || vegaConfig.style["guide-label"].fontSize
+          value: spec && spec.labelFontSize ? spec.labelFontSize : vegaConfig.style["guide-label"].fontSize
         },
         dx: { value: axisTextDpos("dx", spec) },
         dy: { value: axisTextDpos("dy", spec) },
@@ -10640,6 +10644,10 @@
       };
     },
     ticks: spec => {
+      if (!spec) {
+        return copy(EMPTY_ENCODE);
+      }
+
       const orient = spec ? spec.orient : undefined;
       const defaultEncode = Object.assign({}, axisCompPos(spec), {
         x2: { value: tickLength("x2", orient) },
@@ -10654,6 +10662,7 @@
       };
     },
     grid: spec => {
+
       const orient = spec ? spec.orient : undefined;
       const gridScale = spec ? spec.gridScale : undefined;
       let defaultEncode = Object.assign(
@@ -10665,7 +10674,7 @@
           stroke: { value: vegaConfig.axis.gridColor }
         }
       );
-      if (spec.gridDash) {
+      if (spec && spec.gridDash) {
         defaultEncode.strokeDasharray = {"value": spec.gridDash.join(",")};
       }
 
@@ -10676,6 +10685,8 @@
       };
     },
     title: spec => {
+
+
       const orient = spec ? spec.orient : undefined;
       const defaultEncode = Object.assign(
         {
@@ -10694,6 +10705,7 @@
       };
     },
     domain: spec => {
+
       const defaultEncode = {
         ...(spec ? domainLength(spec.orient) : {}),
         strokeWidth: { value: vegaConfig.axis.domainWidth },

@@ -155,7 +155,7 @@ function lableAngle(orient, scaleType) {
   return 0;
 }
 function axisTextDpos(attr, spec) {
-  let orient = spec.orient;
+  const orient = spec ? spec.orient : undefined;
 
   if (spec.ticks === false) {
     return 0;

@@ -8,6 +8,10 @@ export const DEFAULT_ENCODE_AXIS = {
     return copy(vg.EMPTY_ENCODE);
   },
   labels: spec => {
+    if (!spec) {
+      return copy(vg.EMPTY_ENCODE);
+    }
+
     const orient = spec ? spec.orient : undefined;
     const scaleType = spec ? spec.scaleType : undefined;
 
@@ -15,7 +19,7 @@ export const DEFAULT_ENCODE_AXIS = {
       ...vg.axisCompPos(spec),
       text: { field: "label" },
       fontSize: {
-        value: spec.labelFontSize || vgConfig.style["guide-label"].fontSize
+        value: spec && spec.labelFontSize ? spec.labelFontSize : vgConfig.style["guide-label"].fontSize
       },
       dx: { value: vg.axisTextDpos("dx", spec) },
       dy: { value: vg.axisTextDpos("dy", spec) },
@@ -38,6 +42,10 @@ export const DEFAULT_ENCODE_AXIS = {
     };
   },
   ticks: spec => {
+    if (!spec) {
+      return copy(vg.EMPTY_ENCODE);
+    }
+
     const orient = spec ? spec.orient : undefined;
     const defaultEncode = Object.assign({}, vg.axisCompPos(spec), {
       x2: { value: vg.tickLength("x2", orient) },
@@ -52,6 +60,7 @@ export const DEFAULT_ENCODE_AXIS = {
     };
   },
   grid: spec => {
+
     const orient = spec ? spec.orient : undefined;
     const gridScale = spec ? spec.gridScale : undefined;
     let defaultEncode = Object.assign(
@@ -63,7 +72,7 @@ export const DEFAULT_ENCODE_AXIS = {
         stroke: { value: vgConfig.axis.gridColor }
       }
     );
-    if (spec.gridDash) {
+    if (spec && spec.gridDash) {
       defaultEncode.strokeDasharray = {"value": spec.gridDash.join(",")};
     }
 
@@ -74,6 +83,8 @@ export const DEFAULT_ENCODE_AXIS = {
     };
   },
   title: spec => {
+
+
     const orient = spec ? spec.orient : undefined;
     const defaultEncode = Object.assign(
       {
@@ -92,6 +103,7 @@ export const DEFAULT_ENCODE_AXIS = {
     };
   },
   domain: spec => {
+
     const defaultEncode = {
       ...(spec ? vg.domainLength(spec.orient) : {}),
       strokeWidth: { value: vgConfig.axis.domainWidth },
