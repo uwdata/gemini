@@ -3,7 +3,7 @@
 Gemini ([paper](http://idl.cs.washington.edu/papers/gemini/)) is a
 grammar and a recommender system for animating transitons between single-view [Vega](https://vega.github.io/vega)/[Vega-Lite](https://vega.github.io/vega-lite) charts. This repository contains source code of Gemini.
 
-- [Gemini Examples](https://uwdata.github.io/gemini-editor/).
+- [Gemini Examples](https://uwdata.github.io/gemini-editor/)
 - [Gemini Grammar](https://github.com/uwdata/gemini/wiki)
 - [Gemini APIs](#gemini-api)
 - [Cite Us!](#cite-us)
