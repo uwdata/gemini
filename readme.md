@@ -1,12 +1,11 @@
 # Gemini
 
 Gemini ([paper](http://idl.cs.washington.edu/papers/gemini/)) is a
-grammar and a recommender system for animating transitons between single-view [Vega](https://vega.github.io/vega)/[Vega-Lite](https://vega.github.io/vega-lite) charts. This repository contains source code of Gemini.
+grammar and a recommender system for animating transitions between single-view [Vega](https://vega.github.io/vega)/[Vega-Lite](https://vega.github.io/vega-lite) charts. This repository contains the source code of Gemini.
 
-You can try Gemini examples in [Gemini Editor](https://uwdata.github.io/gemini-editor/).
-
+- [Gemini Examples](https://uwdata.github.io/gemini-editor/)
 - [Gemini Grammar](https://github.com/uwdata/gemini/wiki)
-- [Gemini API](#gemini-api)
+- [Gemini APIs](#gemini-api)
 - [Cite Us!](#cite-us)
 
 ## Gemini APIs
@@ -78,7 +77,7 @@ Compile the Gemini spec for the transition between the start and end Vega visual
 - The current version of Gemini only supports the single-view Vega charts, which contain no more than one x-axis and one y-axis.
 
 #### Output
-It returns a [promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) that triggers `then` with an [animation](#play) object when it compile successfully. The [animation](#play) object can be played.
+It returns a [promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) that triggers `then` with an [animation](#play) object when it compiles successfully. The [animation](#play) object can be played.
 
 ---
 
@@ -86,13 +85,13 @@ It returns a [promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/R
 animation.<b>play</b>(<i>target</i>)
 [<>](https://github.com/uwdata/gemini/blob/master/src/animation.js "Source")
 
-Play the compiled animation at the place where the start Vega visualization is embeded.
+Play the compiled animation at the place where the start Vega visualization is embedded.
 
 #### Input
 
 | Parameter  | Type          | Description    |
 | :-------- |:-------------:| :------------- |
-| target | String | A CSS selector string to select the target DOM. The start Vega visualization must be embeded at the target DOM.|
+| target | String | A CSS selector string to select the target DOM. The start Vega visualization must be embedded at the target DOM.|
 
 #### Output
 It returns a [promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) that triggers `then` when it completes the animation play. The promise has no success value.
@@ -102,7 +101,7 @@ It returns a [promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/R
 gemini.<b>vl2vg4gemini</b>(<i>vlSpec</i>)
 [<>](https://github.com/uwdata/gemini/blob/master/src/util/vl2vg4gemini.js "Source")
 
-Compile the given vega-lite spec to the vega spec with necessary informations for Gemini, such as the names of each components.
+Compile the given vega-lite spec to the vega spec with the necessary information for Gemini, such as each component's name.
 
 
 
