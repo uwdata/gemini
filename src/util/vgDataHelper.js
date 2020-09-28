@@ -16,21 +16,20 @@ function facetData(data, facetDef) {
   if (typeof groupby === "string") {
     groupby = [groupby];
   }
-  return d3
-    .nest()
-    .key(d => groupby.map(f => d.datum[f]).join("@@_@@"))
-    .entries(data)
+  return d3.groups(data, d => groupby.map(f => d.datum[f]).join("@@_@@"))
     .map(group => {
+      const values  = group[1]
       let datum = groupby.reduce((datum, f) => {
-        datum[f] = group.values[0].datum[f];
+        datum[f] = values[0].datum[f];
         return datum;
-      }, { count: group.values.length });
+      }, { count: values.length });
       return {
         datum: datum,
         mark: {role: "group", marktype: "group"},
-        items: [{items: group.values }]
+        items: [{items: values }]
       };
     });
+
 }
 function unpackData(data) {
   if (data[0].mark.marktype !== "group") {
