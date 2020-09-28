@@ -22977,9 +22977,8 @@
     }
     let axesScales = vegaAxes.filter(a => a.grid).map(a => a.scale);
 
-    return d3.nest()
-      .key(axis => axis.scale)
-      .rollup(axes => {
+    return d3.rollups(vegaAxes,
+      axes => {
         let axisWithGrid = axes.find(a => a.grid);
         let axisWithoutGrid = { ...axes.find(a => !a.grid) };
 
@@ -22991,9 +22990,10 @@
           axisWithoutGrid.zindex = 0;
         }
         return axisWithoutGrid;
-      }).entries(vegaAxes)
-      .map(d => d.value)
-      .sort((a,b) => (axesScales.indexOf(a.scale) - axesScales.indexOf(b.scale)));
+      },
+      axis => axis.scale
+    ).map(d => d[1])
+     .sort((a,b) => (axesScales.indexOf(a.scale) - axesScales.indexOf(b.scale)));
   }
 
   const { animate } = Gemini;
