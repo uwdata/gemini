@@ -11537,20 +11537,35 @@
     if (typeof groupby === "string") {
       groupby = [groupby];
     }
-    return d3.nest()
-      .key(d => groupby.map(f => d.datum[f]).join("@@_@@"))
-      .entries(data)
+    return d3.groups(data, d => groupby.map(f => d.datum[f]).join("@@_@@"))
       .map(group => {
+        const values  = group[1];
         let datum = groupby.reduce((datum, f) => {
-          datum[f] = group.values[0].datum[f];
+          datum[f] = values[0].datum[f];
           return datum;
-        }, { count: group.values.length });
+        }, { count: values.length });
         return {
           datum: datum,
           mark: {role: "group", marktype: "group"},
-          items: [{items: group.values }]
+          items: [{items: values }]
         };
       });
+
+    // return d3
+    //   .nest()
+    //   .key(d => groupby.map(f => d.datum[f]).join("@@_@@"))
+    //   .entries(data)
+    //   .map(group => {
+    //     let datum = groupby.reduce((datum, f) => {
+    //       datum[f] = group.values[0].datum[f];
+    //       return datum;
+    //     }, { count: group.values.length });
+    //     return {
+    //       datum: datum,
+    //       mark: {role: "group", marktype: "group"},
+    //       items: [{items: group.values }]
+    //     };
+    //   });
   }
   function unpackData(data) {
     if (data[0].mark.marktype !== "group") {
@@ -16156,32 +16171,66 @@
         return (acc = acc && (val !== undefined ? !isNaN(Number(val)) : true));
       }, true);
     if (!staggering.by) {
-      grouped = d3.nest()
-        .key(d => {
-          const val = d.__staggering_id__;
-          return val === undefined ? "__empty__" : val;
-        })
-        .sortKeys(getOrderFn(true, staggering.order))
-        .entries(dataWithTiming);
+
+      // grouped = d3
+      //   .nest()
+      //   .key(d => {
+      //     const val = d.__staggering_id__;
+      //     return val === undefined ? "__empty__" : val;
+      //   })
+      //   .sortKeys(getOrderFn(true, staggering.order))
+      //   .entries(dataWithTiming);
+      const orderFn = getOrderFn(true, staggering.order);
+      grouped = d3.groups(dataWithTiming, d => {
+        const val = d.__staggering_id__;
+        return val === undefined ? "__empty__" : val;
+      });
+      if (typeof(orderFn) === "function") {
+        grouped.sort((a,b) => orderFn(a,b));
+      }
     } else if (typeof staggering.by === "string") {
-      grouped = d3.nest()
-        .key(d => {
-          const val = (d.initial || d.final)[staggering.by];
-          return val === undefined ? "__empty__" : val;
-        })
-        .sortKeys(getOrderFn(isNumber, staggering.order))
-        .entries(dataWithTiming);
+      // grouped = d3
+      //   .nest()
+      //   .key(d => {
+      //     const val = (d.initial || d.final)[staggering.by];
+      //     return val === undefined ? "__empty__" : val;
+      //   })
+      //   .sortKeys(getOrderFn(isNumber, staggering.order))
+      //   .entries(dataWithTiming);
+
+      grouped = d3.groups(dataWithTiming, d => {
+        const val = (d.initial || d.final)[staggering.by];
+        return val === undefined ? "__empty__" : val;
+      });
+
+      const orderFn = getOrderFn(isNumber, staggering.order);
+      if (typeof(orderFn) === "function") {
+        grouped.sort((a,b) => orderFn(a,b));
+      }
     } else if (staggering.by.initial || staggering.by.final) {
       const which = staggering.by.initial ? "initial" : "final";
-      grouped = d3.nest()
-        .key(d => {
-          const val = (which === "initial"
-            ? d.initial || d.final
-            : d.final || d.initial)[staggering.by[which]];
-          return val === undefined ? "__empty__" : val;
-        })
-        .sortKeys(getOrderFn(isNumber, staggering.order))
-        .entries(dataWithTiming);
+      // grouped = d3
+      //   .nest()
+        // .key(d => {
+        //   const val = (which === "initial"
+        //     ? d.initial || d.final
+        //     : d.final || d.initial)[staggering.by[which]];
+        //   return val === undefined ? "__empty__" : val;
+        // })
+      //   .sortKeys(getOrderFn(isNumber, staggering.order))
+      //   .entries(dataWithTiming);
+
+      grouped = d3.groups(dataWithTiming, d => {
+        const val = (which === "initial"
+          ? d.initial || d.final
+          : d.final || d.initial)[staggering.by[which]];
+        return val === undefined ? "__empty__" : val;
+      });
+
+      const orderFn = getOrderFn(isNumber, staggering.order);
+      if (typeof(orderFn) === "function") {
+        grouped.sort((a,b) => orderFn(a,b));
+      }
     }
 
     N = grouped.length;
@@ -16211,13 +16260,13 @@
       });
 
       timings.groups = grouped.map((g, i) => {
-        return staggeredTiming(subStaggering, g.values, durations[i]);
+        return staggeredTiming(subStaggering, g[1], durations[i]);
       });
 
       return getFlattenTimings(timings);
     }
     grouped.forEach((group, i) => {
-      group.values.forEach(datum => {
+      group[1].forEach(datum => {
         datum.delay = delays[i];
         datum.duration = durations[i];
       });
