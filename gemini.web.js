@@ -16097,7 +16097,7 @@
         fn: (scName, val) => (scales[scName] ? scales[scName](val) : undefined)
       },
       { name: "isValid", fn: o => o !== null && o === o },
-      { name: "timeFormat", fn: (a, b) => vega.timeFormat(b)(a) },
+      { name: "timeFormat", fn: (a, b) => vega.defaultLocale().timeFormat(b)(a) },
       { name: "timeUnitSpecifier", fn: (a, b) => vega.timeUnitSpecifier(a, b) }
     ];
 
