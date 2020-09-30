@@ -15,7 +15,7 @@ grammar and a recommender system for animating transitions between single-view [
   <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
   <script src="https://cdn.jsdelivr.net/npm/vega-lite@4"></script>
   <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
-  <script src="https://d3js.org/d3.v5.min.js"></script>
+  <script src="https://d3js.org/d3.v6.min.js"></script>
   <script src="../gemini.web.js" ></script>
 
 </head>
@@ -72,9 +72,11 @@ Compile the Gemini spec for the transition between the start and end Vega visual
 | end | Object | A Vega visualization spec* for the end state.|
 | spec | Object | A Gemini spec for the animation design. |
 
-*Notes
+*📢 **Notes**
 - The start/end visualizations should be Vega specifications having unique names on marks/axes/legend components.
 - The current version of Gemini only supports the single-view Vega charts, which contain no more than one x-axis and one y-axis.
+
+See more details [here](https://github.com/uwdata/gemini/wiki/Input-Vega-Vega-Lite-Visualization-Specs).
 
 #### Output
 It returns a [promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) that triggers `then` with an [animation](#play) object when it compiles successfully. The [animation](#play) object can be played.
