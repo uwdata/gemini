@@ -7,7 +7,7 @@ import * as vegaExpression from "vega-expression";
 import * as d3 from "d3";
 import { propMap, isLinearMarktype } from "./util";
 import { textOffset, getStyle, transformItem } from "./vega-render-util";
-import { copy, copy2, isNumber, get } from "../util/util";
+import { copy, copy2, isNumber, get, isValue } from "../util/util";
 import {
   areaLineInterpolator,
   symbolInterpolator,
@@ -807,7 +807,7 @@ function decodeEncode(prop, encodes, scales, signal, d) {
     if (enAttr.scale) {
       const scName = enAttr.scale;
 
-      if (enAttr.value !== undefined) {
+      if (isValue(enAttr.value)) {
         finalVal = scales[scName] ? scales[scName](enAttr.value) : undefined;
       }
 
@@ -855,7 +855,7 @@ function decodeEncode(prop, encodes, scales, signal, d) {
   }
   const fValPrimary = getVal(enAttr, scales);
   const fValSecondary = getVal(subEnAttr, subScales);
-  return fValPrimary !== undefined ? fValPrimary : fValSecondary;
+  return isValue(fValPrimary) ? fValPrimary : fValSecondary;
 }
 
 

@@ -124,7 +124,7 @@ export function attachStates(schedule, rawInfo) {
           const foundScale =
             lastState.scale[lastState.encode.update[prop].scale];
 
-          if (foundScale && lastState.encode.update[prop].field) {
+          if (foundScale && lastState.encode.update[prop].field && (lastState.data.length > 0)) {
             const { field } = lastState.encode.update[prop];
             let vals = lastState.data.map(d => d.datum[field]);
 

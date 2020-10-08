@@ -268,6 +268,9 @@
   function isEmpty(o) {
     return typeof o === "object" && Object.keys(o).length === 0;
   }
+  function isValue(v) {
+    return (v !== undefined) && (v !== null) && !isNaN(v)
+  }
 
   function collectResolves(parsedBlock, parsedSteps) {
     let resolves = collect(parsedBlock);
@@ -13572,7 +13575,7 @@
             const foundScale =
               lastState.scale[lastState.encode.update[prop].scale];
 
-            if (foundScale && lastState.encode.update[prop].field) {
+            if (foundScale && lastState.encode.update[prop].field && (lastState.data.length > 0)) {
               const { field } = lastState.encode.update[prop];
               let vals = lastState.data.map(d => d.datum[field]);
 
@@ -16044,7 +16047,7 @@
       if (enAttr.scale) {
         const scName = enAttr.scale;
 
-        if (enAttr.value !== undefined) {
+        if (isValue(enAttr.value)) {
           finalVal = scales[scName] ? scales[scName](enAttr.value) : undefined;
         }
 
@@ -16092,7 +16095,7 @@
     }
     const fValPrimary = getVal(enAttr, scales);
     const fValSecondary = getVal(subEnAttr, subScales);
-    return fValPrimary !== undefined ? fValPrimary : fValSecondary;
+    return isValue(fValPrimary) ? fValPrimary : fValSecondary;
   }
 
 
@@ -24694,7 +24697,7 @@
 
       for (let i = 0; i < this.animations.length; i++) {
         const animation = this.animations[i];
-        this.log(new Date() - globalSTime, `Start the ${0}-th animated transition.`);
+        this.log(new Date() - globalSTime, `Start the ${i}-th animated transition.`);
         await animation.play(targetElm);
         if (i < (this.animations.length - 1)) {
           await embed(targetElm, animation.rawInfo.eVis.spec, {renderer: "svg"});

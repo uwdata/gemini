@@ -193,8 +193,11 @@ function mean(nums) {
 function isEmpty(o) {
   return typeof o === "object" && Object.keys(o).length === 0;
 }
-
+function isValue(v) {
+  return (v !== undefined) && (v !== null) && !isNaN(v)
+}
 export {
+  isValue,
   deepEqual,
   copy,
   copy2,
