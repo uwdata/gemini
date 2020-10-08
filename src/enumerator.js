@@ -8,7 +8,7 @@ import { findFilter } from "./changeFetcher/state/util";
 
 class Enumerator {
   constructor(enumDef, spec, rawInfo) {
-    this.views = getStops(enumDef, spec, rawInfo);
+    this.views = [];
     this.stopN = this.views.length;
     this.enumDef = enumDef;
     this.currSpec = spec;
@@ -16,6 +16,20 @@ class Enumerator {
     this.delay = enumDef.delay || 0;
     this.staggering = enumDef.staggering;
     this.rawInfo = rawInfo;
+  }
+
+  async init() {
+    const workingSpec = copy(this.currSpec);
+
+    const enumVals = computeFilteringValues(this.enumDef, this.rawInfo);
+    const filter = findFilter(workingSpec, this.enumDef.filter);
+
+
+    for (const v of enumVals) {
+      this.views.push(await new vega.View(vega.parse(computeNewSpec(workingSpec, filter, v)), {
+        renderer: "none"
+      }).runAsync());
+    }
   }
 
   _getScales(stop_n) {
@@ -176,20 +190,7 @@ function computeNewSpec(workingSpec, filter, fVal) {
 
   return copy(workingSpec);
 }
-function getStops(enumDef, spec, rawInfo) {
-  const workingSpec = copy(spec);
 
-  const enumVals = computeFilteringValues(enumDef, rawInfo);
-  const filter = findFilter(workingSpec, enumDef.filter);
-
-  const views = enumVals.map(v => {
-    return new vega.View(vega.parse(computeNewSpec(workingSpec, filter, v)), {
-      renderer: "none"
-    }).run();
-  });
-
-  return views;
-}
 
 
 export { Enumerator, computeFilteringValues, computeNewSpec };

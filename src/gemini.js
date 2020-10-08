@@ -73,13 +73,14 @@ class Gemini {
       eVis: { view: eView, spec: endVisSpec }
     };
 
-    return _animate(geminiSpec, rawInfo);
+
+    return await _animate(geminiSpec, rawInfo);
   }
 }
-function _animate(gemSpec, rawInfo){
+async function _animate(gemSpec, rawInfo){
   const { schedule, resolves } = parse(gemSpec, rawInfo);
   schedule.tracks = attachChanges(rawInfo, schedule.tracks);
-  const finalTimeline = autoScaleOrder(schedule, resolves, rawInfo);
+  const finalTimeline = await autoScaleOrder(schedule, resolves, rawInfo);
 
   return new Animation(attachAnimTemplates(finalTimeline), rawInfo, gemSpec);
 }

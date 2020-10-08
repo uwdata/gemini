@@ -13,7 +13,8 @@ export default {
     globals: {
       vega: "vega",
       "vega-lite": "vegaLite",
-      d3: "d3"
+      d3: "d3",
+      "vega-embed": "vegaEmbed"
     }
   },
 
@@ -25,10 +26,11 @@ export default {
     globals: {
       vega: "vega",
       "vega-lite": "vegaLite",
-      d3: "d3"
+      d3: "d3",
+      "vega-embed": "vegaEmbed"
     }
   }
   ],
   plugins: [nodeResolve(), commonjs(), json(), sourcemaps()],
-  external: ["vega", "vega-lite", "d3"]
+  external: ["vega", "vega-lite", "d3", "vega-embed"]
 };

@@ -49,13 +49,13 @@ function getMoments(schedule) {
 }
 
 
-export function attachStates(schedule, rawInfo) {
+export async function attachStates(schedule, rawInfo) {
   const state = initializeState(schedule, rawInfo);
   const moments = getMoments(schedule);
   schedule.moments = moments;
 
-  moments.forEach(moment => {
-    moment.ending.forEach(step => {
+  for (const moment of moments) {
+    for (const step of moment.ending) {
       const lastState = state[step.trackName];
       if (step.compType === "pause") {
         return;
@@ -70,9 +70,9 @@ export function attachStates(schedule, rawInfo) {
           const filter = findFilter(state.spec, enumed.def.filter);
           state.spec = computeNewSpec(state.spec, filter, enumed.val);
         });
-        eView = new vega.View(vega.parse(state.spec), {
+        eView = await new vega.View(vega.parse(state.spec), {
           renderer: "none"
-        }).run();
+        }).runAsync();
       }
       const newRawInfo = {
         sVis: rawInfo.sVis,
@@ -153,8 +153,8 @@ export function attachStates(schedule, rawInfo) {
           track => track.name === step.trackName
         ).scaleOrderValid = valid;
       }
-    });
-    moment.starting.forEach(step => {
+    }
+    for (let step of moment.starting) {
       const lastState = state[step.trackName];
       if (get(step, "enumerator")) {
         if (step.compType === "mark") {
@@ -165,6 +165,7 @@ export function attachStates(schedule, rawInfo) {
             state.spec,
             rawInfo
           ));
+          await enumerator.init();
           // let dataName = (step.change.final || step.change.final).from.data;
           let dataName = step.compName;
 
@@ -256,12 +257,14 @@ export function attachStates(schedule, rawInfo) {
           }
         } else if (step.compType === "axis") {
           step.enumeratorDef = step.enumerator;
-          step.enumerator = ["tick", "label", "grid"].reduce((acc, subComp) => {
+          step.enumerator = {};
+          for (const subComp of ["tick", "label", "grid"]) {
             const enumerator = new Enumerator(
               step.enumerator,
               state.spec,
               rawInfo
             );
+            await enumerator.init()
             const scName = step.compName;
             enumerator.joinData(
               view => {
@@ -272,9 +275,9 @@ export function attachStates(schedule, rawInfo) {
               },
               d => d.datum.value.toString()
             );
-            acc[subComp] = enumerator;
-            return acc;
-          }, {});
+            step.enumerator[subComp] = enumerator;
+          }
+
         } else if (step.compType === "legend") {
           step.enumeratorDef = step.enumerator;
           let legendEnumDefs = [];
@@ -358,20 +361,24 @@ export function attachStates(schedule, rawInfo) {
               "Cannot enumerate the changes when the legend type changes."
             );
           }
-          step.enumerator = legendEnumDefs.reduce((acc, enumDef) => {
+          step.enumerator = {};
+          for (const enumDef of legendEnumDefs) {
             const enumerator = new Enumerator(
               step.enumerator,
               state.spec,
               rawInfo
             );
+            await enumerator.init()
             enumerator.joinData(enumDef.extractData, enumDef.identifyDatum);
             acc[enumDef.subComp] = enumerator;
             return acc;
-          }, {});
+          }
+
         }
       }
-    });
-  });
+    }
+
+  };
 
   return schedule;
 }
