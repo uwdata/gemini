@@ -50,7 +50,9 @@
     "d3": "^6.2",
     "d3-interpolate-path": "^2.1.1",
     "d3-selection-multi": "^1.0.1",
+    "graphscape": "file:.yalc/graphscape",
     "vega": "^5.10.1",
+    "vega-embed": "^6.12.2",
     "vega-expression": "^2.6.2",
     "vega-lite": "^4.9.0",
     "vega-parser": "^5.11.0"

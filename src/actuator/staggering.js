@@ -1,5 +1,4 @@
 import * as d3 from "d3";
-import { group } from "d3";
 import { flatten } from "../util/util.js";
 import { getEaseFn } from "./util";
 
