@@ -30,7 +30,13 @@ Array.prototype.unique = function(accessor) {
   }
   return arr;
 };
-
+function union(arr1, arr2, accessor = (d) => d) {
+  let result = [...arr1];
+  return result.concat(arr2.filter(x => !arr1.find(y => accessor(x) === accessor(y))))
+}
+function intersection(arr1, arr2, accessor = (d) => d) {
+  return arr2.filter(x => arr1.find(y => accessor(x) === accessor(y)))
+}
 Array.prototype.sample = function(N) {
   const tempThis = this.slice();
   const sampled = [];
@@ -193,9 +199,55 @@ function mean(nums) {
 function isEmpty(o) {
   return typeof o === "object" && Object.keys(o).length === 0;
 }
-function isValue(v) {
-  return (v !== undefined) && (v !== null) && !isNaN(v)
+function isDefinitelyNaN(o) {
+  return ((typeof(v) === "number" ) && isNaN(v))
 }
+function isValue(v) {
+  return (v !== undefined) && (v !== null) && !(isDefinitelyNaN(v))
+}
+// partitioning the array into N_p arrays
+function partition(arr, N_p) {
+  if (arr.length === N_p) {
+    return [arr.map(item => [item])]
+  } else if (N_p === 1) {
+    return [[arr]]
+  } else if (N_p > arr.length) {
+    throw new Error(`Cannot partition the array of ${arr.length} into ${N_p}.`);
+  } else if (arr.length === 0) {
+    return;
+  }
+  let item = [arr[0]];
+  let newArr = arr.slice(1);
+  let results =  partition(newArr, N_p - 1).map(pt => {
+    let newPt = copy(pt);
+    newPt.push(item)
+    return newPt
+  });
+  return partition(newArr, N_p).reduce((results, currPt) => {
+
+    return results.concat(currPt.map((p, i, currPt) => {
+      let newPt = copy(currPt);
+      let newP = copy(p);
+      newP.push(item[0]);
+      newPt[i] = newP;
+      return newPt;
+    }));
+  }, results)
+}
+function crossJoin(A, B) {
+  return B.reduce((result, b) => {
+    return result.concat(A.map(a => [a,b]))
+  }, [])
+}
+
+function crossJoinArrays(arrs) {
+  return arrs.reduce((acc, currArray) => {
+    return currArray.reduce((result, b) => {
+      return result.concat(acc.map(a => [...a, b]))
+    }, [])
+  }, [[]])
+}
+
 export {
   isValue,
   deepEqual,
@@ -210,5 +262,10 @@ export {
   variance,
   mean,
   isEmpty,
-  stringifyDatumValue
+  stringifyDatumValue,
+  partition,
+  union,
+  intersection,
+  crossJoin,
+  crossJoinArrays
 };

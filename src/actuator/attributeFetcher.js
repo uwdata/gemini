@@ -780,45 +780,38 @@ function decodeEncode(prop, encodes, scales, signal, d) {
       }
       enAttr = copy(enAttr[enAttr.length - 1]);
     }
-
-    let finalVal = enAttr.value;
-    if (enAttr.field) {
-      if (enAttr.scale) {
-        const scName = enAttr.scale;
-        finalVal = scales[scName]
-          ? scales[scName](d.datum[enAttr.field])
-          : undefined;
-      } else if (enAttr.field.group) {
+    let val, isSet = true;
+    if (isValue(enAttr.value)) {
+      val = enAttr.value
+    } else if (enAttr.field) {
+      if (enAttr.field.group) {
         return d.mark.group[enAttr.field.group];
-      } else {
-        finalVal = d.datum[enAttr.field];
       }
+      val = d.datum[enAttr.field];
+    } else if (enAttr.signal) {
+      val = evalSignalVal(enAttr.signal, signal, scales, d.datum);
+    } else {
+      isSet = false;
     }
-    if (enAttr.signal) {
-      const val = evalSignalVal(enAttr.signal, signal, scales, d.datum);
 
-      if (enAttr.scale) {
-        const scName = enAttr.scale;
-        finalVal = scales[scName] ? scales[scName](val) : undefined;
-      } else {
-        finalVal = val;
-      }
-    }
+
     if (enAttr.scale) {
       const scName = enAttr.scale;
-
-      if (isValue(enAttr.value)) {
-        finalVal = scales[scName] ? scales[scName](enAttr.value) : undefined;
+      const sc = scales[scName];
+      if (isSet) {
+        if ((!sc) || !isValue(sc(val))){
+          return undefined
+        }
+        val = sc(val);
       }
 
       if (enAttr.band) {
-        const sc = scales[scName];
-        let bw = sc && sc.type === "band" ? sc.bandwidth() : 0;
+        let bw = (sc && sc.type === "band") ? sc.bandwidth() : 0;
         bw = Math.round(
           bw *
-            (enAttr.band === true || isNumber(enAttr.band) ? enAttr.band : 0.5)
+            ((enAttr.band === true || isNumber(enAttr.band)) ? enAttr.band : 0.5)
         );
-        finalVal = isNumber(finalVal) ? bw + finalVal : bw;
+        val = isSet ? val + bw : bw;
       }
     }
 
@@ -827,9 +820,9 @@ function decodeEncode(prop, encodes, scales, signal, d) {
     }
     if (enAttr.mult) {
       if (isNumber(enAttr.mult)) {
-        finalVal *= enAttr.mult;
+        val *= enAttr.mult;
       } else {
-        finalVal *= decodeEncode(
+        val *= decodeEncode(
           "mult",
           { mult: enAttr.mult },
           scales,
@@ -840,9 +833,9 @@ function decodeEncode(prop, encodes, scales, signal, d) {
     }
     if (enAttr.offset) {
       if (isNumber(enAttr.offset)) {
-        finalVal += enAttr.offset;
+        val += enAttr.offset;
       } else {
-        finalVal += decodeEncode(
+        val += decodeEncode(
           "offset",
           { offset: enAttr.offset },
           scales,
@@ -851,7 +844,7 @@ function decodeEncode(prop, encodes, scales, signal, d) {
         );
       }
     }
-    return finalVal;
+    return val;
   }
   const fValPrimary = getVal(enAttr, scales);
   const fValSecondary = getVal(subEnAttr, subScales);
