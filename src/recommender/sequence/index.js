@@ -5,7 +5,7 @@ import { enumerateSequences } from "./enumerator";
 import { evaluateSequence } from "./evaluator";
 
 export async function recommendForSeq(sequence, opt = {}) {
-  const globalOpt = opt, L = sequence.length;
+  const globalOpt = copy(opt), L = sequence.length;
   globalOpt.totalDuration = (opt.totalDuration || 2000) / (L - 1);
 
   globalOpt.axes = opt.axes || {};

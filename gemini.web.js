@@ -1,11 +1,10 @@
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('vega'), require('d3'), require('vega-embed'), require('vega-lite')) :
-  typeof define === 'function' && define.amd ? define(['exports', 'vega', 'd3', 'vega-embed', 'vega-lite'], factory) :
-  (global = global || self, factory(global.gemini = {}, global.vega, global.d3, global.vegaEmbed, global.vegaLite));
-}(this, (function (exports, vega, d3, vegaEmbed, vegaLite) { 'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('vega'), require('d3'), require('vega-lite')) :
+  typeof define === 'function' && define.amd ? define(['exports', 'vega', 'd3', 'vega-lite'], factory) :
+  (global = global || self, factory(global.gemini = {}, global.vega, global.d3, global.vegaLite));
+}(this, (function (exports, vega, d3, vegaLite) { 'use strict';
 
   var d3__default = 'default' in d3 ? d3['default'] : d3;
-  vegaEmbed = vegaEmbed && Object.prototype.hasOwnProperty.call(vegaEmbed, 'default') ? vegaEmbed['default'] : vegaEmbed;
 
   class Animation {
     constructor(schedule, rawInfo, spec) {
@@ -16464,7 +16463,7 @@
         final: getSvgElmType(marktypes.final)
       };
 
-      let marks = d3.select(`${animVis  } .mark-${marktype}.role-mark.${change.compName}`);
+      let marks = d3.select(`${animVis} .mark-${marktype}.role-mark.${change.compName}`);
 
 
       if (
@@ -20549,7 +20548,7 @@
     constructor(animations) {
       this.animations = animations;
       this.status = "ready";
-      this.specs = animations.map(anim => anim.specs);
+      this.specs = animations.map(anim => anim.spec);
       this.logs = [];
       this.rawInfos = animations.map(anim => anim.rawInfo);
     }
@@ -20575,7 +20574,9 @@
         this.log(new Date() - globalSTime, `Start the ${i}-th animated transition.`);
         await animation.play(targetElm);
         if (i < (this.animations.length - 1)) {
-          await vegaEmbed(targetElm, animation.rawInfo.eVis.spec, {renderer: "svg"});
+          const target = document.querySelector(targetElm);
+          target.textContent = "";
+          target.append(animation.rawInfo.eVis.htmlDiv);
         }
       }
     }
@@ -20608,15 +20609,26 @@
         const sSpec = visSequence[i-1];
         const eSpec = visSequence[i];
         const gemSpec = animSpecs[i-1];
+        const sDiv = document.createElement("div");
+        const eDiv = document.createElement("div");
         const sView = await new vega.View(vega.parse(sSpec), {
           renderer: "svg"
         }).runAsync();
         const eView = await new vega.View(vega.parse(eSpec), {
           renderer: "svg"
         }).runAsync();
+
+        // create ones for replacing divs.
+        await new vega.View(vega.parse(sSpec), {
+          renderer: "svg"
+        }).initialize(sDiv).runAsync();
+        await new vega.View(vega.parse(eSpec), {
+          renderer: "svg"
+        }).initialize(eDiv).runAsync();
+
         const rawInfo = {
-          sVis: { view: sView, spec: sSpec },
-          eVis: { view: eView, spec: eSpec }
+          sVis: { view: sView, spec: sSpec, htmlDiv: sDiv },
+          eVis: { view: eView, spec: eSpec, htmlDiv: eDiv }
         };
 
 
@@ -26585,7 +26597,7 @@
   }
 
   async function recommendForSeq(sequence, opt = {}) {
-    const globalOpt = opt, L = sequence.length;
+    const globalOpt = copy(opt), L = sequence.length;
     globalOpt.totalDuration = (opt.totalDuration || 2000) / (L - 1);
 
     globalOpt.axes = opt.axes || {};

@@ -1,10 +1,9 @@
-import {default as vegaEmbed} from 'vega-embed';
 class AnimationSequence {
 
   constructor(animations) {
     this.animations = animations;
     this.status = "ready";
-    this.specs = animations.map(anim => anim.specs);
+    this.specs = animations.map(anim => anim.spec);
     this.logs = [];
     this.rawInfos = animations.map(anim => anim.rawInfo);
   }
@@ -30,7 +29,9 @@ class AnimationSequence {
       this.log(new Date() - globalSTime, `Start the ${i}-th animated transition.`);
       await animation.play(targetElm);
       if (i < (this.animations.length - 1)) {
-        await vegaEmbed(targetElm, animation.rawInfo.eVis.spec, {renderer: "svg"});
+        const target = document.querySelector(targetElm);
+        target.textContent = "";
+        target.append(animation.rawInfo.eVis.htmlDiv);
       }
     }
   }

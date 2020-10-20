@@ -88,7 +88,7 @@ function markInterpolate(rawInfo, step, targetElm) {
       final: getSvgElmType(marktypes.final)
     };
 
-    let marks = d3.select(`${animVis  } .mark-${marktype}.role-mark.${change.compName}`);
+    let marks = d3.select(`${animVis} .mark-${marktype}.role-mark.${change.compName}`);
 
 
     if (

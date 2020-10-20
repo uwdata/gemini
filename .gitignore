@@ -13,3 +13,4 @@ etc/
 
 .yalc/
 yalc.lock
+test/data/

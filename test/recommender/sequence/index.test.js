@@ -20,6 +20,16 @@ describe("recommendForSeq", () => {
     const cost = secondBest[0].pseudoTimeline.eval.cost + secondBest[1].pseudoTimeline.eval.cost
     expect(minCost).toBeLessThan(cost)
   })
+
+  test("should recommend gemini specs for the sequence adding Y and aggregating", async () => {
+    const {sequence, opt} = EXAMPLES.sequence.addY_aggregate;
+    let recommendations = await recommendForSeq(sequence.map(vl2vg4gemini), opt);
+    let topRecom = recommendations[0];
+
+    expect(recommendations.length).toEqual(1);
+    expect(topRecom[0].spec.totalDuration).toEqual(4000/2)
+    expect(topRecom[0].spec.timeline.concat.length).toEqual(1)
+  })
 })
 
 describe("recommendKeyframes", () => {

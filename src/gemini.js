@@ -34,15 +34,26 @@ class Gemini {
       const sSpec = visSequence[i-1];
       const eSpec = visSequence[i];
       const gemSpec = animSpecs[i-1];
+      const sDiv = document.createElement("div");
+      const eDiv = document.createElement("div");
       const sView = await new vega.View(vega.parse(sSpec), {
         renderer: "svg"
       }).runAsync();
       const eView = await new vega.View(vega.parse(eSpec), {
         renderer: "svg"
       }).runAsync();
+
+      // create ones for replacing divs.
+      await new vega.View(vega.parse(sSpec), {
+        renderer: "svg"
+      }).initialize(sDiv).runAsync();
+      await new vega.View(vega.parse(eSpec), {
+        renderer: "svg"
+      }).initialize(eDiv).runAsync();
+
       const rawInfo = {
-        sVis: { view: sView, spec: sSpec },
-        eVis: { view: eView, spec: eSpec }
+        sVis: { view: sView, spec: sSpec, htmlDiv: sDiv },
+        eVis: { view: eView, spec: eSpec, htmlDiv: eDiv }
       };
 
 

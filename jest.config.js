@@ -194,7 +194,8 @@ module.exports = {
   ],
   // transformIgnorePatterns: ['<rootDir>/node_modules/']
   transformIgnorePatterns: [
-    "/node_modules/"
+    "/node_modules/",
+    "/.yalc/"
   ]
 
 };

@@ -1,0 +1,120 @@
+{
+  "title": "[Penguin] ADD_X(f1) & AGGREGATE",
+  "gemSpecs": [
+    {
+      "timeline": {
+        "concat": [
+          {
+            "sync": [
+              {
+                "component": {"mark": "marks"},
+                "change": {
+                  "scale": ["x", "y"],
+                  "data": ["Flipper Length (mm)", "Body Mass (g)"],
+                  "encode": {"update": true, "enter": true, "exit": true}
+                },
+                "timing": {"duration": {"ratio": 1}}
+              },
+              {
+                "component": {"axis": "x"},
+                "change": {"scale": {"domainDimension": "same"}},
+                "timing": {"duration": {"ratio": 1}}
+              },
+              {
+                "component": {"axis": "y"},
+                "change": {"scale": {"domainDimension": "same"}},
+                "timing": {"duration": {"ratio": 1}}
+              },
+              {
+                "component": "view",
+                "change": {"signal": ["width", "height"]},
+                "timing": {"duration": {"ratio": 1}}
+              }
+            ]
+          }
+        ]
+      },
+      "totalDuration": 2000
+    },
+    {
+      "timeline": {
+        "concat": [
+          {
+            "sync": [
+              {
+                "component": {"mark": "marks"},
+                "change": {
+                  "scale": ["x"],
+                  "data": ["Flipper Length (mm)", "Body Mass (g)"],
+                  "encode": {"update": true, "enter": true, "exit": true}
+                },
+                "timing": {"duration": {"ratio": 1}}
+              },
+              {
+                "component": {"axis": "x"},
+                "change": {"scale": {"domainDimension": "same"}},
+                "timing": {"duration": {"ratio": 1}}
+              }
+            ]
+          }
+        ]
+      },
+      "totalDuration": 2000
+    }
+  ],
+  "sequence":[
+    {
+      "$schema": "https://vega.github.io/schema/vega-lite/v4.json",
+      "data": {
+        "url": "data/penguins.json"
+      },
+      "mark": "point",
+      "encoding": {
+        "x": {
+          "field": "Flipper Length (mm)",
+          "type": "quantitative",
+          "scale": {"zero": false}
+        }
+      }
+    },
+    {
+      "$schema": "https://vega.github.io/schema/vega-lite/v4.json",
+      "data": {"url": "data/penguins.json"},
+      "mark": "point",
+      "encoding": {
+        "x": {
+          "field": "Flipper Length (mm)",
+          "type": "quantitative",
+          "scale": {"zero": false, "domain": [0, 235]},
+          "aggregate": "mean"
+        },
+        "y": {"field": "Species", "type": "nominal"}
+      }
+    },
+    {
+      "$schema": "https://vega.github.io/schema/vega-lite/v4.json",
+      "data": {"url": "data/penguins.json"},
+      "mark": "point",
+      "encoding": {
+        "x": {
+          "field": "Flipper Length (mm)",
+          "type": "quantitative",
+          "aggregate": "mean"
+        },
+        "y": {"field": "Species", "type": "nominal"}
+      }
+    }
+
+  ],
+  "opt": {
+    "totalDuration": 4000,
+    "marks": {
+      "marks": {"change": {"data": ["Flipper Length (mm)", "Body Mass (g)", "Species"]}}
+    },
+    "axes": {
+      "x": {"change": { "scale": {"domainDimension": "same"} }},
+      "y": {"change": { "scale": {"domainDimension": "same"} }}
+    },
+    "scales": {"x": {"domainDimension": "same"}, "y": {"domainDimension": "same"}}
+  }
+}

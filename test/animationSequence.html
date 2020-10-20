@@ -6,50 +6,26 @@
   <script src="../gemini.web.js" ></script>
 
 </head>
-<body>
+<body onload="javascript:init()">
   <div id="view"></div>
   <button onclick="javascript:play()">Play</button>
   <script>
 
-  const gemSpec = {
-    "timeline": {
-      "sync": [
-        {"component": {"axis": "x"}, "timing": {"duration": 1000}},
-        {"component": {"mark": "marks"}, "timing": {"duration": 1000}}
-      ]
-    }
-  }
-  const charts = [{
-    data: { values: [{"Hungry": 50, "Name": "Gemini"}, {"Hungry": 60, "Name": "Cordelia"}] },
-    mark: "bar",
-    encoding: {
-      x: { field: "Hungry", type: "quantitative", "scale": {"domain": [0,100]}},
-      y: { field: "Name", type: "nominal"}
-    }
-  },{
-    data: { values: [{"Hungry": 30, "Name": "Gemini"}, {"Hungry": 20, "Name": "Cordelia"}] },
-    mark: "bar",
-    encoding: {
-      x: { field: "Hungry", type: "quantitative", "scale": {"domain": [0,100]}},
-      y: { field: "Name", type: "nominal"}
-    }
-  },
-  {
-    data: { values: [{"Hungry": 100, "Name": "Gemini"}, {"Hungry": 100, "Name": "Cordelia"}] },
-    mark: "bar",
-    encoding: {
-      x: { field: "Hungry", type: "quantitative", "scale": {"domain": [0,100]}},
-      y: { field: "Name", type: "nominal"}
-    }
-  }
-  ].map(gemini.vl2vg4gemini);
+  //Todo
+  let gemSpecs, sequence;
+  async function init(){
 
+    input = await d3.json("./examples/sequence/addY_aggregate.json");
+    gemSpecs = input.gemSpecs;
+    sequence = input.sequence.map(gemini.vl2vg4gemini);
 
-  vegaEmbed("#view", charts[0], {renderer: "svg"})
+    vegaEmbed("#view", sequence[0], {renderer: "svg"})
+  }
+
 
   async function play() {
-    let gemSpecs = [gemSpec, gemSpec];
-    let animSequence = await gemini.animateSequence(charts, gemSpecs)
+
+    let animSequence = await gemini.animateSequence(sequence, gemSpecs)
     // let anim = await gemini.animate(charts[0], charts[1], gemSpec);
     let result = await animSequence.play("#view")
     console.log(result);
