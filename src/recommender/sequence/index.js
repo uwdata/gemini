@@ -1,4 +1,4 @@
-import { recommend } from "../index"
+import { default as recommend } from "../index"
 import { crossJoinArrays, copy } from "../../util/util";
 import * as gs from "graphscape";
 import { enumerateSequences } from "./enumerator";

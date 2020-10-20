@@ -34,7 +34,7 @@ class Gemini {
       const sSpec = visSequence[i-1];
       const eSpec = visSequence[i];
       const gemSpec = animSpecs[i-1];
-      const sView = views[i-1] || await new vega.View(vega.parse(sSpec), {
+      const sView = await new vega.View(vega.parse(sSpec), {
         renderer: "svg"
       }).runAsync();
       const eView = await new vega.View(vega.parse(eSpec), {
@@ -46,9 +46,9 @@ class Gemini {
       };
 
 
-      animations.push(_animate(gemSpec, rawInfo))
+      animations.push(await _animate(gemSpec, rawInfo))
 
-      if (!views[i-1]){
+      if (i===1 && !views[i-1]){
         views[i-1] = sView;
       };
       if (!views[i]){

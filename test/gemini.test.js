@@ -1,5 +1,4 @@
-import { expressionFunction } from "vega";
-import {AnimationSequence} from "../src/animationSequence";
+
 import {Gemini} from "../src/gemini"
 import { default as vl2vg4gemini } from "../src/util/vl2vg4gemini";
 
