@@ -1,0 +1,248 @@
+{
+  "title": "Unstacking Bars",
+  "data": [
+    {"color": "red", "b": 28},
+    {"color": "green", "b": 55},
+    {"color": "blue", "b": 43}
+  ],
+  "sSpec": {
+    "$schema": "https://vega.github.io/schema/vega/v5.json",
+    "description": "A bar chart that directly encodes color names in the data.",
+    "background": "white",
+    "padding": 5,
+    "width": 20,
+    "height": 200,
+    "style": "cell",
+    "data": [
+      {
+        "name": "source_0",
+        "values": [        ]
+      },
+      {
+        "name": "data_0",
+        "source": "source_0",
+        "transform": [
+          {
+            "type": "stack",
+            "groupby": [],
+            "field": "b",
+            "sort": {"field": ["color"], "order": ["descending"]},
+            "as": ["b_start", "b_end"],
+            "offset": "zero"
+          },
+          {
+            "type": "filter",
+            "expr": "isValid(datum[\"b\"]) && isFinite(+datum[\"b\"])"
+          }
+        ]
+      }
+    ],
+    "signals": [{"name": "width", "update": "width"}],
+    "marks": [
+      {
+        "name": "marks",
+        "type": "rect",
+        "style": ["bar"],
+        "from": {"data": "data_0"},
+        "encode": {
+          "update": {
+            "fill": {"field": "color"},
+            "xc": {"signal": "width", "mult": 0.5},
+            "width": {"value": 18},
+            "y": {"scale": "y", "field": "b_end"},
+            "y2": {"scale": "y", "field": "b_start"}
+          }
+        }
+      }
+    ],
+    "scales": [
+      {
+        "name": "y",
+        "type": "linear",
+        "domain": {"data": "data_0", "fields": ["b_start", "b_end"]},
+        "range": [{"signal": "height"}, 0],
+        "nice": true,
+        "zero": true
+      }
+    ],
+    "axes": [
+      {
+        "scale": "y",
+        "orient": "left",
+        "grid": true,
+        "title": "b",
+        "labelOverlap": true,
+        "tickCount": {"signal": "ceil(height/40)"},
+        "zindex": 0,
+        "encode": {"axis": {"name": "y"}}
+      }
+    ],
+    "config": {"background": "white"}
+  },
+  "eSpec": {
+    "$schema": "https://vega.github.io/schema/vega/v5.json",
+    "description": "A bar chart that directly encodes color names in the data.",
+    "background": "white",
+    "padding": 5,
+    "height": 200,
+    "style": "cell",
+    "data": [
+      {
+        "name": "source_0",
+        "values": [        ]
+      },
+      {
+        "name": "data_0",
+        "source": "source_0",
+        "transform": [
+          {
+            "type": "filter",
+            "expr": "isValid(datum[\"b\"]) && isFinite(+datum[\"b\"])"
+          }
+        ]
+      }
+    ],
+    "signals": [
+      {"name": "x_step", "value": 20},
+      {
+        "name": "width",
+        "update": "bandspace(domain('x').length, 0.1, 0.05) * x_step"
+      }
+    ],
+    "marks": [
+      {
+        "name": "marks",
+        "type": "rect",
+        "style": ["bar"],
+        "from": {"data": "data_0"},
+        "encode": {
+          "update": {
+            "fill": {"field": "color"},
+            "xc": {"scale": "x", "field": "color", "band": 0.5},
+            "width": {"scale": "x", "band": true},
+            "y": {"scale": "y", "field": "b"},
+            "y2": {"scale": "y", "value": 0}
+          }
+        }
+      }
+    ],
+    "scales": [
+      {
+        "name": "x",
+        "type": "band",
+        "domain": {"data": "data_0", "field": "color", "sort": true},
+        "range": {"step": {"signal": "x_step"}},
+        "paddingInner": 0.1,
+        "paddingOuter": 0.05
+      },
+      {
+        "name": "y",
+        "type": "linear",
+        "domain": {"data": "data_0", "field": "b"},
+        "range": [{"signal": "height"}, 0],
+        "nice": true,
+        "zero": true
+      }
+    ],
+    "axes": [
+      {
+        "scale": "y",
+        "orient": "left",
+        "grid": true,
+        "title": "b",
+        "labelOverlap": true,
+        "tickCount": {"signal": "ceil(height/40)"},
+        "zindex": 0,
+        "encode": {"axis": {"name": "y"}}
+      },
+      {
+        "scale": "x",
+        "orient": "bottom",
+        "grid": false,
+        "title": "color",
+        "labelAlign": "right",
+        "labelAngle": 270,
+        "labelBaseline": "middle",
+        "zindex": 0,
+        "encode": {"axis": {"name": "x"}}
+      }
+
+    ],
+    "config": {"background": "white"}
+  },
+  "gemSpecs": [
+    {
+      "meta": {"name": "Staged"},
+      "timeline": {
+        "concat": [
+          {
+            "sync":[
+              {"component": "view", "timing": {"duration": {"ratio": 0.4}}},
+              {"component": {"axis": "x"}, "timing": {"duration": {"ratio": 0.4}}},
+              {
+                "component": {"axis": "y"},
+                "change": {"scale":false},
+                "timing": {"duration": {"ratio": 0.4}}
+              },
+              {
+                "component": {"mark": "marks"},
+                "timing": {"duration": {"ratio": 0.4}},
+                "change": {
+                  "data": false,
+                  "scale": ["x"],
+                  "encode": {
+                    "update": { "y": false, "y2": false }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "component": {"mark": "marks"},
+            "timing": {"duration": {"ratio": 0.3}},
+            "change": { "scale": false }
+          },
+          {
+            "sync":[
+              {
+                "component": {"mark": "marks"},
+                "timing": {"duration": {"ratio": 0.3}}
+              },
+              {
+                "component": {"axis": "y"},
+                "change": {"scale": {"domainDimension": "same"}},
+                "timing": {"duration": {"ratio": 0.3}}
+              }
+            ]
+          }
+        ]
+      },
+      "totalDuration": 3000
+    },
+    {
+      "meta": {"name": "At Once"},
+      "timeline": {
+        "sync":[
+          {"component": "view", "timing": {"duration": {"ratio": 1}}},
+          {"component": {"axis": "x"}, "timing": {"duration": {"ratio": 1}}},
+          {
+            "component": {"axis": "y"},
+            "change": {"scale": {"domainDimension": "same"}},
+            "timing": {"duration": {"ratio": 1}}
+          },
+          {
+            "component": {"mark": "marks"},
+            "timing": {"duration": {"ratio": 1}}
+
+          }
+        ]
+      },
+      "totalDuration": 3000
+    }
+  ],
+  "userInput": {
+    "marks": {"marks": {"change": {"data": ["color"]}}},
+    "scales": {"x": {"domainDimension": "diff"}, "y": {"domainDimension": "same"}}
+  }
+
+}

@@ -1,0 +1,468 @@
+{
+  "title": "Enumerator",
+  "data": [
+    {
+      "t": 1,
+      "A": 4.38919418,
+      "B": 3.439444839,
+      "original": "yes",
+      "name": "gemini"
+    },
+    {
+      "t": 2,
+      "A": 4.684143859,
+      "B": 3.031088514,
+      "original": "yes",
+      "name": "gemini"
+    },
+    {
+      "t": 3,
+      "A": 3.668277111,
+      "B": 4.630028927,
+      "original": "yes",
+      "name": "gemini"
+    },
+    {
+      "t": 4,
+      "A": 4.760539941,
+      "B": 3.432096292,
+      "original": "yes",
+      "name": "gemini"
+    },
+    {
+      "t": 5,
+      "A": 3.260382535,
+      "B": 3.239447985,
+      "original": "yes",
+      "name": "gemini"
+    },
+    {
+      "t": 6,
+      "A": 4.978072133,
+      "B": 4.31742957,
+      "original": "yes",
+      "name": "gemini"
+    },
+    {
+      "t": 7,
+      "A": 3.322363938,
+      "B": 3.834055864,
+      "original": "yes",
+      "name": "gemini"
+    },
+    {
+      "t": 8,
+      "A": 3.681194922,
+      "B": 3.371902017,
+      "original": "yes",
+      "name": "gemini"
+    },
+    {
+      "t": 9,
+      "A": 3.164763731,
+      "B": 4.919912829,
+      "original": "yes",
+      "name": "gemini"
+    },
+    {
+      "t": 10,
+      "A": 4.271303303,
+      "B": 3.512561777,
+      "original": "yes",
+      "name": "gemini"
+    },
+    {
+      "t": 1,
+      "A": 0.598162312,
+      "B": 0.900864406,
+      "original": "yes",
+      "name": "kay"
+    },
+    {
+      "t": 2,
+      "A": 0.982229548,
+      "B": 0.916869505,
+      "original": "yes",
+      "name": "kay"
+    },
+    {
+      "t": 7,
+      "A": 0.619897202,
+      "B": 0.617061937,
+      "original": "yes",
+      "name": "kay"
+    },
+    {
+      "t": 8,
+      "A": 0.616594791,
+      "B": 0.694952511,
+      "original": "yes",
+      "name": "kay"
+    },
+    {
+      "t": 9,
+      "A": 0.509922378,
+      "B": 0.759210987,
+      "original": "yes",
+      "name": "kay"
+    },
+    {
+      "t": 10,
+      "A": 0.600290809,
+      "B": 0.579039865,
+      "original": "yes",
+      "name": "kay"
+    },
+    {
+      "t": 6,
+      "A": 1.326099734,
+      "B": 1.884538782,
+      "original": "no",
+      "name": "yh"
+    },
+    {
+      "t": 7,
+      "A": 1.569169882,
+      "B": 1.431109438,
+      "original": "no",
+      "name": "yh"
+    },
+    {
+      "t": 8,
+      "A": 1.444653865,
+      "B": 1.761419682,
+      "original": "no",
+      "name": "yh"
+    },
+    {
+      "t": 9,
+      "A": 1.894079076,
+      "B": 1.299963233,
+      "original": "no",
+      "name": "yh"
+    },
+    {
+      "t": 10,
+      "A": 1.075001108,
+      "B": 1.022407074,
+      "original": "no",
+      "name": "yh"
+    }
+  ],
+  "sSpec": {
+    "$schema": "https://vega.github.io/schema/vega/v5.json",
+    "autosize": "pad",
+    "padding": 5,
+    "width": 200,
+    "height": 200,
+    "style": "cell",
+    "data": [
+      {"name": "source_0", "values": []},
+      {
+        "name": "data_0",
+        "source": "source_0",
+        "transform": [
+          {
+            "type": "filter",
+            "expr": "datum[\"A\"] !== null && !isNaN(datum[\"A\"]) && datum[\"B\"] !== null && !isNaN(datum[\"B\"])"
+          },
+          {"name": "timeFilter", "type": "filter", "expr": "datum.t === 1"}
+        ]
+      }
+    ],
+    "marks": [
+      {
+        "name": "marks",
+        "type": "symbol",
+        "style": ["point"],
+        "from": {"data": "data_0"},
+        "encode": {
+          "update": {
+            "opacity": {"value": 0.7},
+            "fill": {"value": "transparent"},
+            "stroke": {"scale": "color", "field": "name"},
+            "x": {"scale": "x", "field": "A"},
+            "y": {"scale": "y", "field": "B"}
+          }
+        }
+      }
+    ],
+    "scales": [
+      {
+        "name": "x",
+        "type": "linear",
+        "domain": {"data": "data_0", "field": "A"},
+        "range": [0, {"signal": "width"}],
+        "nice": true,
+        "zero": true
+      },
+      {
+        "name": "y",
+        "type": "linear",
+        "domain": {"data": "data_0", "field": "B"},
+        "range": [{"signal": "height"}, 0],
+        "nice": true,
+        "zero": true
+      },
+      {
+        "name": "color",
+        "type": "ordinal",
+        "domain": ["gemini", "kay", "yh"],
+        "range": "category"
+      }
+    ],
+    "axes": [
+      {
+        "scale": "x",
+        "orient": "bottom",
+        "gridScale": "y",
+        "grid": true,
+        "title": "A",
+        "labelFlush": true,
+        "labelOverlap": true,
+        "tickCount": {"signal": "ceil(width/40)"},
+        "zindex": 0,
+        "encode": {"axis": {"name": "x"}}
+      },
+      {
+        "scale": "y",
+        "orient": "left",
+        "gridScale": "x",
+        "grid": true,
+        "title": "B",
+        "labelOverlap": true,
+        "tickCount": {"signal": "ceil(height/40)"},
+        "zindex": 0,
+        "encode": {"axis": {"name": "y"}}
+      }
+    ],
+    "legends": [
+      {
+        "stroke": "color",
+        "gradientLength": {"signal": "clamp(height, 64, 200)"},
+        "symbolType": "circle",
+        "title": "name",
+        "encode": {
+          "legend": {"name": "color"},
+          "symbols": {
+            "update": {
+              "fill": {"value": "transparent"},
+              "opacity": {"value": 0.7}
+            }
+          }
+        }
+      }
+    ]
+  },
+  "eSpec": {
+    "$schema": "https://vega.github.io/schema/vega/v5.json",
+    "autosize": "pad",
+    "padding": 5,
+    "width": 200,
+    "height": 200,
+    "style": "cell",
+    "data": [
+      {"name": "source_0", "values": []},
+      {
+        "name": "data_0",
+        "source": "source_0",
+        "transform": [
+          {
+            "type": "filter",
+            "expr": "datum[\"A\"] !== null && !isNaN(datum[\"A\"]) && datum[\"B\"] !== null && !isNaN(datum[\"B\"])"
+          },
+          {"name": "timeFilter", "type": "filter", "expr": "datum.t === 10"}
+        ]
+      }
+    ],
+    "marks": [
+      {
+        "name": "marks",
+        "type": "symbol",
+        "style": ["point"],
+        "from": {"data": "data_0"},
+        "encode": {
+          "update": {
+            "opacity": {"value": 0.7},
+            "fill": {"value": "transparent"},
+            "stroke": {"scale": "color", "field": "name"},
+            "x": {"scale": "x", "field": "A"},
+            "y": {"scale": "y", "field": "B"}
+          }
+        }
+      }
+    ],
+    "scales": [
+      {
+        "name": "x",
+        "type": "linear",
+        "domain": [0, 5],
+        "range": [0, {"signal": "width"}],
+        "nice": true,
+        "zero": true
+      },
+      {
+        "name": "y",
+        "type": "linear",
+        "domain": [0, 5],
+        "range": [{"signal": "height"}, 0],
+        "nice": true,
+        "zero": true
+      },
+      {
+        "name": "color",
+        "type": "ordinal",
+        "domain": ["gemini", "kay", "yh"],
+        "range": "category"
+      }
+    ],
+    "axes": [
+      {
+        "scale": "x",
+        "orient": "bottom",
+        "gridScale": "y",
+        "grid": true,
+        "title": "A",
+        "labelFlush": true,
+        "labelOverlap": true,
+        "tickCount": {"signal": "ceil(width/40)"},
+        "zindex": 0,
+        "encode": {"axis": {"name": "x"}}
+      },
+      {
+        "scale": "y",
+        "orient": "left",
+        "gridScale": "x",
+        "grid": true,
+        "title": "B",
+        "labelOverlap": true,
+        "tickCount": {"signal": "ceil(height/40)"},
+        "zindex": 0,
+        "encode": {"axis": {"name": "y"}}
+      }
+    ],
+    "legends": [
+      {
+        "stroke": "color",
+        "gradientLength": {"signal": "clamp(height, 64, 200)"},
+        "symbolType": "circle",
+        "title": "name",
+        "encode": {
+          "legend": {"name": "color"},
+          "symbols": {
+            "update": {
+              "fill": {"value": "transparent"},
+              "opacity": {"value": 0.7}
+            }
+          }
+        }
+      }
+    ]
+  },
+  "gemSpecs": [
+    {
+      "meta": {"name": "Enumerator within the step"},
+      "timeline": {
+        "sync": [
+          {
+            "component": {"axis": "x"},
+            "timing": {"duration": {"ratio": 1.0}},
+            "enumerator": "time"
+          },
+          {
+            "component": {"axis": "y"},
+            "timing": {"duration": {"ratio": 1.0}},
+            "enumerator": "time"
+          },
+          {
+            "component": {"mark": "marks"},
+            "change": {"data": ["name"]},
+            "timing": {"duration": {"ratio": 1.0}},
+            "enumerator": "time"
+          }
+        ]
+      },
+      "totalDuration": 3000,
+      "enumerators": [{"name": "time", "filter": "timeFilter", "stepSize": 1}]
+    },
+    {
+      "meta": {"name": "Enumerator within the concat block"},
+      "timeline": {
+        "concat": [
+          {
+            "sync": [
+              {
+                "component": {"axis": "x"},
+                "change": { "scale": {"domainDimension": "same"} },
+                "timing": {"duration": {"ratio": 0.3}}
+              },
+              {
+                "component": {"axis": "y"},
+                "change": { "scale": {"domainDimension": "same"} },
+                "timing": {"duration": {"ratio": 0.3}}
+              },
+              {
+                "component": {"mark": "marks"},
+                "change": {"data": false},
+                "timing": {"duration": {"ratio": 0.3}}
+              }
+            ]
+          },
+          {
+            "concat": [
+              {
+                "component": {"mark": "marks"},
+                "change": {"data": ["name"]},
+                "timing": {"duration": {"ratio": 0.7}}
+              }
+            ],
+            "enumerator": "time"
+          }
+        ]
+      },
+      "totalDuration": 3000,
+      "enumerators": [{"name": "time", "filter": "timeFilter", "stepSize": 1}]
+    },
+    {
+      "meta": {"name": "Enumerator with autoScaleOrder"},
+      "timeline": {
+        "concat": [
+          { "component": "pause", "timing": {"duration": {"ratio": 0.2} }},
+          {
+            "sync": [
+              {
+                "component": {"axis": "x"},
+                "change": { "scale": {"domainDimension": "same"} },
+                "timing": {"duration": {"ratio": 0.3}}
+              },
+              {
+                "component": {"axis": "y"},
+                "change": { "scale": {"domainDimension": "same"} },
+                "timing": {"duration": {"ratio": 0.3}}
+              },
+              {
+                "component": {"mark": "marks"},
+                "change": { "data": false },
+                "timing": {"duration": {"ratio": 0.3}}
+              }
+            ]
+          },
+          {
+            "component": {"mark": "marks"},
+            "change": {
+              "data": ["name"],
+              "scale": false
+            },
+            "timing": {"duration": {"ratio": 0.5}}
+          }
+        ],
+        "enumerator": "time",
+        "autoScaleOrder": ["marks"]
+      },
+      "totalDuration": 9000,
+      "enumerators": [{"name": "time", "filter": "timeFilter", "values": [1, 5, 6, 10]}]
+    }
+
+
+  ]
+}

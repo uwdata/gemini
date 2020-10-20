@@ -1,0 +1,233 @@
+{
+  "title": "Removing a Y-Axis",
+  "eSpec": {
+    "$schema": "https://vega.github.io/schema/vega/v5.json",
+    "autosize": "pad",
+    "padding": 5,
+    "width": 200,
+    "height": 20,
+    "style": "cell",
+    "data": [
+      {
+        "name": "source_0",
+        "values": [
+          {"t": 1, "A": "3.4", "B": 10, "name": "alex"},
+          {"t": 1, "A": "1.2", "B": 12, "name": "bob"},
+          {"t": 1, "A": "3.3", "B": 13, "name": "carol"},
+          {"t": 1, "A": "0.2", "B": 10, "name": "david"},
+          {"t": 1, "A": "5", "B": 12, "name": "eric"},
+          {"t": 2, "A": "2.4", "B": 10, "name": "alex"},
+          {"t": 2, "A": "1.5", "B": 2, "name": "bob"},
+          {"t": 2, "A": "0.7", "B": 5.6, "name": "carol"},
+          {"t": 2, "A": "0.2", "B": 16, "name": "daniel"},
+          {"t": 2, "A": "-1.3", "B": 12, "name": "eric"}
+        ]
+      },
+      {
+        "name": "data_0",
+        "source": "source_0",
+        "transform": [
+          {
+            "type": "filter",
+            "expr": "datum[\"A\"] !== null && !isNaN(datum[\"A\"]) && datum[\"B\"] !== null && !isNaN(datum[\"B\"])"
+          }
+        ]
+      }
+    ],
+    "signals": [{"name": "height", "update": "height"}],
+    "marks": [
+      {
+        "name": "marks",
+        "type": "symbol",
+        "style": ["circle"],
+        "from": {"data": "source_0"},
+        "encode": {
+          "update": {
+            "opacity": {"value": 0.7},
+            "fill": {"value": "#4c78a8"},
+            "x": {"scale": "x", "field": "A"},
+            "y": {"signal": "height", "mult": 0.5},
+            "shape": {"value": "circle"}
+          }
+        }
+      }
+    ],
+    "scales": [
+      {
+        "name": "x",
+        "type": "linear",
+        "domain": {"data": "source_0", "field": "A"},
+        "range": [0, {"signal": "width"}],
+        "nice": true,
+        "zero": true
+      }
+    ],
+    "axes": [
+      {
+        "scale": "x",
+        "orient": "bottom",
+        "grid": true,
+        "title": "A",
+        "labelFlush": true,
+        "labelOverlap": true,
+        "tickCount": {"signal": "ceil(width/40)"},
+        "zindex": 0,
+        "encode": {"axis": {"name": "x"}}
+      }
+    ]
+  },
+  "sSpec": {
+    "$schema": "https://vega.github.io/schema/vega/v5.json",
+    "autosize": "pad",
+    "padding": 5,
+    "width": 200,
+    "height": 200,
+    "style": "cell",
+    "data": [
+      {
+        "name": "source_0",
+        "values": [
+          {"t": 1, "A": "3.4", "B": 10, "name": "alex"},
+          {"t": 1, "A": "1.2", "B": 12, "name": "bob"},
+          {"t": 1, "A": "3.3", "B": 13, "name": "carol"},
+          {"t": 1, "A": "0.2", "B": 10, "name": "david"},
+          {"t": 1, "A": "5", "B": 12, "name": "eric"},
+          {"t": 2, "A": "2.4", "B": 10, "name": "alex"},
+          {"t": 2, "A": "1.5", "B": 2, "name": "bob"},
+          {"t": 2, "A": "0.7", "B": 5.6, "name": "carol"},
+          {"t": 2, "A": "0.2", "B": 16, "name": "daniel"},
+          {"t": 2, "A": "-1.3", "B": 12, "name": "eric"}
+        ]
+      },
+      {
+        "name": "data_0",
+        "source": "source_0",
+        "transform": [
+          {
+            "type": "filter",
+            "expr": "datum[\"A\"] !== null && !isNaN(datum[\"A\"]) && datum[\"B\"] !== null && !isNaN(datum[\"B\"])"
+          }
+        ]
+      }
+    ],
+    "signals": [{"name": "height", "update": "height"}],
+    "marks": [
+      {
+        "name": "marks",
+        "type": "symbol",
+        "style": ["circle"],
+        "from": {"data": "source_0"},
+        "encode": {
+          "update": {
+            "opacity": {"value": 0.7},
+            "fill": {"value": "#4c78a8"},
+            "x": {"scale": "x", "field": "A"},
+            "y": {"scale": "y", "field": "B"},
+            "shape": {"value": "circle"}
+          }
+        }
+      }
+    ],
+    "scales": [
+      {
+        "name": "x",
+        "type": "linear",
+        "domain": {"data": "source_0", "field": "A"},
+        "range": [0, {"signal": "width"}],
+        "nice": true,
+        "zero": true
+      },
+      {
+        "name": "y",
+        "type": "linear",
+        "domain": {"data": "source_0", "field": "B"},
+        "range": [{"signal": "height"}, 0],
+        "nice": true,
+        "zero": true
+      }
+    ],
+    "axes": [
+      {
+        "scale": "x",
+        "orient": "bottom",
+        "grid": true,
+        "gridScale": "y",
+        "title": "A",
+        "labelFlush": true,
+        "labelOverlap": true,
+        "tickCount": {"signal": "ceil(width/40)"},
+        "zindex": 0,
+        "encode": {"axis": {"name": "x"}}
+      },
+      {
+        "scale": "y",
+        "orient": "left",
+        "grid": true,
+        "gridScale": "x",
+        "title": "B",
+        "labelFlush": true,
+        "labelOverlap": true,
+        "tickCount": {"signal": "ceil(width/40)"},
+        "zindex": 0,
+        "encode": {"axis": {"name": "y"}}
+      }
+    ]
+  },
+  "gemSpecs": [
+    {
+      "meta": {"name": "Mark and the y-axis first"},
+      "timeline": {
+        "concat": [
+          {
+            "sync": [
+              {
+                "component": {"mark": "marks"},
+                "timing": {"duration": 1000}
+              },
+              {"component": {"axis": "y"}, "timing": {"duration": 1000}}
+            ]
+          },
+          {
+            "sync": [
+              {"component": "view", "timing": {"duration": 1000}},
+              {"component": {"axis": "x"}, "timing": {"duration": 1000}}
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "meta": {"name": "Apply a manual encode on the x-axis grid"},
+      "timeline": {
+        "concat": [
+          {
+            "sync": [
+              {
+                "component": {"mark": "marks"},
+                "timing": {"duration": 1000}
+              },
+              {"component": {"axis": "y"}, "timing": {"duration": 1000}}
+            ]
+          },
+          {
+            "sync": [
+              {"component": "view", "timing": {"duration": 1000}},
+              {
+                "component": {"axis": "x"},
+                "change": {
+                  "encode": {"grid": {"update": {"stroke": {"value": "red"}}}}
+                },
+                "timing": {"duration": 1000}
+              }
+            ]
+          },
+          {"component": {"axis": "x"}, "timing": {"duration": 1000}}
+        ]
+      }
+    }
+  ],
+  "userInput": {
+    "marks": {"marks": {"change": {"data": ["name"]}}},
+    "scales": {"x": {"domainDimension": "same"}, "y": {"domainDimension": "diff"}}
+  }
+}

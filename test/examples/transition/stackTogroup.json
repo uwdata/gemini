@@ -1,0 +1,229 @@
+{
+  "title": "test",
+  "data": [
+    {"category":"A", "position":0, "value":0.1},
+    {"category":"A", "position":1, "value":0.6},
+    {"category":"A", "position":2, "value":0.9},
+    {"category":"A", "position":3, "value":0.4},
+    {"category":"B", "position":0, "value":0.7},
+    {"category":"B", "position":1, "value":0.2},
+    {"category":"B", "position":2, "value":1.1},
+    {"category":"B", "position":3, "value":0.8},
+    {"category":"C", "position":0, "value":0.6},
+    {"category":"C", "position":1, "value":0.1},
+    {"category":"C", "position":2, "value":0.2},
+    {"category":"C", "position":3, "value":0.7}
+  ],
+  "sSpec": {
+    "$schema": "https://vega.github.io/schema/vega/v5.json",
+    "width": 300,
+    "height": 240,
+    "padding": 5,
+
+    "data": [
+      {
+        "name": "source_0",
+        "values": []
+      }
+    ],
+
+    "scales": [
+      {
+        "name": "yscale",
+        "type": "band",
+        "domain": {"data": "source_0", "field": "category"},
+        "range": [{"signal": "height"}, 0 ],
+        "padding": 0.2
+      },
+      {
+        "name": "xscale",
+        "type": "linear",
+        "domain": {"data": "source_0", "field": "value"},
+        "range": "width",
+        "round": true,
+        "zero": true,
+        "nice": true
+      },
+      {
+        "name": "color",
+        "type": "ordinal",
+        "domain": {"data": "source_0", "field": "position"},
+        "range": {"scheme": "category20"}
+      }
+    ],
+
+    "axes": [
+      {"orient": "left", "scale": "yscale", "tickSize": 0, "labelPadding": 4, "zindex": 1, "encode": {"axis": {"name": "yscale"}}},
+      {"orient": "bottom", "scale": "xscale", "encode": {"axis": {"name": "xscale"}}}
+    ],
+
+    "marks": [
+      {
+        "type": "group",
+
+        "from": {
+          "facet": {
+            "data": "source_0",
+            "name": "facet",
+            "groupby": "category"
+          }
+        },
+
+        "encode": {
+          "enter": {
+            "y": {"scale": "yscale", "field": "category"}
+          }
+        },
+
+        "signals": [
+          {"name": "height", "update": "bandwidth('yscale')"}
+        ],
+
+        "scales": [
+          {
+            "name": "pos",
+            "type": "band",
+            "range": "height",
+            "domain": {"data": "facet", "field": "position"}
+          }
+        ],
+
+        "marks": [
+          {
+            "name": "bars",
+            "from": {"data": "facet"},
+            "type": "rect",
+            "encode": {
+              "enter": {
+                "y": {"scale": "pos", "field": "position"},
+                "height": {"scale": "pos", "band": 1},
+                "x": {"scale": "xscale", "field": "value"},
+                "x2": {"scale": "xscale", "value": 0},
+                "fill": {"scale": "color", "field": "position"}
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "eSpec": {
+    "$schema": "https://vega.github.io/schema/vega/v5.json",
+    "width": 300,
+    "height": 240,
+    "padding": 5,
+
+    "data": [
+      {
+        "name": "source_0",
+        "values": [],
+        "transform": [
+          {
+            "type": "stack",
+            "groupby": ["category"],
+            "sort": {"field": "position"},
+            "field": "value",
+            "as": ["value0", "value1"]
+          }
+        ]
+      }
+    ],
+
+    "scales": [
+      {
+        "name": "yscale",
+        "type": "band",
+        "domain": {"data": "source_0", "field": "category"},
+        "range": [{"signal": "height"}, 0 ],
+        "padding": 0.2
+      },
+      {
+        "name": "xscale",
+        "type": "linear",
+        "domain": {"data": "source_0", "field": "value1"},
+        "range": "width",
+        "round": true,
+        "zero": true,
+        "nice": true
+      },
+      {
+        "name": "color",
+        "type": "ordinal",
+        "domain": {"data": "source_0", "field": "position"},
+        "range": {"scheme": "category20"}
+      }
+    ],
+
+    "axes": [
+      {"orient": "left", "scale": "yscale", "tickSize": 0, "labelPadding": 4, "zindex": 1, "encode": {"axis": {"name": "yscale"}}},
+      {"orient": "bottom", "scale": "xscale", "encode": {"axis": {"name": "xscale"}}}
+    ],
+
+    "marks": [
+      {
+        "type": "group",
+
+        "from": {
+          "facet": {
+            "data": "source_0",
+            "name": "facet",
+            "groupby": "category"
+          }
+        },
+
+        "encode": {
+          "enter": {
+            "y": {"scale": "yscale", "field": "category"}
+          }
+        },
+
+        "signals": [
+          {"name": "height", "update": "bandwidth('yscale')"}
+        ],
+
+        "scales": [
+          {
+            "name": "pos",
+            "type": "band",
+            "range": "height",
+            "domain": {"data": "facet", "field": "position"}
+          }
+        ],
+
+        "marks": [
+          {
+            "name": "bars",
+            "from": {"data": "facet"},
+            "type": "rect",
+            "encode": {
+              "enter": {
+                "y": { "signal": "height/2 - bandwidth('pos') * 0.5"},
+                "height": {"scale": "pos", "band": 1},
+                "x": {"scale": "xscale", "field": "value0"},
+                "x2": {"scale": "xscale", "field": "value1"},
+                "fill": {"scale": "color", "field": "position"}
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "gemSpecs": [
+    {
+      "meta": {"name": "test"},
+      "timeline": {
+        "sync": [
+          {"component": {"axis": "xscale"}, "timing": {"duration": {"ratio": 1}}},
+          {"component": {"axis": "yscale"}, "timing": {"duration": {"ratio": 1}}}
+        ]
+      },
+      "totalDuration": 2000
+    }
+  ],
+  "userInput": {
+    "marks": {"marks": {"change": {"data": ["category"]}}},
+    "scales": {"x": {"domainDimension": "same"}, "y": {"domainDimension": "same"}}
+  }
+
+}

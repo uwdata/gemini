@@ -1,0 +1,300 @@
+{
+  "title": "Changing the Data of a Scatter Plot",
+  "sSpec": {
+    "$schema": "https://vega.github.io/schema/vega/v5.json",
+    "autosize": "pad",
+    "padding": 5,
+    "width": 200,
+    "height": 200,
+    "style": "cell",
+    "data": [
+      {
+        "name": "source_0",
+        "values": [
+          {"t": 1, "A": "3.4", "B": 10, "name": "alex"},
+          {"t": 1, "A": "1.2", "B": 12, "name": "bob"},
+          {"t": 1, "A": "3.3", "B": 13, "name": "carol"},
+          {"t": 1, "A": "0.2", "B": 10, "name": "david"},
+          {"t": 1, "A": "5", "B": 12, "name": "eric"},
+          {"t": 2, "A": "2.4", "B": 10, "name": "alex"},
+          {"t": 2, "A": "1.5", "B": 2, "name": "bob"},
+          {"t": 2, "A": "0.7", "B": 5.6, "name": "carol"},
+          {"t": 2, "A": "0.2", "B": 16, "name": "daniel"},
+          {"t": 2, "A": "-1.3", "B": 12, "name": "eric"}
+        ]
+      },
+      {
+        "name": "data_0",
+        "source": "source_0",
+        "transform": [
+          {"type": "filter", "expr": "datum.t === 1"},
+          {
+            "type": "filter",
+            "expr": "datum[\"A\"] !== null && !isNaN(datum[\"A\"]) && datum[\"B\"] !== null && !isNaN(datum[\"B\"])"
+          }
+        ]
+      }
+    ],
+    "marks": [
+      {
+        "name": "marks",
+        "type": "symbol",
+        "style": ["point"],
+        "from": {"data": "data_0"},
+        "encode": {
+          "update": {
+            "opacity": {"value": 0.7},
+            "fill": {"value": "transparent"},
+            "stroke": {"value": "#4c78a8"},
+            "x": {"scale": "x", "field": "A"},
+            "y": {"scale": "y", "field": "B"},
+            "shape": {"value": "square"}
+          }
+        }
+      }
+    ],
+    "scales": [
+      {
+        "name": "x",
+        "type": "linear",
+        "domain": {"data": "data_0", "field": "A"},
+        "range": [0, {"signal": "width"}],
+        "nice": true,
+        "zero": true
+      },
+      {
+        "name": "y",
+        "type": "linear",
+        "domain": {"data": "data_0", "field": "B"},
+        "range": [{"signal": "height"}, 0],
+        "nice": true,
+        "zero": true
+      }
+    ],
+    "axes": [
+      {
+        "scale": "x",
+        "orient": "bottom",
+        "gridScale": "y",
+        "grid": true,
+        "title": "A",
+        "labelFlush": true,
+        "labelOverlap": true,
+        "tickCount": {"signal": "ceil(width/40)"},
+        "zindex": 1,
+        "encode": {"axis": {"name": "x"}}
+      },
+      {
+        "scale": "y",
+        "orient": "left",
+        "gridScale": "x",
+        "grid": true,
+        "title": "B",
+        "labelOverlap": true,
+        "tickCount": {"signal": "ceil(height/40)"},
+        "zindex": 0,
+        "encode": {"axis": {"name": "y"}}
+      }
+    ]
+  },
+  "eSpec": {
+    "$schema": "https://vega.github.io/schema/vega/v5.json",
+    "autosize": "pad",
+    "padding": 5,
+    "width": 200,
+    "height": 200,
+    "style": "cell",
+    "data": [
+      {
+        "name": "source_0",
+        "values": [
+          {"t": 1, "A": "3.4", "B": 10, "name": "alex"},
+          {"t": 1, "A": "1.2", "B": 12, "name": "bob"},
+          {"t": 1, "A": "3.3", "B": 13, "name": "carol"},
+          {"t": 1, "A": "0.2", "B": 10, "name": "david"},
+          {"t": 1, "A": "5", "B": 12, "name": "eric"},
+          {"t": 2, "A": "2.4", "B": 10, "name": "alex"},
+          {"t": 2, "A": "1.5", "B": 2, "name": "bob"},
+          {"t": 2, "A": "0.7", "B": 5.6, "name": "carol"},
+          {"t": 2, "A": "0.2", "B": 16, "name": "daniel"},
+          {"t": 2, "A": "-1.3", "B": 12, "name": "eric"}
+        ]
+      },
+      {
+        "name": "data_0",
+        "source": "source_0",
+        "transform": [
+          {"type": "filter", "expr": "datum.t === 2"},
+          {
+            "type": "filter",
+            "expr": "datum[\"A\"] !== null && !isNaN(datum[\"A\"]) && datum[\"B\"] !== null && !isNaN(datum[\"B\"])"
+          }
+        ]
+      }
+    ],
+    "marks": [
+      {
+        "name": "marks",
+        "type": "symbol",
+        "style": ["point"],
+        "from": {"data": "data_0"},
+        "encode": {
+          "update": {
+            "opacity": {"value": 0.7},
+            "fill": {"value": "transparent"},
+            "stroke": {"value": "#4c78a8"},
+            "x": {"scale": "x", "field": "A"},
+            "y": {"scale": "y", "field": "B"},
+            "shape": {"value": "square"}
+          }
+        }
+      }
+    ],
+    "scales": [
+      {
+        "name": "x",
+        "type": "linear",
+        "domain": {"data": "data_0", "field": "A"},
+        "range": [0, {"signal": "width"}],
+        "nice": true,
+        "zero": true
+      },
+      {
+        "name": "y",
+        "type": "linear",
+        "domain": {"data": "data_0", "field": "B"},
+        "range": [{"signal": "height"}, 0],
+        "nice": true,
+        "zero": true
+      }
+    ],
+    "axes": [
+      {
+        "scale": "x",
+        "orient": "bottom",
+        "gridScale": "y",
+        "grid": true,
+        "title": "A",
+        "labelFlush": true,
+        "labelOverlap": true,
+        "tickCount": {"signal": "ceil(width/40)"},
+        "zindex": 1,
+        "encode": {"axis": {"name": "x"}}
+      },
+      {
+        "scale": "y",
+        "orient": "left",
+        "gridScale": "x",
+        "grid": true,
+        "title": "B",
+        "labelOverlap": true,
+        "tickCount": {"signal": "ceil(height/40)"},
+        "zindex": 0,
+        "encode": {"axis": {"name": "y"}}
+      }
+    ]
+  },
+  "gemSpecs": [
+    {
+      "meta": {"name": "All at once"},
+      "timeline": {
+        "sync": [
+          {
+            "component": {"axis": "x"},
+            "timing": {"duration": {"ratio": 1}}
+          },
+          {
+            "component": {"axis": "y"},
+            "timing": {"duration": {"ratio": 1}}
+          },
+          {
+            "component": {"mark": "marks"},
+            "change": {"data": ["name"]},
+            "timing": {"duration": {"ratio": 1}}
+          }
+        ]
+      },
+      "totalDuration": 2000
+    },
+    {
+      "meta": {"name": "Scale -> Update -> Enter -> Exit"},
+      "timeline": {
+        "concat": [
+          {
+            "sync": [
+              {"component": {"axis": "x"}, "timing": {"duration": {"ratio": 0.4}}},
+              {"component": {"axis": "y"}, "timing": {"duration": {"ratio": 0.4}}},
+              {
+                "component": {"mark": "marks"},
+                "change": {"data": false},
+                "timing": {"duration": {"ratio": 0.4}}
+              }
+            ]
+          },
+          {
+            "component": {"mark": "marks"},
+            "change": {
+              "data": {"keys": ["name"], "enter": false, "exit": false},
+              "encode": {"enter": false, "exit": false}
+            },
+            "timing": {"duration": {"ratio": 0.2}}
+          },
+          {
+            "component": {"mark": "marks"},
+            "change": {
+              "data": {"keys": ["name"], "exit": false},
+              "encode": {"exit": false}
+            },
+            "timing": {"duration": {"ratio": 0.2}}
+          },
+          {
+            "component": {"mark": "marks"},
+            "change": {"data": ["name"]},
+            "timing": {"duration": {"ratio": 0.2}}
+          }
+        ]
+      },
+      "totalDuration": 3000
+    },
+    {
+      "meta": {"name": "Interpolate with a manual encode"},
+      "timeline": {
+        "concat": [
+          {
+            "component": {"mark": "marks"},
+            "change": {
+              "data": false,
+              "scale": false,
+              "encode": {
+                "update": {"size": {"value": 1000}, "x": {"signal": "width/2"}, "y": {"signal": "height/2"}}
+              }
+            },
+            "timing": {"duration": {"ratio": 1}, "ease": "cubicIn"}
+          },
+          {
+            "sync": [
+              {
+                "component": {"axis": "x"},
+                "timing": {"duration": {"ratio": 1}, "ease": "cubicOut"}
+              },
+              {
+                "component": {"axis": "y"},
+                "timing": {"duration": {"ratio": 1}, "ease": "cubicOut"}
+              },
+              {
+                "component": {"mark": "marks"},
+                "change": { "data": ["name"]},
+                "timing": {"duration": {"ratio": 1}, "ease": "cubicOut"}
+              }
+            ]
+          }
+        ]
+      },
+      "totalDuration": 2000
+    }
+  ],
+  "userInput": {
+    "marks": {"marks": {"change": {"data": ["name"]}}},
+    "scales": {"x": {"domainDimension": "same"}, "y": {"domainDimension": "same"}}
+  }
+}

@@ -1,0 +1,128 @@
+{
+  "start": {
+    "$schema": "https://vega.github.io/schema/vega-lite/v4.json",
+    "data": {
+      "values": [
+        {"Hungry": 10, "Name": "Gemini"},
+        {"Hungry": 60, "Name": "Cordelia"},
+        {"Hungry": 80, "Name": "Gemini"},
+        {"Hungry": 100, "Name": "Cordelia"}
+      ]
+    },
+    "mark": "point",
+    "encoding": {
+      "x": { "field": "Hungry", "type": "quantitative"}
+    }
+  },
+  "end": {
+    "$schema": "https://vega.github.io/schema/vega-lite/v4.json",
+    "data": {
+      "values": [
+        {"Hungry": 10, "Name": "Gemini"},
+        {"Hungry": 60, "Name": "Cordelia"},
+        {"Hungry": 80, "Name": "Gemini"},
+        {"Hungry": 100, "Name": "Cordelia"}
+      ]
+    },
+    "transform": [{"filter": {"field": "Name", "equal": "Gemini"}}],
+    "mark": "point",
+    "encoding": {
+      "x": { "field": "Hungry", "type": "quantitative", "aggregate": "mean"}
+    }
+  },
+  "gemSpecs": [
+    {
+      "timeline": {
+        "sync": [
+          {
+            "component": {"axis": "x"},
+            "change": {"scale": {"domainDimension": "same"}},
+            "timing": {"duration": 1000}
+          },
+          {
+            "component": {"mark": "marks"},
+            "change": {"data": ["Name"]},
+            "timing": {"duration": 1000}
+          }
+        ]
+      }
+    },
+    {
+      "timeline": {
+        "sync": [
+          {
+            "component": {"axis": "x"},
+            "change": {"scale": {"domainDimension": "same"}},
+            "timing": {"duration": 1000}
+          },
+          {
+            "component": {"mark": "marks"},
+            "change": {"data": ["Name"]},
+            "timing": {"duration": 1000}
+          }
+        ]
+      }
+    }
+  ],
+  "sequence":[
+    {
+      "$schema": "https://vega.github.io/schema/vega-lite/v4.json",
+      "data": {
+        "values": [
+          {"Hungry": 10, "Name": "Gemini"},
+          {"Hungry": 60, "Name": "Cordelia"},
+          {"Hungry": 80, "Name": "Gemini"},
+          {"Hungry": 100, "Name": "Cordelia"},
+          {"Hungry": 40, "Name": "Mango"},
+          {"Hungry": 100, "Name": "Mango"}
+        ]
+      },
+      "mark": "point",
+      "encoding": {
+        "x": { "field": "Hungry", "type": "quantitative"},
+        "y": { "field": "Name", "type": "nominal"}
+      }
+    },
+    {
+      "$schema": "https://vega.github.io/schema/vega-lite/v4.json",
+      "data": {
+        "values": [
+          {"Hungry": 10, "Name": "Gemini"},
+          {"Hungry": 60, "Name": "Cordelia"},
+          {"Hungry": 80, "Name": "Gemini"},
+          {"Hungry": 100, "Name": "Cordelia"},
+          {"Hungry": 40, "Name": "Mango"},
+          {"Hungry": 100, "Name": "Mango"}
+        ]
+      },
+      "transform": [{"filter": {"field": "Name", "equal": "Gemini"}}],
+      "mark": "point",
+      "encoding": {
+        "x": { "field": "Hungry", "type": "quantitative"},
+        "y": { "field": "Name", "type": "nominal"}
+      }
+    },
+    {
+      "$schema": "https://vega.github.io/schema/vega-lite/v4.json",
+      "data": {
+        "values": [
+          {"Hungry": 10, "Name": "Gemini"},
+          {"Hungry": 60, "Name": "Cordelia"},
+          {"Hungry": 80, "Name": "Gemini"},
+          {"Hungry": 100, "Name": "Cordelia"},
+          {"Hungry": 40, "Name": "Mango"},
+          {"Hungry": 100, "Name": "Mango"}
+        ]
+      },
+      "transform": [{"filter": {"field": "Name", "equal": "Gemini"}}],
+      "mark": "point",
+      "encoding": {
+        "x": { "field": "Hungry", "type": "quantitative", "aggregate": "mean"},
+        "y": { "field": "Name", "type": "nominal"}
+      }
+    }
+  ],
+  "opt": {
+    "totalDuration": 2000
+  }
+}

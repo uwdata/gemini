@@ -1,0 +1,343 @@
+{
+  "title": "Updating lines with autoScaleOrder",
+  "data": [
+    {"date": "2018-01-01", "val": 6.59590809, "name": "yh"},
+    {"date": "2018-02-01", "val": 7.898718931, "name": "yh"},
+    {"date": "2018-03-01", "val": 6.451510153, "name": "yh"},
+    {"date": "2018-04-01", "val": 8.318280993, "name": "yh"},
+    {"date": "2018-05-01", "val": 8.518436929, "name": "yh"},
+    {"date": "2018-06-01", "val": 10.16869626, "name": "yh"},
+    {"date": "2018-07-01", "val": 11.88419085, "name": "yh"},
+    {"date": "2018-08-01", "val": 11.33665296, "name": "yh"},
+    {"date": "2018-09-01", "val": 13.1077477, "name": "yh"},
+    {"date": "2018-10-01", "val": 13.44549033, "name": "yh"},
+    {"date": "2018-11-01", "val": 15.91314074, "name": "yh"},
+    {"date": "2018-12-01", "val": 16.43881722, "name": "yh"},
+    {"date": "2019-01-01", "val": 17.37635023, "name": "yh"},
+    {"date": "2019-02-01", "val": 19.89388304, "name": "yh"},
+    {"date": "2019-03-01", "val": 20.93403592, "name": "yh"},
+    {"date": "2019-04-01", "val": 19.39222348, "name": "yh"},
+    {"date": "2019-05-01", "val": 20.63455864, "name": "yh"},
+    {"date": "2019-06-01", "val": 21.59472759, "name": "yh"},
+    {"date": "2019-07-01", "val": 23.16384094, "name": "yh"},
+    {"date": "2019-08-01", "val": 23.7688693, "name": "yh"},
+    {"date": "2019-09-01", "val": 25.9522324, "name": "yh"},
+    {"date": "2019-10-01", "val": 25.12723589, "name": "yh"},
+    {"date": "2019-11-01", "val": 27.1943141, "name": "yh"},
+    {"date": "2019-12-01", "val": 29.45257591, "name": "yh"},
+    {"date": "2018-01-01", "val": 5.398071496, "name": "gemini"},
+    {"date": "2018-02-01", "val": 6.926709601, "name": "gemini"},
+    {"date": "2018-03-01", "val": 4.576648312, "name": "gemini"},
+    {"date": "2018-04-01", "val": 7.708084161, "name": "gemini"},
+    {"date": "2018-05-01", "val": 5.935464759, "name": "gemini"},
+    {"date": "2018-06-01", "val": 6.456619035, "name": "gemini"},
+    {"date": "2018-07-01", "val": 8.073038905, "name": "gemini"},
+    {"date": "2018-08-01", "val": 7.538287722, "name": "gemini"},
+    {"date": "2018-09-01", "val": 10.17429813, "name": "gemini"},
+    {"date": "2018-10-01", "val": 9.2699546, "name": "gemini"},
+    {"date": "2018-11-01", "val": 9.352371174, "name": "gemini"},
+    {"date": "2018-12-01", "val": 11.14263362, "name": "gemini"},
+    {"date": "2019-01-01", "val": 12.08796226, "name": "gemini"},
+    {"date": "2019-02-01", "val": 10.52532404, "name": "gemini"},
+    {"date": "2019-03-01", "val": 11.78213126, "name": "gemini"},
+    {"date": "2019-04-01", "val": 12.62979584, "name": "gemini"},
+    {"date": "2019-05-01", "val": 11.59071038, "name": "gemini"},
+    {"date": "2019-06-01", "val": 12.58061309, "name": "gemini"},
+    {"date": "2019-07-01", "val": 14.17871238, "name": "gemini"},
+    {"date": "2019-08-01", "val": 14.48875526, "name": "gemini"},
+    {"date": "2019-09-01", "val": 15.79461445, "name": "gemini"},
+    {"date": "2019-10-01", "val": 14.50010807, "name": "gemini"},
+    {"date": "2019-11-01", "val": 14.58511294, "name": "gemini"},
+    {"date": "2019-12-01", "val": 17.0407644, "name": "gemini"},
+    {"date": "2018-01-01", "val": 4.886706865, "name": "kay"},
+    {"date": "2018-02-01", "val": 5.254454288, "name": "kay"},
+    {"date": "2018-03-01", "val": 5.585253168, "name": "kay"},
+    {"date": "2018-04-01", "val": 4.272580314, "name": "kay"},
+    {"date": "2018-05-01", "val": 6.631580765, "name": "kay"},
+    {"date": "2018-06-01", "val": 5.228257124, "name": "kay"},
+    {"date": "2018-07-01", "val": 5.672071137, "name": "kay"},
+    {"date": "2018-08-01", "val": 6.890599589, "name": "kay"},
+    {"date": "2018-09-01", "val": 6.90408401, "name": "kay"},
+    {"date": "2018-10-01", "val": 7.09585618, "name": "kay"},
+    {"date": "2018-11-01", "val": 8.503094902, "name": "kay"},
+    {"date": "2018-12-01", "val": 7.683581733, "name": "kay"},
+    {"date": "2019-01-01", "val": 6.40682794, "name": "kay"},
+    {"date": "2019-02-01", "val": 6.769971168, "name": "kay"},
+    {"date": "2019-03-01", "val": 8.382471434, "name": "kay"},
+    {"date": "2019-04-01", "val": 9.610133535, "name": "kay"},
+    {"date": "2019-05-01", "val": 8.284641239, "name": "kay"},
+    {"date": "2019-06-01", "val": 9.837778476, "name": "kay"},
+    {"date": "2019-07-01", "val": 8.575649752, "name": "kay"},
+    {"date": "2019-08-01", "val": 9.299889533, "name": "kay"},
+    {"date": "2019-09-01", "val": 8.556770758, "name": "kay"},
+    {"date": "2019-10-01", "val": 9.98786372, "name": "kay"},
+    {"date": "2019-11-01", "val": 9.69727001, "name": "kay"},
+    {"date": "2019-12-01", "val": 11.72923271, "name": "kay"}
+  ],
+  "sSpec": {
+    "$schema": "https://vega.github.io/schema/vega/v5.json",
+    "description": "Google's stock price over time.",
+    "autosize": "pad",
+    "padding": 5,
+    "width": 200,
+    "height": 200,
+    "style": "cell",
+    "data": [
+      {"name": "source_0", "values": []},
+      {
+        "name": "data_0",
+        "source": "source_0",
+        "transform": [
+          {"type": "formula", "expr": "toDate(datum[\"date\"])", "as": "date"}
+        ]
+      }
+    ],
+    "marks": [
+      {
+        "name": "pathgroup",
+        "type": "group",
+        "from": {
+          "facet": {
+            "name": "faceted_path_main",
+            "data": "data_0",
+            "groupby": ["name"]
+          }
+        },
+        "encode": {
+          "update": {
+            "width": {"field": {"group": "width"}},
+            "height": {"field": {"group": "height"}}
+          }
+        },
+        "marks": [
+          {
+            "name": "marks",
+            "type": "line",
+            "style": ["line"],
+            "sort": {"field": "datum[\"date\"]", "order": "ascending"},
+            "from": {"data": "faceted_path_main"},
+            "encode": {
+              "update": {
+                "stroke": {"scale": "color", "field": "name"},
+                "x": {"scale": "x", "field": "date"},
+                "y": {"scale": "y", "field": "val"}
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "scales": [
+      {
+        "name": "x",
+        "type": "time",
+        "domain": {"data": "data_0", "field": "date"},
+        "range": [0, {"signal": "width"}]
+      },
+      {
+        "name": "y",
+        "type": "linear",
+        "domain": {"data": "data_0", "field": "val"},
+        "range": [{"signal": "height"}, 0],
+        "nice": true,
+        "zero": true
+      },
+      {
+        "name": "color",
+        "type": "ordinal",
+        "domain": ["yh", "gemini", "kay"],
+        "range": ["#467AA6", "#F9812B", "#E85258"]
+      }
+    ],
+    "axes": [
+      {
+        "scale": "x",
+        "orient": "bottom",
+        "gridScale": "y",
+        "grid": true,
+        "title": "date",
+        "labelFlush": true,
+        "labelOverlap": true,
+        "tickCount": {"signal": "ceil(width/40)"},
+        "zindex": 0,
+        "encode": {"axis": {"name": "x"}}
+      },
+      {
+        "scale": "y",
+        "orient": "left",
+        "gridScale": "x",
+        "grid": true,
+        "title": "val",
+        "labelOverlap": true,
+        "tickCount": {"signal": "ceil(height/40)"},
+        "zindex": 0,
+        "encode": {"axis": {"name": "y"}}
+      }
+    ]
+  },
+  "eSpec": {
+    "$schema": "https://vega.github.io/schema/vega/v5.json",
+    "description": "Google's stock price over time.",
+    "autosize": "pad",
+    "padding": 5,
+    "width": 200,
+    "height": 200,
+    "style": "cell",
+    "data": [
+      {"name": "source_0", "values": []},
+      {
+        "name": "data_0",
+        "source": "source_0",
+        "transform": [
+          {"type": "formula", "expr": "toDate(datum[\"date\"])", "as": "date"},
+          {"type": "filter", "expr": "datum.name === 'gemini'"}
+        ]
+      }
+    ],
+    "marks": [
+      {
+        "name": "pathgroup",
+        "type": "group",
+        "from": {
+          "facet": {
+            "name": "faceted_path_main",
+            "data": "data_0",
+            "groupby": ["name"]
+          }
+        },
+        "encode": {
+          "update": {
+            "width": {"field": {"group": "width"}},
+            "height": {"field": {"group": "height"}}
+          }
+        },
+        "marks": [
+          {
+            "name": "marks",
+            "type": "line",
+            "style": ["line"],
+            "sort": {"field": "datum[\"date\"]", "order": "ascending"},
+            "from": {"data": "faceted_path_main"},
+            "encode": {
+              "update": {
+                "stroke": {"scale": "color", "field": "name"},
+                "x": {"scale": "x", "field": "date"},
+                "y": {"scale": "y", "field": "val"}
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "scales": [
+      {
+        "name": "x",
+        "type": "time",
+        "domain": {"data": "data_0", "field": "date"},
+        "range": [0, {"signal": "width"}]
+      },
+      {
+        "name": "y",
+        "type": "linear",
+        "domain": {"data": "data_0", "field": "val"},
+        "range": [{"signal": "height"}, 0],
+        "nice": true,
+        "zero": true
+      },
+      {
+        "name": "color",
+        "type": "ordinal",
+        "domain": ["yh", "gemini", "kay"],
+        "range": ["#467AA6", "#F9812B", "#E85258"]
+      }
+    ],
+    "axes": [
+      {
+        "scale": "x",
+        "orient": "bottom",
+        "gridScale": "y",
+        "grid": true,
+        "title": "date",
+        "labelFlush": true,
+        "labelOverlap": true,
+        "tickCount": {"signal": "ceil(width/40)"},
+        "zindex": 0,
+        "encode": {"axis": {"name": "x"}}
+      },
+      {
+        "scale": "y",
+        "orient": "left",
+        "gridScale": "x",
+        "grid": true,
+        "title": "val",
+        "labelOverlap": true,
+        "tickCount": {"signal": "ceil(height/40)"},
+        "zindex": 0,
+        "encode": {"axis": {"name": "y"}}
+      }
+    ]
+  },
+  "gemSpecs": [
+    {
+      "meta": {"name": "Without autoScaleOrder"},
+      "timeline": {
+        "concat":[
+          {
+            "sync": [
+              {
+                "component": {"axis": "y"},
+                "timing": {"duration": {"ratio": 0.5}}
+              },
+              {
+                "component": {"axis": "x"},
+                "timing": {"duration": {"ratio": 0.5}}
+              },
+              {
+                "component": {"mark": "marks"},
+                "change": {"data": false},
+                "timing": {"duration": {"ratio": 0.5}}
+              }
+            ]
+          },
+          {
+            "component": {"mark": "marks"},
+            "change": {"scale": false},
+            "timing": {"duration": {"ratio": 0.5}}
+          }
+        ]
+      },
+      "totalDuration": 2000
+    },
+    {
+      "meta": {"name": "With autoScaleOrder"},
+      "timeline": {
+        "concat":[
+          {
+            "sync": [
+              {
+                "component": {"axis": "y"},
+                "timing": {"duration": {"ratio": 0.5}}
+              },
+              {
+                "component": {"axis": "x"},
+                "timing": {"duration": {"ratio": 0.5}}
+              },
+              {
+                "component": {"mark": "marks"},
+                "change": {"data": false},
+                "timing": {"duration": {"ratio": 0.5}}
+              }
+            ]
+          },
+          {
+            "component": {"mark": "marks"},
+            "change": {"scale": false},
+            "timing": {"duration": {"ratio": 0.5}}
+          }
+        ],
+        "autoScaleOrder": ["marks"]
+      },
+      "totalDuration": 2000
+    }
+  ]
+}
