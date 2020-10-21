@@ -23,31 +23,27 @@ describe("findRules", () => {
       [{name: "FILTER", type: "transform"}],
       [{name: "AGGREGATE", type: "transform"}]
     ], rule2)
-    expect(found2).toEqual(rule2)
+    expect(found2.map(r => r.editOps)).toEqual(rule2.map(r => r.editOps))
 
-    let rule3 = [{ editOps: ["FILTER", "TRANSFORM"] }];
+    let rule3 = [{ editOps: ["ENCODING", "TRANSFORM"] }];
     let found3 = findRules([
-      [{name: "FILTER", type: "transform"}],
+      [{name: "ADD_X", type: "encoding"}],
       [{name: "AGGREGATE", type: "transform"}]
     ], rule3)
-    expect(found3).toEqual(rule3)
+    expect(found3.map(r => r.editOps)).toEqual(rule3.map(r => r.editOps))
 
     let rule4 = [
-      { editOps: ["FILTER", "TRANSFORM"] },
+      { editOps: ["ENCODING", "TRANSFORM"] },
       { editOps: ["FILTER", "AGGREGATE"], condition: (filter, aggregate) => {
         return aggregate.detail && aggregate.detail.how === "added";
       } }
     ];
+
     let found4 = findRules([
-      [{name: "FILTER", type: "transform"}],
-      [{name: "AGGREGATE", type: "transform"}]
-    ], rule4)
-    expect(found4).toEqual(rule4.slice(0,1))
-    found4 = findRules([
       [{name: "FILTER", type: "transform"}],
       [{name: "AGGREGATE", type: "transform", detail: {"how": "added"}}]
     ], rule4)
-    expect(found4).toEqual(rule4)
+    expect(found4.map(r => r.editOps)).toEqual(rule4.slice(1,2).map(r => r.editOps))
   })
 })
 
@@ -70,7 +66,7 @@ describe("evaluateSeuqnece", () => {
   ];
 
   test("should promote the one filtering after dis-aggregating", async () => {
-    let sequences = await enumerateSequences(sSpec, eSpec, editOps, 1)
+    let sequences = await enumerateSequences(sSpec, eSpec, editOps, 2)
     sequences = sequences.map((seq) => {
       return {
         ...seq,
@@ -78,7 +74,8 @@ describe("evaluateSeuqnece", () => {
       }
     }).sort((a,b) => { return b.eval.score - a.eval.score})
 
-    expect((sequences[0].eval.satisfiedRules.length)).toEqual(1);
+    expect((sequences[0].eval.satisfiedRules.length)).toEqual(2);
     expect((sequences[0].eval.satisfiedRules[0].name)).toEqual("disaggregate-then-filter")
+    expect((sequences[0].eval.satisfiedRules[1].name)).toEqual("mark-then-disaggregate")
   })
 })

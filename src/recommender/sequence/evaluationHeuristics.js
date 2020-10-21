@@ -17,9 +17,71 @@ export const HEURISTIC_RULES = [
     score: 1
   },
   {
-    editOps: ["FILTER", "SORT"],
+    name: "bin-then-aggregate",
+    editOps: ["BIN", "AGGREGATE"],
+    condition: (bin, aggregate) => {
+      return aggregate.detail && aggregate.detail.find(dt => dt.how === "added")
+    },
     score: 1
-  }
+  },
+  {
+    name: "disaggregate-then-bin",
+    editOps: ["AGGREGATE", "BIN"],
+    condition: (aggregate, bin) => {
+      return aggregate.detail && aggregate.detail.find(dt => dt.how === "removed")
+    },
+    score: 1
+  },
+  {
+    name: "sort-then-aggregate",
+    editOps: ["SORT", "AGGREGATE"],
+    condition: (sort, aggregate) => {
+      return aggregate.detail && aggregate.detail.find(dt => dt.how === "added")
+    },
+    score: 1
+  },
+  {
+    name: "disaggregate-then-sort",
+    editOps: ["AGGREGATE", "SORT"],
+    condition: (aggregate, sort) => {
+      return aggregate.detail && aggregate.detail.find(dt => dt.how === "removed")
+    },
+    score: 1
+  },
+  {
+    name: "encoding-then-aggregate",
+    editOps: ["ENCODING", "AGGREGATE"],
+    condition: (encoding, aggregate) => {
+      return aggregate.detail && aggregate.detail.find(dt => dt.how === "added")
+    },
+    score: 1
+  },
+  {
+    name: "disaggregate-then-encoding",
+    editOps: ["AGGREGATE", "ENCODING"],
+    condition: (aggregate, encoding) => {
+      return aggregate.detail && aggregate.detail.find(dt => dt.how === "removed")
+    },
+    score: 1
+  },
+  {
+    name: "aggregate-then-mark",
+    editOps: ["AGGREGATE", "MARK"],
+    condition: (aggregate, mark) => {
+
+      return aggregate.detail && aggregate.detail.find(dt => dt.how === "added")
+    },
+    score: 1
+  },
+  {
+    name: "mark-then-disaggregate",
+    editOps: ["MARK", "AGGREGATE"],
+    condition: (mark, aggregate) => {
+
+      return aggregate.detail && aggregate.detail.find(dt => dt.how === "removed")
+    },
+    score: 1
+  },
   // {
   //   editOps: [TRANSFORM, ENCODING.REMOVE],
   //   condition: (transform, remove) => {
