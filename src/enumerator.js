@@ -27,9 +27,10 @@ class Enumerator {
 
     for (const v of enumVals) {
       this.views.push(await new vega.View(vega.parse(computeNewSpec(workingSpec, filter, v)), {
-        renderer: "none"
+        renderer: "svg"
       }).runAsync());
     }
+    this.stopN = this.views.length;
   }
 
   _getScales(stop_n) {

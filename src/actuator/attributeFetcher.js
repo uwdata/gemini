@@ -772,13 +772,18 @@ function decodeEncode(prop, encodes, scales, signal, d) {
       return;
     }
     if (Array.isArray(enAttr)) {
+      let isSelected = false;
       for (let i = 0; i < enAttr.length - 1; i++) {
         // Then the items should contain 'test' prop to test (except the last)
         if (evalSignalVal(enAttr[i].test, signal, scales, d.datum)) {
-          return enAttr[i].value;
+          enAttr = copy(enAttr[i]);
+          isSelected = true;
+          break;
         }
       }
-      enAttr = copy(enAttr[enAttr.length - 1]);
+      if (!isSelected) {
+        enAttr = copy(enAttr[enAttr.length - 1]);
+      }
     }
     let val, isSet = true;
     if (isValue(enAttr.value)) {

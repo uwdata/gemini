@@ -11106,9 +11106,10 @@
 
       for (const v of enumVals) {
         this.views.push(await new vega.View(vega.parse(computeNewSpec(workingSpec, filter, v)), {
-          renderer: "none"
+          renderer: "svg"
         }).runAsync());
       }
+      this.stopN = this.views.length;
     }
 
     _getScales(stop_n) {
@@ -12111,9 +12112,11 @@
 
             if (!aggregate.initial && aggregate.final) {
               attachAggData(fData, iData, computeId.final, aggregate.final);
+              extendAggData(fData, aggregate.final);
               preFetchCurrData = true;
             } else if (aggregate.initial && !aggregate.final) {
               attachAggData(iData, fData, computeId.initial, aggregate.initial);
+              extendAggData(iData, aggregate.initial);
               preFetchCurrData = true;
             }
           }
@@ -12284,6 +12287,13 @@
       update: updateData,
       exit: exitData
     };
+  }
+  function extendAggData(aggData, agg) {
+    aggData.forEach(aggDatum => {
+      agg.as.forEach((aggField, i) => {
+        aggDatum.datum[agg.fields[i]] = aggDatum.datum[agg.as[i]];
+      });
+    });
   }
   function attachAggData(aggData, rawData, aggId, agg) {
     rawData.forEach((rawDatum, i) => {
@@ -16060,13 +16070,18 @@
         return;
       }
       if (Array.isArray(enAttr)) {
+        let isSelected = false;
         for (let i = 0; i < enAttr.length - 1; i++) {
           // Then the items should contain 'test' prop to test (except the last)
           if (evalSignalVal(enAttr[i].test, signal, scales, d.datum)) {
-            return enAttr[i].value;
+            enAttr = copy(enAttr[i]);
+            isSelected = true;
+            break;
           }
         }
-        enAttr = copy(enAttr[enAttr.length - 1]);
+        if (!isSelected) {
+          enAttr = copy(enAttr[enAttr.length - 1]);
+        }
       }
       let val, isSet = true;
       if (isValue(enAttr.value)) {

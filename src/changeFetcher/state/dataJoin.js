@@ -400,9 +400,11 @@ function joinData(step, rawInfo, initialData) {
 
           if (!aggregate.initial && aggregate.final) {
             attachAggData(fData, iData, computeId.final, aggregate.final);
+            extendAggData(fData, aggregate.final)
             preFetchCurrData = true;
           } else if (aggregate.initial && !aggregate.final) {
             attachAggData(iData, fData, computeId.initial, aggregate.initial);
+            extendAggData(iData, aggregate.initial)
             preFetchCurrData = true;
           }
         }
@@ -573,6 +575,13 @@ function joinThem(iData, fData, computeId, step) {
     update: updateData,
     exit: exitData
   };
+}
+function extendAggData(aggData, agg) {
+  aggData.forEach(aggDatum => {
+    agg.as.forEach((aggField, i) => {
+      aggDatum.datum[agg.fields[i]] = aggDatum.datum[agg.as[i]]
+    })
+  })
 }
 function attachAggData(aggData, rawData, aggId, agg) {
   rawData.forEach((rawDatum, i) => {
