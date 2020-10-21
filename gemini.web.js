@@ -26416,6 +26416,10 @@
                   currSpec.encoding[channel].scale = {};
                 }
                 currSpec.encoding[channel].scale.domain = mergedScaleDomain[channel];
+                if (currSpec.encoding[channel].scale.zero !== undefined) {
+
+                  delete currSpec.encoding[channel].scale.zero;
+                }
               }
             }
           }
@@ -26424,12 +26428,14 @@
             throw e;
           }
         }
-        {
-          sequence.push(copy(currSpec));
-        }
+
+        sequence.push(copy(currSpec));
       }
-      {
+
+      if (validate$3(sequence)) {
         sequences.push({sequence, editOpPartition});
+      } else {
+        continue;
       }
     }
 
@@ -26486,6 +26492,20 @@
     }, {})
   }
 
+
+  function validate$3(sequence) {
+    //Todo: check if the sequence is a valid vega-lite spec.
+    let prevChart = sequence[0];
+    for (let i = 1; i < sequence.length; i++) {
+      const currChart = sequence[i];
+      if (deepEqual(prevChart, currChart)) {
+        return false;
+      }
+      prevChart = sequence[i];
+    }
+    return true;
+  }
+
   const HEURISTIC_RULES = [
     {
       name: "filter-then-aggregate",
@@ -26504,9 +26524,71 @@
       score: 1
     },
     {
-      editOps: ["FILTER", "SORT"],
+      name: "bin-then-aggregate",
+      editOps: ["BIN", "AGGREGATE"],
+      condition: (bin, aggregate) => {
+        return aggregate.detail && aggregate.detail.find(dt => dt.how === "added")
+      },
       score: 1
-    }
+    },
+    {
+      name: "disaggregate-then-bin",
+      editOps: ["AGGREGATE", "BIN"],
+      condition: (aggregate, bin) => {
+        return aggregate.detail && aggregate.detail.find(dt => dt.how === "removed")
+      },
+      score: 1
+    },
+    {
+      name: "sort-then-aggregate",
+      editOps: ["SORT", "AGGREGATE"],
+      condition: (sort, aggregate) => {
+        return aggregate.detail && aggregate.detail.find(dt => dt.how === "added")
+      },
+      score: 1
+    },
+    {
+      name: "disaggregate-then-sort",
+      editOps: ["AGGREGATE", "SORT"],
+      condition: (aggregate, sort) => {
+        return aggregate.detail && aggregate.detail.find(dt => dt.how === "removed")
+      },
+      score: 1
+    },
+    {
+      name: "encoding-then-aggregate",
+      editOps: ["ENCODING", "AGGREGATE"],
+      condition: (encoding, aggregate) => {
+        return aggregate.detail && aggregate.detail.find(dt => dt.how === "added")
+      },
+      score: 1
+    },
+    {
+      name: "disaggregate-then-encoding",
+      editOps: ["AGGREGATE", "ENCODING"],
+      condition: (aggregate, encoding) => {
+        return aggregate.detail && aggregate.detail.find(dt => dt.how === "removed")
+      },
+      score: 1
+    },
+    {
+      name: "aggregate-then-mark",
+      editOps: ["AGGREGATE", "MARK"],
+      condition: (aggregate, mark) => {
+
+        return aggregate.detail && aggregate.detail.find(dt => dt.how === "added")
+      },
+      score: 1
+    },
+    {
+      name: "mark-then-disaggregate",
+      editOps: ["MARK", "AGGREGATE"],
+      condition: (mark, aggregate) => {
+
+        return aggregate.detail && aggregate.detail.find(dt => dt.how === "removed")
+      },
+      score: 1
+    },
     // {
     //   editOps: [TRANSFORM, ENCODING.REMOVE],
     //   condition: (transform, remove) => {
@@ -26546,41 +26628,40 @@
   }
 
   function findRules(editOpPartition, rules = HEURISTIC_RULES) {
-    return rules.filter(rule => {
-      let foundEditOps = [];
+    return rules.filter(_rule => {
+      let rule = copy(_rule);
       for (let j = 0; j < rule.editOps.length; j++) {
         const ruleEditOp = rule.editOps[j];
-        let foundEditOp;
+        rule[ruleEditOp] = [];
         for (let i = 0; i < editOpPartition.length; i++) {
           const editOpPart = editOpPartition[i];
           let newFoundEditOp = findEditOp(editOpPart, ruleEditOp);
 
           if (newFoundEditOp) {
-            foundEditOp = newFoundEditOp;
-            foundEditOp.position = i;
+            rule[ruleEditOp].push({...newFoundEditOp, position: i});
           }
         }
 
-        if (!foundEditOp) {
+        if (rule[ruleEditOp].length === 0) {
           return false; // when there is no corresponding edit op for the rule in given editOp partition.
         }
-        foundEditOps.push( foundEditOp);
       }
 
 
-      let prevEo = foundEditOps[0];
-      for (let i = 1; i < foundEditOps.length; i++) {
-        const eo = foundEditOps[i];
-        if (prevEo.position >= eo.position) {
-          return false;
+      for (let i = 0; i < rule[rule.editOps[0]].length; i++) {
+        const followed = rule[rule.editOps[0]][i];
+        for (let j = 0; j < rule[rule.editOps[1]].length; j++) {
+          const following = rule[rule.editOps[1]][j];
+          if (followed.position >= following.position) {
+            return false
+          }
+
+          if (_rule.condition && !_rule.condition(followed, following)) {
+            return false;
+          }
         }
-        prevEo = foundEditOps[i];
       }
-
-      if (rule.condition && !rule.condition(...foundEditOps)) {
-        return false;
-      }
-      return foundEditOps;
+      return true;
     });
   }
   function findEditOp(editOps, query) {
@@ -26602,11 +26683,11 @@
 
     globalOpt.axes = opt.axes || {};
     for (const scaleName in opt.scales || {}) {
-      globalOpt.axes[scaleName] = opt.axes[scaleName] || {};
-      globalOpt.axes[scaleName].change = opt.axes[scaleName].change || {};
-      globalOpt.axes[scaleName].change.scale = opt.axes[scaleName].change.scale || {};
+      globalOpt.axes[scaleName] = globalOpt.axes[scaleName] || {};
+      globalOpt.axes[scaleName].change = globalOpt.axes[scaleName].change || {};
+      globalOpt.axes[scaleName].change.scale = globalOpt.axes[scaleName].change.scale || {};
       if (globalOpt.axes[scaleName].change.scale !== false) {
-        globalOpt.axes[scaleName].change.scale.domainDimension = opt.scales[scaleName].domainDimension;
+        globalOpt.axes[scaleName].change.scale.domainDimension = globalOpt.axes[scaleName].domainDimension;
       }
     }
 

@@ -3,7 +3,7 @@ import { default as EXAMPLES } from "../exampleLoader.js";
 import { detectDiffs, isDiffData } from "../../src/recommender/diffDetector";
 import * as vega from "vega";
 describe("detectDiffs", () => {
-  test.only("Should detect the differences of each component correctly 1.", () => {
+  test("Should detect the differences of each component correctly 1.", () => {
     let sView = new vega.View(vega.parse(EXAMPLES.zoomingOut.sSpec), { renderer: 'svg' });
     let eView = new vega.View(vega.parse(EXAMPLES.zoomingOut.eSpec), { renderer: 'svg' });
     //run toSVG to get view.scale("...")
@@ -58,7 +58,7 @@ describe("detectDiffs", () => {
     const eVis = { spec: EXAMPLES.noDiff.eSpec, view: eView };
     const detected = detectDiffs( { sVis, eVis} );
 
-    expect(detected.signalDiffs.meta.same.length).toEqual(5);
+    expect(detected.signalDiffs.meta.same.length).toEqual(6);
 
     expect(detected.compDiffs[0].compType).toEqual("axis");
     expect(detected.compDiffs[0].meta.encode).toEqual(false);
@@ -102,7 +102,7 @@ describe("detectDiffs", () => {
     const eVis = { spec: EXAMPLES.addYAxis.eSpec, view: eView };
     const detected = detectDiffs( { sVis, eVis} );
 
-    expect(detected.signalDiffs.meta.same.length).toEqual(4);
+    expect(detected.signalDiffs.meta.same.length).toEqual(5);
     expect(detected.signalDiffs.meta.update).toEqual(["height"]);
 
 
@@ -138,7 +138,7 @@ describe("detectDiffs", () => {
     const eVis = { spec: EXAMPLES.removeLegendUpdateData.eSpec, view: eView };
     const detected = detectDiffs( { sVis, eVis} );
 
-    expect(detected.signalDiffs.meta.same.length).toEqual(5);
+    expect(detected.signalDiffs.meta.same.length).toEqual(6);
 
     expect(detected.compDiffs[0].compType).toEqual("axis");
     expect(detected.compDiffs[0].compName).toEqual("x");
@@ -183,13 +183,13 @@ describe("detectDiffs", () => {
     const eVis = { spec: EXAMPLES.changeYEncode_bar.eSpec, view: eView };
     const detected = detectDiffs( { sVis, eVis} );
 
-    expect(detected.signalDiffs.meta.same.length).toEqual(5);
+    expect(detected.signalDiffs.meta.same.length).toEqual(6);
 
     expect(detected.compDiffs[0].compType).toEqual("axis");
     expect(detected.compDiffs[0].compName).toEqual("x");
     expect(detected.compDiffs[0].meta.encode).toEqual(false);
     expect(!!detected.compDiffs[0].meta.scale).toEqual(true);
-    expect(detected.compDiffs[1].meta.view.deltaW).toEqual(0);
+    expect(detected.compDiffs[1].meta.view.deltaW).toEqual(-5);
 
 
     expect(detected.compDiffs[1].compType).toEqual("axis");

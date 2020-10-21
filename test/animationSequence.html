@@ -15,7 +15,7 @@
   let gemSpecs, sequence;
   async function init(){
 
-    input = await d3.json("./examples/sequence/addY_aggregate.json");
+    input = await d3.json("./examples/sequence/addY_aggregate_scale.json");
     gemSpecs = input.gemSpecs;
     sequence = input.sequence.map(gemini.vl2vg4gemini);
 

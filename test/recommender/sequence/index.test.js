@@ -22,7 +22,7 @@ describe("recommendForSeq", () => {
   })
 
   test("should recommend gemini specs for the sequence adding Y and aggregating", async () => {
-    const {sequence, opt} = EXAMPLES.sequence.addY_aggregate;
+    const {sequence, opt} = EXAMPLES.sequence.addY_aggregate_scale;
     let recommendations = await recommendForSeq(sequence.map(vl2vg4gemini), opt);
     let topRecom = recommendations[0];
 

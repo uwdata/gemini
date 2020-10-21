@@ -10,11 +10,11 @@ export async function recommendForSeq(sequence, opt = {}) {
 
   globalOpt.axes = opt.axes || {};
   for (const scaleName in opt.scales || {}) {
-    globalOpt.axes[scaleName] = opt.axes[scaleName] || {};
-    globalOpt.axes[scaleName].change = opt.axes[scaleName].change || {};
-    globalOpt.axes[scaleName].change.scale = opt.axes[scaleName].change.scale || {};
+    globalOpt.axes[scaleName] = globalOpt.axes[scaleName] || {};
+    globalOpt.axes[scaleName].change = globalOpt.axes[scaleName].change || {};
+    globalOpt.axes[scaleName].change.scale = globalOpt.axes[scaleName].change.scale || {};
     if (globalOpt.axes[scaleName].change.scale !== false) {
-      globalOpt.axes[scaleName].change.scale.domainDimension = opt.scales[scaleName].domainDimension;
+      globalOpt.axes[scaleName].change.scale.domainDimension = globalOpt.axes[scaleName].domainDimension;
     }
   }
 

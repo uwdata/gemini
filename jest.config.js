@@ -190,12 +190,12 @@ module.exports = {
     "jest-canvas-mock"
   ],
   testMatch: [
-    "**/test/**/*.test.js"
+    "<rootDir>/test/**/*.test.js"
   ],
   // transformIgnorePatterns: ['<rootDir>/node_modules/']
   transformIgnorePatterns: [
-    "/node_modules/",
-    "/.yalc/"
+    "node_modules/*",
+    ".yalc/*"
   ]
 
 };
