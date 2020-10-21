@@ -1,7 +1,7 @@
 import * as gs from "graphscape";
 import {default as vl2vg4gemini} from "../../util/vl2vg4gemini"
 import * as vega from "vega";
-import { copy, partition, permutate, union, intersection} from "../../util/util";
+import { copy, deepEqual, partition, permutate, union, intersection} from "../../util/util";
 
 // Take two vega-lite specs and enumerate the keyframe sets of 'stageN' frames.
 export async function enumerateSequences(sVLSpec, eVLSpec, editOps, stageN) {
@@ -36,6 +36,10 @@ export async function enumerateSequences(sVLSpec, eVLSpec, editOps, stageN) {
                 currSpec.encoding[channel].scale = {};
               }
               currSpec.encoding[channel].scale.domain = mergedScaleDomain[channel];
+              if (currSpec.encoding[channel].scale.zero !== undefined) {
+
+                delete currSpec.encoding[channel].scale.zero
+              }
             }
           }
         }
@@ -44,14 +48,11 @@ export async function enumerateSequences(sVLSpec, eVLSpec, editOps, stageN) {
           throw e;
         }
       }
-      if (validate(currSpec)) {
-        sequence.push(copy(currSpec));
-      } else {
-        valid = false;
-        break;
-      }
+
+      sequence.push(copy(currSpec));
     }
-    if (valid) {
+
+    if (validate(sequence)) {
       sequences.push({sequence, editOpPartition});
     } else {
       continue;
@@ -112,7 +113,15 @@ export async function scaleModifier(sVLSpec, eVLSpec) {
 }
 
 
-export function validate(spec) {
-  //Todo: check if the given spec is a valid vega-lite spec.
+export function validate(sequence) {
+  //Todo: check if the sequence is a valid vega-lite spec.
+  let prevChart = sequence[0];
+  for (let i = 1; i < sequence.length; i++) {
+    const currChart = sequence[i];
+    if (deepEqual(prevChart, currChart)) {
+      return false;
+    }
+    prevChart = sequence[i];
+  }
   return true;
 }

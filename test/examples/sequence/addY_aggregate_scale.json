@@ -106,6 +106,35 @@
     }
 
   ],
+  "start": {
+    "$schema": "https://vega.github.io/schema/vega-lite/v4.json",
+    "data": {
+      "url": "data/penguins.json"
+    },
+    "mark": "point",
+    "encoding": {
+      "x": {
+        "field": "Flipper Length (mm)",
+        "type": "quantitative",
+        "scale": {"zero": false}
+      }
+    }
+  },
+  "end": {
+    "$schema": "https://vega.github.io/schema/vega-lite/v4.json",
+    "data": {
+      "url": "data/penguins.json"
+    },
+    "mark": "point",
+    "encoding": {
+      "x": {
+        "field": "Flipper Length (mm)",
+        "type": "quantitative",
+        "aggregate": "mean"
+      },
+      "y": {"field": "Species", "type": "nominal"}
+    }
+  },
   "opt": {
     "totalDuration": 4000,
     "marks": {

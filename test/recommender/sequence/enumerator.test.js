@@ -43,6 +43,22 @@ describe("enumerateSequences", () => {
     expect(sequences[0].sequence[1].encoding.x.scale.domain).toEqual([0,100])
     expect(sequences[1].sequence[1].encoding.x.scale.domain).toEqual([0,100])
   });
+
+  test("Should enumerate valid sequences.", async () => {
+    const {start, end} = EXAMPLES.sequence.addY_aggregate_scale;
+    const transition = gs.transition(copy(start),  copy(end))
+
+    const editOps = [
+      ...transition.mark,
+      ...transition.transform,
+      ...transition.encoding
+    ];
+
+    let sequences = await enumerateSequences(start, end, editOps, 2)
+    expect(sequences.length).toBe(4) // applying only "SCALE" edit op should be ignored.
+
+  });
+
 });
 
 
