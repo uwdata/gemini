@@ -13,6 +13,13 @@ function schema() {
     },
     additionalProperties: false,
     defs: {
+      ease: {
+        type: "string",
+        enum: ["linear", "cubic", "quad", "exp", "bounce", "circle", "sin",
+          "linearIn", "cubicIn", "quadIn", "expIn", "bounceIn", "circleIn", "sinIn",
+          "linearOut", "cubicOut", "quadOut", "expOut", "bounceOut", "circleOut", "sinOut"
+        ]
+      },
       enumerator: {
         type: "object",
         properties: {
@@ -46,6 +53,7 @@ function schema() {
           },
           overlap: { type: "number" },
           order: { type: "string", enum: ["ascending", "descending"] },
+          ease: { $ref: "#/defs/ease" },
           staggering: { $ref: "#/defs/subStaggering" }
         },
         additionalProperties: false,
@@ -319,7 +327,8 @@ function schema() {
               { type: "object", properties: { ratio: { type: "number" } } }
             ]
           },
-          staggering: { type: "string" }
+          staggering: { type: "string" },
+          ease: { $ref: "#/defs/ease" },
         }
       },
       encode: {

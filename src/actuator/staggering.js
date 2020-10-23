@@ -45,7 +45,7 @@ function staggeredTiming(staggering, data, duration) {
       return val === undefined ? "__empty__" : val;
     })
     if (typeof(orderFn) === "function") {
-      grouped.sort((a,b) => orderFn(a,b));
+      grouped.sort((a,b) => orderFn(a[0], b[0]));
     }
   } else if (typeof staggering.by === "string") {
 
@@ -57,7 +57,7 @@ function staggeredTiming(staggering, data, duration) {
 
     const orderFn = getOrderFn(isNumber, staggering.order);
     if (typeof(orderFn) === "function") {
-      grouped.sort((a,b) => orderFn(a,b));
+      grouped.sort((a,b) => orderFn(a[0], b[0]));
     }
   } else if (staggering.by.initial || staggering.by.final) {
     const which = staggering.by.initial ? "initial" : "final";
@@ -72,7 +72,7 @@ function staggeredTiming(staggering, data, duration) {
 
     const orderFn = getOrderFn(isNumber, staggering.order);
     if (typeof(orderFn) === "function") {
-      grouped.sort((a,b) => orderFn(a,b));
+      grouped.sort((a,b) => orderFn(a[0], b[0]));
     }
   }
 
