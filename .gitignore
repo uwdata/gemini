@@ -10,3 +10,7 @@ user_study/
 editor/
 etc/
 .vscode
+
+.yalc/
+test/data/
+yalc.lock
