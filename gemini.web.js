@@ -7707,6 +7707,13 @@
       },
       additionalProperties: false,
       defs: {
+        ease: {
+          type: "string",
+          enum: ["linear", "cubic", "quad", "exp", "bounce", "circle", "sin",
+            "linearIn", "cubicIn", "quadIn", "expIn", "bounceIn", "circleIn", "sinIn",
+            "linearOut", "cubicOut", "quadOut", "expOut", "bounceOut", "circleOut", "sinOut"
+          ]
+        },
         enumerator: {
           type: "object",
           properties: {
@@ -7740,6 +7747,7 @@
             },
             overlap: { type: "number" },
             order: { type: "string", enum: ["ascending", "descending"] },
+            ease: { $ref: "#/defs/ease" },
             staggering: { $ref: "#/defs/subStaggering" }
           },
           additionalProperties: false,
@@ -8013,7 +8021,8 @@
                 { type: "object", properties: { ratio: { type: "number" } } }
               ]
             },
-            staggering: { type: "string" }
+            staggering: { type: "string" },
+            ease: { $ref: "#/defs/ease" },
           }
         },
         encode: {
@@ -13561,7 +13570,7 @@
       for (const step of moment.ending) {
         const lastState = state[step.trackName];
         if (step.compType === "pause") {
-          return;
+          break;
         }
 
         lastState.data = lastState.data || initialData(step, rawInfo);
@@ -16237,7 +16246,7 @@
         return val === undefined ? "__empty__" : val;
       });
       if (typeof(orderFn) === "function") {
-        grouped.sort((a,b) => orderFn(a,b));
+        grouped.sort((a,b) => orderFn(a[0], b[0]));
       }
     } else if (typeof staggering.by === "string") {
 
@@ -16249,7 +16258,7 @@
 
       const orderFn = getOrderFn(isNumber, staggering.order);
       if (typeof(orderFn) === "function") {
-        grouped.sort((a,b) => orderFn(a,b));
+        grouped.sort((a,b) => orderFn(a[0], b[0]));
       }
     } else if (staggering.by.initial || staggering.by.final) {
       const which = staggering.by.initial ? "initial" : "final";
@@ -16264,7 +16273,7 @@
 
       const orderFn = getOrderFn(isNumber, staggering.order);
       if (typeof(orderFn) === "function") {
-        grouped.sort((a,b) => orderFn(a,b));
+        grouped.sort((a,b) => orderFn(a[0], b[0]));
       }
     }
 

@@ -58,7 +58,7 @@ export async function attachStates(schedule, rawInfo) {
     for (const step of moment.ending) {
       const lastState = state[step.trackName];
       if (step.compType === "pause") {
-        return;
+        break;
       }
 
       lastState.data = lastState.data || initialData(step, rawInfo);
