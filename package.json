@@ -58,5 +58,10 @@
     "vega-expression": "^2.6.2",
     "vega-lite": "^4.9.0",
     "vega-parser": "^5.11.0"
-  }
+  },
+  "files": [
+    "gemini.js",
+    "gemini.web.js",
+    ".yalc/"
+  ]
 }

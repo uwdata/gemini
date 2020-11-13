@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
 import { default as EXAMPLES } from "../exampleLoader.js";
-import { default as recommend } from "../../src/recommender";
+import { default as recommend, cannotRecommend } from "../../src/recommender";
 
 describe("recommend should return the expected timeline as a top recommendation.", () => {
   test("[line: zooming out]", async () => {
@@ -154,3 +154,12 @@ describe("recommend should return the expected timeline as a top recommendation.
     });
   });
 });
+
+describe("cannotRecommend should return an error if Gemini cannot recommend for the given input.", () => {
+  test("multiple marks", async () => {
+    let example = EXAMPLES.addLayer;
+    let result = await cannotRecommend(example.sSpec, example.eSpec);
+    expect(result).toMatchObject({error: "Gemini cannot recomend animations for transitions with multiple marks."})
+
+  })
+})

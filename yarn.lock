@@ -8549,7 +8549,11 @@ vega-dataflow@^5.5.1, vega-dataflow@^5.7.3, vega-dataflow@~5.7.3:
     vega-loader "^4.3.2"
     vega-util "^1.15.2"
 
-<<<<<<< HEAD
+vega-datasets@^2.1.0:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/vega-datasets/-/vega-datasets-2.2.0.tgz#45a95b8a04707babca9d83a74481157eac7be830"
+  integrity sha512-8WgehTGic6fHbQKyxApM29vnwGGeYqgan9xW0jW2d/L3jWngF2qIDkZktt+Y+vUpW2qp9MJWelNSVhplWhL8EA==
+
 vega-embed@^6.12.2:
   version "6.12.2"
   resolved "https://registry.yarnpkg.com/vega-embed/-/vega-embed-6.12.2.tgz#0b23b62a324c54340f25afe12ae9b6e62e27ea31"
@@ -8561,12 +8565,6 @@ vega-embed@^6.12.2:
     vega-schema-url-parser "^2.1.0"
     vega-themes "^2.9.0"
     vega-tooltip "^0.24.0"
-=======
-vega-datasets@^2.1.0:
-  version "2.2.0"
-  resolved "https://registry.yarnpkg.com/vega-datasets/-/vega-datasets-2.2.0.tgz#45a95b8a04707babca9d83a74481157eac7be830"
-  integrity sha512-8WgehTGic6fHbQKyxApM29vnwGGeYqgan9xW0jW2d/L3jWngF2qIDkZktt+Y+vUpW2qp9MJWelNSVhplWhL8EA==
->>>>>>> 4e50093... fix enumerator to use .runAsync for creating vega View
 
 vega-encode@~4.8.3:
   version "4.8.3"

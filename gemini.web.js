@@ -4,7 +4,9 @@
   (global = global || self, factory(global.gemini = {}, global.vega, global.d3, global.vegaLite));
 }(this, (function (exports, vega, d3, vegaLite) { 'use strict';
 
+  var vega__default = 'default' in vega ? vega['default'] : vega;
   var d3__default = 'default' in d3 ? d3['default'] : d3;
+  var vegaLite__default = 'default' in vegaLite ? vegaLite['default'] : vegaLite;
 
   class Animation {
     constructor(schedule, rawInfo, spec) {
@@ -23050,11 +23052,60 @@
     );
   }
 
-  async function recommend(
+  async function recommend (
     sSpec,
     eSpec,
     opt = { marks: {}, axes: {}, legends: {}, scales: {} }
   ) {
+    if (cannotRecommend(sSpec, eSpec)) {
+      return cannotRecommend(sSpec, eSpec);
+    }
+
+    const {
+      rawInfo,
+      userInput,
+      stageN,
+      includeMeta,
+      timing
+    } = await initialSetUp(sSpec, eSpec, opt);
+
+    const detected = detectDiffs(rawInfo, userInput);
+    // for (let i = 1; i <= maxStageN; i++) {
+    //   pseudoTls = pseudoTls.concat(enumeratePseudoTimelines(detected, i, rawInfo));
+    // }
+
+
+    let pseudoTls = enumeratePseudoTimelines(detected, stageN, rawInfo, timing);
+    pseudoTls = pseudoTls
+      .map(pseudoTl => {
+        pseudoTl.eval = evaluate(pseudoTl);
+        return pseudoTl;
+      })
+      .sort((a, b) => compareCost(a.eval, b.eval));
+
+    return pseudoTls.map(pseudoTl => {
+      const meta = includeMeta ? pseudoTl.eval : undefined;
+      return {
+        spec: {
+          timeline: generateTimeline(pseudoTl, userInput, includeMeta),
+          totalDuration: timing.totalDuration,
+          meta
+        },
+        pseudoTimeline: pseudoTl
+      };
+    });
+  }
+  function compareCost(a, b) {
+    if (a.cost === b.cost) {
+      if (a.tiebreaker === b.tiebreaker) {
+        return a.tiebreaker2 - b.tiebreaker2;
+      }
+      return a.tiebreaker - b.tiebreaker;
+    }
+    return a.cost - b.cost;
+  }
+
+  async function initialSetUp(sSpec, eSpec, opt = { marks: {}, axes: {}, legends: {}, scales: {} }) {
     const userInput = opt;
     const stageN = Number(opt.stageN) || 2;
     const { includeMeta } = opt;
@@ -23085,38 +23136,25 @@
       eVis: { spec: copy(eSpec), view: eView }
     };
 
-    const detected = detectDiffs(rawInfo, userInput);
-    // for (let i = 1; i <= maxStageN; i++) {
-    //   pseudoTls = pseudoTls.concat(enumeratePseudoTimelines(detected, i, rawInfo));
-    // }
-    let pseudoTls = enumeratePseudoTimelines(detected, stageN, rawInfo, timing);
-    pseudoTls = pseudoTls
-      .map(pseudoTl => {
-        pseudoTl.eval = evaluate(pseudoTl);
-        return pseudoTl;
-      })
-      .sort((a, b) => compareCost(a.eval, b.eval));
-
-    return pseudoTls.map(pseudoTl => {
-      const meta = includeMeta ? pseudoTl.eval : undefined;
-      return {
-        spec: {
-          timeline: generateTimeline(pseudoTl, userInput, includeMeta),
-          totalDuration: timing.totalDuration,
-          meta
-        },
-        pseudoTimeline: pseudoTl
-      };
-    });
+    return { rawInfo, userInput, stageN, includeMeta, timing}
   }
-  function compareCost(a, b) {
-    if (a.cost === b.cost) {
-      if (a.tiebreaker === b.tiebreaker) {
-        return a.tiebreaker2 - b.tiebreaker2;
+
+  function cannotRecommend(sSpec, eSpec) {
+    const compDiffs = getChanges(
+      getComponents(sSpec),
+      getComponents(eSpec)
+    ).filter(match => {
+      return (
+        ["root", "pathgroup"].indexOf(match.compName) < 0 &&
+        match.compType !== "scale"
+      );
+    });
+    if (compDiffs.filter(comp => comp.compType === "mark").length >= 2) {
+      return {
+        error: "Gemini cannot recomend animations for transitions with multiple marks."
       }
-      return a.tiebreaker - b.tiebreaker;
     }
-    return a.cost - b.cost;
+    return false;
   }
 
   const RawCode$1 = 'RawCode';
@@ -25373,13 +25411,14 @@
 
 
 
-  function transition(s, d, importedTransitionCosts, transOptions) {
+  async function transition(s, d, importedTransitionCosts, transOptions) {
     var importedMarkEditOps = importedTransitionCosts ? importedTransitionCosts.markEditOps : DEFAULT_EDIT_OPS$1["markEditOps"];
     var importedTransformEditOps = importedTransitionCosts ? importedTransitionCosts.transformEditOps : DEFAULT_EDIT_OPS$1["transformEditOps"];
     var importedEncodingEditOps = importedTransitionCosts ? importedTransitionCosts.encodingEditOps : DEFAULT_EDIT_OPS$1["encodingEditOps"];
+    let _transformEditOps = await transformEditOps(s, d, importedTransformEditOps, transOptions);
     var trans = {
       mark: markEditOps(s, d, importedMarkEditOps).map(eo => { return {...eo, type: "mark"}}),
-      transform: transformEditOps(s, d, importedTransformEditOps, transOptions).map(eo => { return {...eo, type: "transform"}}),
+      transform: _transformEditOps.map(eo => { return {...eo, type: "transform"}}),
       encoding: encodingEditOps(s, d, importedEncodingEditOps).map(eo => { return {...eo, type: "encoding"}})
     };
 
@@ -25466,19 +25505,23 @@
     }
     return editOps;
   }
-
   var markEditOps_1 = markEditOps;
-  function transformEditOps(s, d, importedTransformEditOps, transOptions) {
+
+  async function transformEditOps(s, d, importedTransformEditOps, transOptions) {
     var transformEditOps = importedTransformEditOps || DEFAULT_EDIT_OPS$1["transformEditOps"];
     var editOps = [];
-    CHANNELS$2.forEach(function (channel) {
-      ["SCALE", "SORT", "AGGREGATE", "BIN", "SETTYPE"].map(function (transformType) {
+    for (let i = 0; i < CHANNELS$2.length; i++) {
+      const channel = CHANNELS$2[i];
+
+      ["SCALE", "SORT", "AGGREGATE", "BIN", "SETTYPE"].map(async function (transformType) {
         let editOp;
 
         if (transformType === "SETTYPE" && transformEditOps[transformType]) {
           editOp = transformSettype(s, d, channel, transformEditOps);
+        } else if (transformType === "SCALE" && transformEditOps[transformType]) {
+          editOp = await scaleEditOps(s, d, channel, transformEditOps[transformType], transOptions);
         } else if (transformEditOps[transformType]) {
-          editOp = transformBasic(s, d, channel, transformType, transformEditOps, transOptions);
+          editOp = transformBasic(s, d, channel, transformType, transformEditOps);
         }
         if (editOp) {
           let found = editOps.find(eo => eo.name === editOp.name);
@@ -25490,8 +25533,7 @@
           }
         }
       });
-    });
-    var importedFilterEditOps = {
+    }  var importedFilterEditOps = {
       "MODIFY_FILTER": transformEditOps["MODIFY_FILTER"],
       "ADD_FILTER": transformEditOps["ADD_FILTER"],
       "REMOVE_FILTER": transformEditOps["REMOVE_FILTER"]
@@ -25501,7 +25543,7 @@
     return editOps;
   }
   var transformEditOps_1 = transformEditOps;
-  function transformBasic(s, d, channel, transform, transformEditOps, transOptions) {
+  function transformBasic(s, d, channel, transform, transformEditOps) {
     var sHas = false;
     var dHas = false;
     var editOp;
@@ -25514,24 +25556,7 @@
       dHas = true;
       dEditOp = d.encoding[channel][transform.toLowerCase()];
     }
-    if (transOptions && transOptions.omitIncludeRawDomain && transform === "SCALE") {
-      if (sEditOp && sEditOp.domain && dEditOp.domain === "unaggregated") {
-        delete sEditOp.domain;
 
-        if (Object.keys(sEditOp).length === 0 ) {
-          sHas = false;
-        }
-      }
-
-      if (dEditOp && dEditOp.domain && (dEditOp.domain === "unaggregated")) {
-        delete dEditOp.domain;
-
-
-        if (Object.keys(dEditOp).length === 0 ) {
-          dHas = false;
-        }
-      }
-    }
     if (sHas && dHas && (!util$1.rawEqual(sEditOp, dEditOp))) {
       editOp = util$1.duplicate(transformEditOps[transform]);
       editOp.detail = { "how": "modified", "channel": channel };
@@ -25549,6 +25574,83 @@
     }
   }
   var transformBasic_1 = transformBasic;
+
+  async function scaleEditOps(s, d, channel, scaleTransformEditOps, transOptions) {
+    var sHas = false, sOnlyHasDomainRelated = false;
+    var dHas = false, dOnlyHasDomainRelated = false;
+    var editOp;
+    var sEditOp, dEditOp;
+    if (s.encoding[channel] && s.encoding[channel].scale) {
+      sHas = true;
+      sEditOp = {...s.encoding[channel].scale};
+      if (!Object.keys(sEditOp).find(key => ["domain", "zero"].indexOf(key) < 0) ) {
+        sOnlyHasDomainRelated = true;
+      }
+    }
+    if (d.encoding[channel] && d.encoding[channel].scale) {
+      dHas = true;
+      dEditOp = {...d.encoding[channel].scale};
+      if (!Object.keys(dEditOp).find(key => ["domain", "zero"].indexOf(key) < 0) ) {
+        dOnlyHasDomainRelated = true;
+      }
+    }
+    if (transOptions && transOptions.omitIncludeRawDomain) {
+      if (sEditOp && sEditOp.domain && dEditOp.domain === "unaggregated") {
+        delete sEditOp.domain;
+        if (Object.keys(sEditOp).length === 0) {
+          sOnlyHasDomainRelated = false;
+          sHas = false;
+        }
+      }
+
+      if (dEditOp && dEditOp.domain && (dEditOp.domain === "unaggregated")) {
+        delete dEditOp.domain;
+        if (Object.keys(dEditOp).length === 0) {
+          dOnlyHasDomainRelated = false;
+          dHas = false;
+        }
+      }
+    }
+    if (sHas && dHas && (!util$1.rawEqual(sEditOp, dEditOp))) {
+      if (sOnlyHasDomainRelated && dOnlyHasDomainRelated && await sameDomain$1(s,d, channel)) {
+        return;
+      }
+      editOp = util$1.duplicate(scaleTransformEditOps);
+      editOp.detail = { "how": "modified", "channel": channel };
+      return editOp;
+    }
+    else if (sHas && !dHas) {
+      if (sOnlyHasDomainRelated && await sameDomain$1(s,d, channel)) {
+        return;
+      }
+      editOp = util$1.duplicate(scaleTransformEditOps);
+      editOp.detail = { "how": "removed", "channel": channel };
+      return editOp;
+    }
+    else if (!sHas && dHas) {
+      if (dOnlyHasDomainRelated && await sameDomain$1(s,d, channel)) {
+        return;
+      }
+      editOp = util$1.duplicate(scaleTransformEditOps);
+      editOp.detail = { "how": "added", "channel": channel };
+      return editOp;
+    }
+  }
+  var scaleEditOps_1 = scaleEditOps;
+  async function sameDomain$1(s, d, channel) {
+    const dView = await new vega__default.View(vega__default.parse(vegaLite__default.compile(util$1.duplicate(d)).spec), {
+      renderer: "svg"
+    }).runAsync();
+
+    const sView = await new vega__default.View(vega__default.parse(vegaLite__default.compile(util$1.duplicate(s)).spec), {
+      renderer: "svg"
+    }).runAsync();
+
+    const sScale = sView._runtime.scales[channel].value;
+    const dScale = dView._runtime.scales[channel].value;
+
+    return util$1.deepEqual(sScale.domain(), dScale.domain())
+  }
   function filterEditOps(s, d, importedFilterEditOps) {
 
     var sFilters = [], dFilters = [];
@@ -25835,6 +25937,7 @@
   	markEditOps: markEditOps_1,
   	transformEditOps: transformEditOps_1,
   	transformBasic: transformBasic_1,
+  	scaleEditOps: scaleEditOps_1,
   	filterEditOps: filterEditOps_1,
   	getFilters: getFilters_1,
   	parsePredicateFilter: parsePredicateFilter_1,
@@ -26058,7 +26161,7 @@
     TieBreaker: TieBreaker
   };
 
-  function sequence(specs, options, editOpSet$1, callback){
+  async function sequence(specs, options, editOpSet$1, callback){
     if (!editOpSet$1) {
       editOpSet$1 = editOpSet.DEFAULT_EDIT_OPS;
     }
@@ -26067,14 +26170,14 @@
       return (dist + filterCost / 1000) * globalWeightingTerm;
     }
 
-    var transitionSetsFromEmptyVis = getTransitionSetsFromSpec({ "mark":"null", "encoding": {} }, specs, editOpSet$1);
+    var transitionSetsFromEmptyVis = await getTransitionSetsFromSpec({ "mark":"null", "encoding": {} }, specs, editOpSet$1);
 
       if (!options.fixFirst) {
       var startingSpec = { "mark":"null", "encoding": {} };
       specs = [ startingSpec ].concat(specs);
     }
 
-    var transitions = getTransitionSets(specs, editOpSet$1);
+    var transitions = await getTransitionSets(specs, editOpSet$1);
     transitions = extendTransitionSets(transitions);
 
     var TSPResult = TSP_1.TSP(transitions, "cost", options.fixFirst===true ? 0 : undefined);
@@ -26131,20 +26234,20 @@
     }
     return returnValue;
   }
-  function getTransitionSetsFromSpec( spec, specs, editOpSet){
+  async function getTransitionSetsFromSpec( spec, specs, editOpSet){
     var transitions = [];
     for (var i = 0; i < specs.length; i++) {
-      transitions.push(trans.transition(specs[i], spec, editOpSet, { omitIncludeRawDomin: true }));
+      transitions.push(await trans.transition(specs[i], spec, editOpSet, { omitIncludeRawDomin: true }));
     }
     return transitions;
   }
 
-  function getTransitionSets(specs, editOpSet){
+  async function getTransitionSets(specs, editOpSet){
     var transitions = [];
     for (var i = 0; i < specs.length; i++) {
       transitions.push([]);
       for (var j = 0; j < specs.length; j++) {
-        transitions[i].push(trans.transition(specs[i], specs[j], editOpSet, { omitIncludeRawDomin: true }));
+        transitions[i].push(await trans.transition(specs[i], specs[j], editOpSet, { omitIncludeRawDomin: true }));
 
       }
     }
@@ -26725,8 +26828,8 @@
         ...(opt.perTransitions || [])[i],
         ...{includeMeta: false}
       };
-
-      recommendationPerTransition.push(await recommend(sVis, eVis, _opt));
+      const _recom = await recommend(sVis, eVis, _opt);
+      recommendationPerTransition.push(_recom);
     }
     let recomsForSequence = crossJoinArrays(recommendationPerTransition);
     return recomsForSequence.sort((a,b) => {
@@ -26740,10 +26843,26 @@
       return cost
     }, 0);
   }
+  async function cannotRecommendForSeq(sequence) {
+    for (let i = 0; i < (sequence.length - 1); i++) {
+      const sVis = sequence[i], eVis = sequence[i+1];
+      if (cannotRecommend(sVis, eVis)) {
+        return cannotRecommend(sVis, eVis);
+      }
+    }
+    return false;
+  }
+
+  function cannotRecommendKeyframes(sSpec, eSpec) {
+    //check if specs are single-view vega-lite chart
+    if (!isValidVLSpec(sSpec) || !isValidVLSpec(eSpec)) {
+      return { error: "Gemini++ cannot recommend keyframes for the given Vega-Lite charts."}
+    }
+  }
 
   async function recommendKeyframes(sSpec, eSpec, N=0) {
-    const transition = src_2(copy(sSpec),  copy(eSpec));
 
+    const transition = await src_2(copy(sSpec),  copy(eSpec));
     const editOps = [
       ...transition.mark,
       ...transition.transform,
@@ -26770,10 +26889,24 @@
     }).sort((a,b) => { return b.eval.score - a.eval.score})
   }
 
+  function isValidVLSpec(spec) {
+    if (spec.layer || spec.hconcat || spec.vconcat || spec.concat || spec.spec) {
+      return false;
+    }
+    if (spec.$schema && (spec.$schema.indexOf("https://vega.github.io/schema/vega-lite") >= 0)){
+      return true
+    }
+    return false
+
+  }
+
   const { animate, animateSequence } = Gemini;
 
   exports.animate = animate;
   exports.animateSequence = animateSequence;
+  exports.cannotRecommend = cannotRecommend;
+  exports.cannotRecommendForSeq = cannotRecommendForSeq;
+  exports.cannotRecommendKeyframes = cannotRecommendKeyframes;
   exports.compareCost = compareCost;
   exports.recommend = recommend;
   exports.recommendForSeq = recommendForSeq;
