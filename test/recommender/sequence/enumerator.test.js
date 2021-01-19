@@ -14,7 +14,7 @@ describe("enumerateSequences", () => {
       "transform": [{"filter": {"field": "A", "gt": 10}}],
       "encoding": {"x": {"field": "A", "type": "quantitative"}}
     }
-    const transition = gs.transition(copy(sSpec),  copy(eSpec))
+    const transition = await gs.transition(copy(sSpec),  copy(eSpec))
 
     const editOps = [
       ...transition.mark,
@@ -30,7 +30,7 @@ describe("enumerateSequences", () => {
 
   test("Should enumerate the keyframe with merged scales.", async () => {
     const {start, end} = EXAMPLES.sequence.filter_aggregate;
-    const transition = gs.transition(copy(start),  copy(end))
+    const transition = await gs.transition(copy(start),  copy(end))
 
     const editOps = [
       ...transition.mark,
@@ -46,7 +46,7 @@ describe("enumerateSequences", () => {
 
   test("Should enumerate valid sequences.", async () => {
     const {start, end} = EXAMPLES.sequence.addY_aggregate_scale;
-    const transition = gs.transition(copy(start),  copy(end))
+    const transition = await gs.transition(copy(start),  copy(end))
 
     const editOps = [
       ...transition.mark,
@@ -54,8 +54,57 @@ describe("enumerateSequences", () => {
       ...transition.encoding
     ];
 
-    let sequences = await enumerateSequences(start, end, editOps, 2)
-    expect(sequences.length).toBe(4) // applying only "SCALE" edit op should be ignored.
+    let sequences = await enumerateSequences(start, end, editOps, 1)
+    expect(sequences.length).toBe(2) // applying only "SCALE" edit op should be ignored.
+
+  });
+
+  test("Should only enumerate valid sequences having valid Vega-Lite specs.", async () => {
+    const start = {
+      "$schema": "https://vega.github.io/schema/vega-lite/v4.json",
+      "data": {"url": "data/penguins.json"},
+      "mark": "point",
+      "encoding": {
+        "x": {
+          "field": "Flipper Length (mm)",
+          "type": "quantitative"
+        },
+        "y": {
+          "field": "Body Mass (g)",
+          "type": "quantitative"
+        },
+        "color": {"field": "Species", "type": "nominal"}
+      }
+    };
+    const end = {
+      "$schema": "https://vega.github.io/schema/vega-lite/v4.json",
+      "data": {"url": "data/penguins.json"},
+      "mark": "point",
+      "encoding": {
+        "x": {
+          "field": "Flipper Length (mm)",
+          "type": "quantitative",
+          "bin": true
+        },
+        "y": {
+          "field": "Body Mass (g)",
+          "type": "quantitative",
+          "bin": true
+        },
+        "size": {"field": "*", "type": "quantitative", "aggregate": "count"}
+      }
+    }
+    const transition = await gs.transition(copy(start),  copy(end))
+
+    const editOps = [
+      ...transition.mark,
+      ...transition.transform,
+      ...transition.encoding
+    ];
+
+
+    let sequences = await enumerateSequences(start, end, editOps, 1)
+    expect(sequences.length).toBe(1) // applying only "SCALE" edit op should be ignored.
 
   });
 

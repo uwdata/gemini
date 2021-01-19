@@ -57,15 +57,17 @@ describe("evaluateSeuqnece", () => {
     "transform": [{"filter": {"field": "A", "gt": 10}}],
     "encoding": {"x": {"field": "A", "type": "quantitative"}}
   }
-  const transition = gs.transition(copy(sSpec),  copy(eSpec))
 
-  const editOps = [
-    ...transition.mark,
-    ...transition.transform,
-    ...transition.encoding
-  ];
 
   test("should promote the one filtering after dis-aggregating", async () => {
+    const transition = await gs.transition(copy(sSpec),  copy(eSpec))
+
+    const editOps = [
+      ...transition.mark,
+      ...transition.transform,
+      ...transition.encoding
+    ];
+
     let sequences = await enumerateSequences(sSpec, eSpec, editOps, 2)
     sequences = sequences.map((seq) => {
       return {
