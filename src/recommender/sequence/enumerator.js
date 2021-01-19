@@ -44,18 +44,19 @@ export async function enumerateSequences(sVLSpec, eVLSpec, editOps, stageN) {
           }
         }
       } catch(e) {
-        if (e.name !== "UnapplicableEditOPError") {
+        if (["UnapplicableEditOPError", "InvalidVLSpecError", "UnapplicableEditOpsError"].indexOf(e.name) < 0) {
           throw e;
+        } else {
+          valid = false;
+          break;
         }
       }
 
       sequence.push(copy(currSpec));
     }
 
-    if (validate(sequence)) {
+    if (valid && validate(sequence)) {
       sequences.push({sequence, editOpPartition});
-    } else {
-      continue;
     }
   }
 
