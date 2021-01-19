@@ -123,6 +123,13 @@ export function compute(rawInfo, step, lastState) {
     });
   }
 
+  if (change.data && !aggregates.initial && aggregates.final && aggregates.final.ops.indexOf("count") >= 0) {
+    step.specificScaleFor = { ...step.specificScaleFor, enter: {initial: "final"} };
+  }
+  if (change.data && aggregates.initial && !aggregates.final && aggregates.initial.ops.indexOf("count") >= 0) {
+    step.specificScaleFor = { ...step.specificScaleFor, exit: {final: "initial"} };
+  }
+
   if (manualEncode === false) {
     throw Error("Interpolating data requires to interpolate encode.");
   }
@@ -144,10 +151,12 @@ export function compute(rawInfo, step, lastState) {
 
   encodes.initial.enter = Object.assign(
     {},
-    lastState.encode.update,
+    (change.data && !aggregates.initial && aggregates.final) ? copy(get(change, "final", "encode", "update") || {}) : lastState.encode.update,
     DEFAULT_ENCODE.mark.enter,
     manualEncode && manualEncode.enter ? manualEncode.enter.initial : {}
   );
+
+
 
   if (get(change, "encode", "enter") === false) {
     encodes.final.enter = encodes.initial.enter;
@@ -234,14 +243,17 @@ export function compute(rawInfo, step, lastState) {
       );
     }
   }
+
+
   if (!aggregates.initial && aggregates.final && change.data ) {
     // when aggregate
     encodes.final.exit = Object.assign(
-      !change.marktype ? encodes.final.update : replacePositionAttrs(marktypes.initial, encodes.final.exit, encodes.final.update),
+      change.marktype && (marktypes.initial !== marktypes.final) ? replacePositionAttrs(marktypes.initial, encodes.final.exit, encodes.final.update) : encodes.final.update,
       { opacity: { value: 0 } },
       manualEncode ? manualEncode.exit : {},
       computeKeptEncode(manualEncode, encodes.initial, "exit"),
     );
+
 
     encodes.final.update = copy(encodes.final.enter);
   } else if (aggregates.initial && !aggregates.final && change.data ) {
@@ -249,7 +261,7 @@ export function compute(rawInfo, step, lastState) {
 
     encodes.initial.enter = Object.assign(
       {},
-      !change.marktype ? encodes.initial.update : replacePositionAttrs(marktypes.final, encodes.initial.enter, encodes.initial.update),
+      change.marktype && (marktypes.initial !== marktypes.final) ? replacePositionAttrs(marktypes.final, encodes.initial.enter, encodes.initial.update) : encodes.initial.update,
       { opacity: { value: 0 } },
       manualEncode && manualEncode.enter ? manualEncode.enter.initial : {}
     );

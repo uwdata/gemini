@@ -9,6 +9,7 @@ import {
   getLegendData,
   getMarkData
 } from "../../util/vgDataHelper";
+import { deepEqual } from "vega-lite";
 
 function computeIdMaker(key) {
   if (Array.isArray(key)) {
@@ -53,7 +54,7 @@ function initialData(step, rawInfo) {
 
 function joinData(step, rawInfo, initialData) {
   const iData = initialData;
-  const eView = rawInfo.eVis.view;
+  const eView = rawInfo.eVis.view, sView = rawInfo.sVis.view;
   const {change} = step;
   const isAdd = !change.initial && !!change.final;
   const isRemove = !!change.initial && !change.final;
@@ -262,7 +263,7 @@ function joinData(step, rawInfo, initialData) {
       doUpdate = change.data.update === false ? false : doUpdate;
       doEnter = change.data.enter === false ? false : doEnter;
       doExit = change.data.exit === false ? false : doExit;
-      joinFields = Array.isArray(change.data) ? change.data : change.data.keys;
+      joinFields = (Array.isArray(change.data) ? change.data : change.data.keys) || null;
     }
 
 
@@ -399,11 +400,11 @@ function joinData(step, rawInfo, initialData) {
           });
 
           if (!aggregate.initial && aggregate.final) {
-            attachAggData(fData, iData, computeId.final, aggregate.final);
+            attachAggData(fData, iData, computeId.final, aggregate.final, eView, change.final.from.data, computeIdMaker(joinFields));
             extendAggData(fData, aggregate.final)
             preFetchCurrData = true;
           } else if (aggregate.initial && !aggregate.final) {
-            attachAggData(iData, fData, computeId.initial, aggregate.initial);
+            attachAggData(iData, fData, computeId.initial, aggregate.initial, sView, change.initial.from.data, computeIdMaker(joinFields));
             extendAggData(iData, aggregate.initial)
             preFetchCurrData = true;
           }
@@ -583,16 +584,48 @@ function extendAggData(aggData, agg) {
     })
   })
 }
-function attachAggData(aggData, rawData, aggId, agg) {
-  rawData.forEach((rawDatum, i) => {
-    aggData.forEach((aggDatum, j) => {
-      if (aggId(rawDatum, i) === aggId(aggDatum, j)) {
-        agg.fields.forEach((f, f_i) => {
-          rawDatum.datum[agg.as[f_i]] = aggDatum.datum[agg.as[f_i]];
-        });
-      }
-    });
+
+function attachAggData(aggData, targetData, aggId, agg, aggView, dataName, computeRawId) {
+
+  let pt = aggView._runtime.data[dataName].values;
+  while (!isAggregateSource(pt, agg)) {
+    pt = pt.source;
+  }
+  let rawData = pt.source.pulse.add;
+
+
+  targetData.forEach((targetDatum, i) => {
+    let _i = rawData.findIndex((d, _i)=> computeRawId({datum: d}, _i) === computeRawId(targetDatum, i))
+    let rawDatum = rawData[_i];
+    if (rawDatum) {
+      aggData.forEach((aggDatum, j) => {
+        if (aggId({datum: rawDatum}, _i) === aggId(aggDatum, j)) {
+          agg.fields.forEach((f, f_i) => {
+            targetDatum.datum[agg.as[f_i]] = aggDatum.datum[agg.as[f_i]];
+          });
+          agg.groupby.forEach((f) => {
+            targetDatum.datum[f] = targetDatum.datum[f] || rawDatum[f];
+          });
+        }
+      });
+    } else {
+      //If targetDatum cannot find the corresponding aggregated datum, just attach its value as aggvalue
+      agg.fields.forEach((f, f_i) => {
+        targetDatum.datum[agg.as[f_i]] = targetDatum.datum[f];
+      });
+      agg.groupby.forEach((f) => {
+        targetDatum.datum[f] = targetDatum.datum[f] || rawDatum[f];
+      });
+    }
   });
+}
+
+function isAggregateSource(pt, agg) {
+  let argval = pt._argVal || pt._argval;
+  if (argval && argval.as && deepEqual(argval.as, agg.as) ) {
+    return true
+  }
+  return false
 }
 
 function getJoinInfo(d, step, prop) {

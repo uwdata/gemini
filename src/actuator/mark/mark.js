@@ -41,8 +41,10 @@ function markInterpolate(rawInfo, step, targetElm) {
       marktypes,
       scales,
       encodes,
-      signals
+      signals,
+      specificScaleFor
     } = step;
+
 
     const isAdd = !change.initial && !!change.final,
       isRemove = !!change.initial && !change.final;
@@ -490,11 +492,14 @@ function markInterpolate(rawInfo, step, targetElm) {
     ) {
       // enter
       let enterI = animMarks.enter().append(getSvgElmType(marktype));
+      let scalesForInitial = { primary: scales.initial, secondary: scales.final };
+      if (specificScaleFor && specificScaleFor.enter && specificScaleFor.enter.initial === "final") {
+        scalesForInitial.primary = scales.final;
+      }
       fetchAttributes(
         enterI,
         MARK_ATTRS[marktype],
-        // Todo: When using the final scale, it should use the final encode as well.
-        { primary: scales.initial, secondary: scales.final },
+        scalesForInitial,
         signals.initial,
         {
           primary: encodeInitial,
@@ -556,14 +561,17 @@ function markInterpolate(rawInfo, step, targetElm) {
         // if (doExit && exitI.data().length > 0) {
         const setType = "initial";
         const exitF = exitI.transition();
-
+        let scalesForExit =  Object.assign({}, scales, {
+          primary: scales.final,
+          secondary: scales.initial
+        });
+        if (specificScaleFor && specificScaleFor.exit && specificScaleFor.exit.final === "initial") {
+          scalesForExit.primary = scales.initial;
+        }
         fetchAttributes(
           exitF,
           MARK_ATTRS[marktype],
-          Object.assign({}, scales, {
-            primary: scales.final,
-            secondary: scales.initial
-          }),
+          scalesForExit,
           signals,
           encode || encodes.final.exit,
           prevData
