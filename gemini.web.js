@@ -11776,7 +11776,7 @@
 
   function joinData(step, rawInfo, initialData) {
     const iData = initialData;
-    const eView = rawInfo.eVis.view;
+    const eView = rawInfo.eVis.view, sView = rawInfo.sVis.view;
     const {change} = step;
     const isAdd = !change.initial && !!change.final;
     const isRemove = !!change.initial && !change.final;
@@ -11985,7 +11985,7 @@
         doUpdate = change.data.update === false ? false : doUpdate;
         doEnter = change.data.enter === false ? false : doEnter;
         doExit = change.data.exit === false ? false : doExit;
-        joinFields = Array.isArray(change.data) ? change.data : change.data.keys;
+        joinFields = (Array.isArray(change.data) ? change.data : change.data.keys) || null;
       }
 
 
@@ -12122,11 +12122,14 @@
             });
 
             if (!aggregate.initial && aggregate.final) {
-              attachAggData(fData, iData, computeId.final, aggregate.final);
+              // let rawFData = eView._runtime.data[change.final.from.data].values
+              // let rawFData = getRawData(eView, dataname, aggregate.final)
+              // join iData to rawFData to fData
+              attachAggData(fData, iData, computeId.final, aggregate.final, eView, change.final.from.data, computeIdMaker(joinFields));
               extendAggData(fData, aggregate.final);
               preFetchCurrData = true;
             } else if (aggregate.initial && !aggregate.final) {
-              attachAggData(iData, fData, computeId.initial, aggregate.initial);
+              attachAggData(iData, fData, computeId.initial, aggregate.initial, sView, change.initial.from.data, computeIdMaker(joinFields));
               extendAggData(iData, aggregate.initial);
               preFetchCurrData = true;
             }
@@ -12302,20 +12305,54 @@
   function extendAggData(aggData, agg) {
     aggData.forEach(aggDatum => {
       agg.as.forEach((aggField, i) => {
-        aggDatum.datum[agg.fields[i]] = aggDatum.datum[agg.as[i]];
+        // if (agg.ops[i] !== "count"){
+          aggDatum.datum[agg.fields[i]] = aggDatum.datum[agg.as[i]];
+        // }
       });
     });
   }
-  function attachAggData(aggData, rawData, aggId, agg) {
-    rawData.forEach((rawDatum, i) => {
-      aggData.forEach((aggDatum, j) => {
-        if (aggId(rawDatum, i) === aggId(aggDatum, j)) {
-          agg.fields.forEach((f, f_i) => {
-            rawDatum.datum[agg.as[f_i]] = aggDatum.datum[agg.as[f_i]];
-          });
-        }
-      });
+
+  function attachAggData(aggData, targetData, aggId, agg, aggView, dataName, computeRawId) {
+
+    let pt = aggView._runtime.data[dataName].values;
+    while (!isAggregateSource(pt, agg)) {
+      pt = pt.source;
+    }
+    let rawData = pt.source.pulse.add;
+
+
+    targetData.forEach((targetDatum, i) => {
+      let _i = rawData.findIndex((d, _i)=> computeRawId({datum: d}, _i) === computeRawId(targetDatum, i));
+      let rawDatum = rawData[_i];
+      if (rawDatum) {
+        aggData.forEach((aggDatum, j) => {
+          if (aggId({datum: rawDatum}, _i) === aggId(aggDatum, j)) {
+            agg.fields.forEach((f, f_i) => {
+              targetDatum.datum[agg.as[f_i]] = aggDatum.datum[agg.as[f_i]];
+            });
+            agg.groupby.forEach((f) => {
+              targetDatum.datum[f] = targetDatum.datum[f] || rawDatum[f];
+            });
+          }
+        });
+      } else {
+        //If targetDatum cannot find the corresponding aggregated datum, just attach its value as aggvalue
+        agg.fields.forEach((f, f_i) => {
+          targetDatum.datum[agg.as[f_i]] = targetDatum.datum[f];
+        });
+        agg.groupby.forEach((f) => {
+          targetDatum.datum[f] = targetDatum.datum[f] || rawDatum[f];
+        });
+      }
     });
+  }
+
+  function isAggregateSource(pt, agg) {
+    let argval = pt._argVal || pt._argval;
+    if (argval && argval.as && vegaLite.deepEqual(argval.as, agg.as) ) {
+      return true
+    }
+    return false
   }
 
   function getJoinInfo$1(d, step, prop) {
@@ -12575,6 +12612,13 @@
       });
     }
 
+    if (change.data && !aggregates.initial && aggregates.final && aggregates.final.ops.indexOf("count") >= 0) {
+      step.specificScaleFor = { ...step.specificScaleFor, enter: {initial: "final"} };
+    }
+    if (change.data && aggregates.initial && !aggregates.final && aggregates.initial.ops.indexOf("count") >= 0) {
+      step.specificScaleFor = { ...step.specificScaleFor, exit: {final: "initial"} };
+    }
+
     if (manualEncode === false) {
       throw Error("Interpolating data requires to interpolate encode.");
     }
@@ -12596,10 +12640,12 @@
 
     encodes.initial.enter = Object.assign(
       {},
-      lastState.encode.update,
+      (change.data && !aggregates.initial && aggregates.final) ? copy(get(change, "final", "encode", "update") || {}) : lastState.encode.update,
       DEFAULT_ENCODE.mark.enter,
       manualEncode && manualEncode.enter ? manualEncode.enter.initial : {}
     );
+
+
 
     if (get(change, "encode", "enter") === false) {
       encodes.final.enter = encodes.initial.enter;
@@ -12686,14 +12732,17 @@
         );
       }
     }
+
+
     if (!aggregates.initial && aggregates.final && change.data ) {
       // when aggregate
       encodes.final.exit = Object.assign(
-        !change.marktype ? encodes.final.update : replacePositionAttrs(marktypes.initial, encodes.final.exit, encodes.final.update),
+        change.marktype && (marktypes.initial !== marktypes.final) ? replacePositionAttrs(marktypes.initial, encodes.final.exit, encodes.final.update) : encodes.final.update,
         { opacity: { value: 0 } },
         manualEncode ? manualEncode.exit : {},
         computeKeptEncode(manualEncode, encodes.initial, "exit"),
       );
+
 
       encodes.final.update = copy(encodes.final.enter);
     } else if (aggregates.initial && !aggregates.final && change.data ) {
@@ -12701,7 +12750,7 @@
 
       encodes.initial.enter = Object.assign(
         {},
-        !change.marktype ? encodes.initial.update : replacePositionAttrs(marktypes.final, encodes.initial.enter, encodes.initial.update),
+        change.marktype && (marktypes.initial !== marktypes.final) ? replacePositionAttrs(marktypes.final, encodes.initial.enter, encodes.initial.update) : encodes.initial.update,
         { opacity: { value: 0 } },
         manualEncode && manualEncode.enter ? manualEncode.enter.initial : {}
       );
@@ -13675,7 +13724,7 @@
             // fetch enumerator
             step.enumeratorDef = step.enumerator;
             const enumerator = (step.enumerator = new Enumerator(
-              step.enumerator,
+              step.enumeratorDef,
               state.spec,
               rawInfo
             ));
@@ -13774,7 +13823,7 @@
             step.enumerator = {};
             for (const subComp of ["tick", "label", "grid"]) {
               const enumerator = new Enumerator(
-                step.enumerator,
+                step.enumeratorDef,
                 state.spec,
                 rawInfo
               );
@@ -16442,8 +16491,10 @@
         marktypes,
         scales,
         encodes,
-        signals
+        signals,
+        specificScaleFor
       } = step;
+
 
       const isAdd = !change.initial && !!change.final,
         isRemove = !!change.initial && !change.final;
@@ -16891,11 +16942,14 @@
       ) {
         // enter
         let enterI = animMarks.enter().append(getSvgElmType(marktype));
+        let scalesForInitial = { primary: scales.initial, secondary: scales.final };
+        if (specificScaleFor && specificScaleFor.enter && specificScaleFor.enter.initial === "final") {
+          scalesForInitial.primary = scales.final;
+        }
         fetchAttributes(
           enterI,
           MARK_ATTRS[marktype],
-          // Todo: When using the final scale, it should use the final encode as well.
-          { primary: scales.initial, secondary: scales.final },
+          scalesForInitial,
           signals.initial,
           {
             primary: encodeInitial,
@@ -16957,14 +17011,17 @@
           // if (doExit && exitI.data().length > 0) {
           const setType = "initial";
           const exitF = exitI.transition();
-
+          let scalesForExit =  Object.assign({}, scales, {
+            primary: scales.final,
+            secondary: scales.initial
+          });
+          if (specificScaleFor && specificScaleFor.exit && specificScaleFor.exit.final === "initial") {
+            scalesForExit.primary = scales.initial;
+          }
           fetchAttributes(
             exitF,
             MARK_ATTRS[marktype],
-            Object.assign({}, scales, {
-              primary: scales.final,
-              secondary: scales.initial
-            }),
+            scalesForExit,
             signals,
             encode || encodes.final.exit,
             prevData
@@ -26314,7 +26371,9 @@
 
   const {parsePredicateFilter: parsePredicateFilter$1} = trans;
   function apply (sSpec, eSpec, editOps) {
-    return editOps.reduce((resultSpec, editOp) => {
+    checkApplyingEditOps(editOps);
+
+    let resultSpec = editOps.reduce((resultSpec, editOp) => {
       if (editOp.type === "mark") {
         resultSpec = applyMarkEditOp(resultSpec, eSpec);
       } else if (editOp.type === "transform") {
@@ -26323,7 +26382,10 @@
         resultSpec = applyEncodingEditOp(resultSpec, eSpec, editOp);
       }
       return resultSpec;
-    }, util$1.duplicate(sSpec))//an intermediate spec by applying edit operations on the sSpec
+    }, util$1.duplicate(sSpec));//an intermediate spec by applying edit operations on the sSpec
+
+    checkSpec(resultSpec);
+    return resultSpec;
   }
   var apply_2 = apply;
 
@@ -26434,10 +26496,56 @@
   }
   var applyEncodingEditOp_1 = applyEncodingEditOp;
 
+  function checkSpec(spec) {
+    let lg = vega__default.logger();
+    const warnings = [], errors = [];
+    lg.warn = (m) => {
+      warnings.push(m);
+    };
+    lg.error = (m) => {
+      errors.push(m);
+    };
+    vegaLite__default.compile(spec, {logger: lg});
+
+    for (const key in spec.encoding) {
+      if (spec.encoding.hasOwnProperty(key)) {
+        const fieldDef = spec.encoding[key];
+        if (fieldDef.field === "*" && !fieldDef.aggregate) {
+          warnings.push("'*' field should innclude aggregate.");
+        }
+      }
+    }
+
+    if ((warnings.length > 0) || (errors.length > 0)) {
+      throw new InvalidVLSpecError(`The resulted spec is not valid Vega-Lite Spec.`)
+    }
+  }
+  function checkApplyingEditOps(editOps) {
+    // _COUNT encodig should be applied with AGGREGATE
+    if (
+      editOps.find(eo => eo.name.indexOf("_COUNT") >= 0) &&
+      !editOps.find(eo => eo.name === "AGGREGATE")
+    ) {
+      throw new UnapplicableEditOpsError("_COUNT encoding edit operations cannot be applied without AGGREGATE.");
+    }
+  }
   class UnapplicableEditOPError extends Error {
     constructor(message) {
       super(message);
       this.name = "UnapplicableEditOPError";
+    }
+  }
+
+  class InvalidVLSpecError extends Error {
+    constructor(message) {
+      super(message);
+      this.name = "InvalidVLSpecError";
+    }
+  }
+  class UnapplicableEditOpsError extends Error {
+    constructor(message) {
+      super(message);
+      this.name = "UnapplicableEditOpsError";
     }
   }
 
@@ -26526,6 +26634,7 @@
     for (const editOpPartition of orderedEditOpPartitions) {
       const sequence = [copy(sVLSpec)];
       let currSpec = copy(sVLSpec);
+      let valid = true;
       for (let i = 0; i < editOpPartition.length; i++) {
         const editOps = editOpPartition[i];
         if (i===(editOpPartition.length - 1)) {
@@ -26551,18 +26660,19 @@
             }
           }
         } catch(e) {
-          if (e.name !== "UnapplicableEditOPError") {
+          if (["UnapplicableEditOPError", "InvalidVLSpecError", "UnapplicableEditOpsError"].indexOf(e.name) < 0) {
             throw e;
+          } else {
+            valid = false;
+            break;
           }
         }
 
         sequence.push(copy(currSpec));
       }
 
-      if (validate$3(sequence)) {
+      if (valid && validate$3(sequence)) {
         sequences.push({sequence, editOpPartition});
-      } else {
-        continue;
       }
     }
 
