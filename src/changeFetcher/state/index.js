@@ -161,7 +161,7 @@ export async function attachStates(schedule, rawInfo) {
           // fetch enumerator
           step.enumeratorDef = step.enumerator;
           const enumerator = (step.enumerator = new Enumerator(
-            step.enumerator,
+            step.enumeratorDef,
             state.spec,
             rawInfo
           ));
@@ -260,7 +260,7 @@ export async function attachStates(schedule, rawInfo) {
           step.enumerator = {};
           for (const subComp of ["tick", "label", "grid"]) {
             const enumerator = new Enumerator(
-              step.enumerator,
+              step.enumeratorDef,
               state.spec,
               rawInfo
             );
