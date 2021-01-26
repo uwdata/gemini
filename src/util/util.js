@@ -248,7 +248,27 @@ function crossJoinArrays(arrs) {
   }, [[]])
 }
 
+//Enumerate all ways of splitting arr into N non-empty arrays
+function NSplits(arr, N) {
+  if (N === 1) {
+    return [[arr]]
+  } else if (arr.length === N) {
+    return [arr.map(item => { return [item] })];
+  } else if (arr.length < N) {
+    throw new Error(`Cannot split ${arr.length}-long array into ${N}.`)
+  }
+  let results = [];
+  for (let i = 1; arr.length -i >= N-1; i++) {
+    let division = NSplits(arr.slice(i), N-1).map(division => {
+      return [arr.slice(0,i)].concat(division)
+    })
+    results = results.concat(division);
+  }
+  return results;
+}
+
 export {
+  NSplits,
   isValue,
   deepEqual,
   copy,

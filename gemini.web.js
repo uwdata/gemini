@@ -109,13 +109,6 @@
     }
     return arr;
   };
-  function union(arr1, arr2, accessor = (d) => d) {
-    let result = [...arr1];
-    return result.concat(arr2.filter(x => !arr1.find(y => accessor(x) === accessor(y))))
-  }
-  function intersection(arr1, arr2, accessor = (d) => d) {
-    return arr2.filter(x => arr1.find(y => accessor(x) === accessor(y)))
-  }
   Array.prototype.sample = function(N) {
     const tempThis = this.slice();
     const sampled = [];
@@ -284,35 +277,6 @@
   function isValue(v) {
     return (v !== undefined) && (v !== null) && !(isDefinitelyNaN())
   }
-  // partitioning the array into N_p arrays
-  function partition(arr, N_p) {
-    if (arr.length === N_p) {
-      return [arr.map(item => [item])]
-    } else if (N_p === 1) {
-      return [[arr]]
-    } else if (N_p > arr.length) {
-      throw new Error(`Cannot partition the array of ${arr.length} into ${N_p}.`);
-    } else if (arr.length === 0) {
-      return;
-    }
-    let item = [arr[0]];
-    let newArr = arr.slice(1);
-    let results =  partition(newArr, N_p - 1).map(pt => {
-      let newPt = copy(pt);
-      newPt.push(item);
-      return newPt
-    });
-    return partition(newArr, N_p).reduce((results, currPt) => {
-
-      return results.concat(currPt.map((p, i, currPt) => {
-        let newPt = copy(currPt);
-        let newP = copy(p);
-        newP.push(item[0]);
-        newPt[i] = newP;
-        return newPt;
-      }));
-    }, results)
-  }
 
   function crossJoinArrays(arrs) {
     return arrs.reduce((acc, currArray) => {
@@ -320,6 +284,25 @@
         return result.concat(acc.map(a => [...a, b]))
       }, [])
     }, [[]])
+  }
+
+  //Enumerate all ways of splitting arr into N non-empty arrays
+  function NSplits(arr, N) {
+    if (N === 1) {
+      return [[arr]]
+    } else if (arr.length === N) {
+      return [arr.map(item => { return [item] })];
+    } else if (arr.length < N) {
+      throw new Error(`Cannot split ${arr.length}-long array into ${N}.`)
+    }
+    let results = [];
+    for (let i = 1; arr.length -i >= N-1; i++) {
+      let division = NSplits(arr.slice(i), N-1).map(division => {
+        return [arr.slice(0,i)].concat(division)
+      });
+      results = results.concat(division);
+    }
+    return results;
   }
 
   function collectResolves(parsedBlock, parsedSteps) {
@@ -12122,9 +12105,6 @@
             });
 
             if (!aggregate.initial && aggregate.final) {
-              // let rawFData = eView._runtime.data[change.final.from.data].values
-              // let rawFData = getRawData(eView, dataname, aggregate.final)
-              // join iData to rawFData to fData
               attachAggData(fData, iData, computeId.final, aggregate.final, eView, change.final.from.data, computeIdMaker(joinFields));
               extendAggData(fData, aggregate.final);
               preFetchCurrData = true;
@@ -12305,9 +12285,7 @@
   function extendAggData(aggData, agg) {
     aggData.forEach(aggDatum => {
       agg.as.forEach((aggField, i) => {
-        // if (agg.ops[i] !== "count"){
-          aggDatum.datum[agg.fields[i]] = aggDatum.datum[agg.as[i]];
-        // }
+        aggDatum.datum[agg.fields[i]] = aggDatum.datum[agg.as[i]];
       });
     });
   }
@@ -20823,6 +20801,20 @@
     return subEncode[channel];
   }
 
+  function setUpRecomOpt(opt) {
+    let _opt = copy(opt);
+    _opt.axes = _opt.axes || {};
+    for (const scaleName in _opt.scales || {}) {
+      _opt.axes[scaleName] = _opt.axes[scaleName] || {};
+      _opt.axes[scaleName].change = _opt.axes[scaleName].change || {};
+      _opt.axes[scaleName].change.scale = _opt.axes[scaleName].change.scale || {};
+      if (_opt.axes[scaleName].change.scale !== false) {
+        _opt.axes[scaleName].change.scale.domainDimension = _opt.scales[scaleName].domainDimension;
+      }
+    }
+    return _opt
+  }
+
   function detectDiffs(rawInfo, userInput = {}) {
     // 0) compare signals
     const signalDiffs = detectSignalDiffs(rawInfo);
@@ -23163,22 +23155,11 @@
   }
 
   async function initialSetUp(sSpec, eSpec, opt = { marks: {}, axes: {}, legends: {}, scales: {} }) {
-    const userInput = opt;
+    let _opt = copy(opt);
     const stageN = Number(opt.stageN) || 2;
     const { includeMeta } = opt;
-    const timing = { totalDuration: userInput.totalDuration || 2000 };
-
-    userInput.axes = userInput.axes || {};
-    for (const scaleName in userInput.scales || {}) {
-      userInput.axes[scaleName] = userInput.axes[scaleName] || {};
-      userInput.axes[scaleName].change = userInput.axes[scaleName].change || {};
-      userInput.axes[scaleName].change.scale =
-        userInput.axes[scaleName].change.scale || {};
-      if (userInput.axes[scaleName].change.scale !== false) {
-        userInput.axes[scaleName].change.scale.domainDimension =
-          userInput.scales[scaleName].domainDimension;
-      }
-    }
+    const timing = { totalDuration: _opt.totalDuration || 2000 };
+    _opt = setUpRecomOpt(_opt);
     const eView = await new vega.View(vega.parse(eSpec), {
       renderer: "svg"
     }).runAsync();
@@ -23193,7 +23174,7 @@
       eVis: { spec: copy(eSpec), view: eView }
     };
 
-    return { rawInfo, userInput, stageN, includeMeta, timing}
+    return { rawInfo, userInput: _opt, stageN, includeMeta, timing}
   }
 
   function cannotRecommend(sSpec, eSpec) {
@@ -25036,10 +25017,12 @@
     return array.indexOf(item) !== -1;
   }
   exports.isin = isin;
+
   function json(s, sp) {
     return JSON.stringify(s, null, sp);
   }
   exports.json = json;
+
   function keys(obj) {
     var k = [], x;
     for (x in obj) {
@@ -25048,10 +25031,16 @@
     return k;
   }
   exports.keys = keys;
+
   function duplicate(obj) {
+    if (obj === undefined) {
+      return undefined;
+    }
     return JSON.parse(JSON.stringify(obj));
   }
   exports.duplicate = duplicate;
+  exports.copy = duplicate;
+
   function forEach(obj, f, thisArg) {
     if (obj.forEach) {
       obj.forEach.call(thisArg, f);
@@ -25063,6 +25052,7 @@
     }
   }
   exports.forEach = forEach;
+
   function any(arr, f) {
     var i = 0, k;
     for (k in arr) {
@@ -25073,6 +25063,7 @@
     return false;
   }
   exports.any = any;
+
   function nestedMap(collection, f, level, filter) {
     return level === 0 ?
       collection.map(f) :
@@ -25082,6 +25073,7 @@
       });
   }
   exports.nestedMap = nestedMap;
+
   function nestedReduce(collection, f, level, filter) {
     return level === 0 ?
       collection.reduce(f, []) :
@@ -25091,10 +25083,12 @@
       });
   }
   exports.nestedReduce = nestedReduce;
+
   function nonEmpty(grp) {
     return !exports.isArray(grp) || grp.length > 0;
   }
   exports.nonEmpty = nonEmpty;
+
   function traverse(node, arr) {
     if (node.value !== undefined) {
       arr.push(node.value);
@@ -25110,6 +25104,7 @@
     return arr;
   }
   exports.traverse = traverse;
+
   function extend(obj, b) {
     var rest = [];
     for (var _i = 2; _i < arguments.length; _i++) {
@@ -25124,13 +25119,15 @@
     return obj;
   }
   exports.extend = extend;
-  function union(a, b) {
-    var o = {};
-    a.forEach(function (x) { o[x] = true; });
-    b.forEach(function (x) { o[x] = true; });
-    return keys(o);
+
+  function union(arr1, arr2, accessor = (d) => d) {
+    let result = [...arr1];
+    return result.concat(
+        arr2.filter(x => !arr1.find(y => accessor(x) === accessor(y)))
+      );
   }
   exports.union = union;
+
   var gen;
   (function (gen) {
     function getOpt(opt) {
@@ -25153,6 +25150,7 @@
     return ps;
   }
   exports.powerset = powerset;
+
   function chooseKorLess(list, k) {
     var subset = [[]];
     for (var i = 0; i < list.length; i++) {
@@ -25166,6 +25164,7 @@
     return subset;
   }
   exports.chooseKorLess = chooseKorLess;
+
   function chooseK(list, k) {
     var subset = [[]];
     var kArray = [];
@@ -25183,6 +25182,7 @@
     return kArray;
   }
   exports.chooseK = chooseK;
+
   function cross(a, b) {
     var x = [];
     for (var i = 0; i < a.length; i++) {
@@ -25193,6 +25193,7 @@
     return x;
   }
   exports.cross = cross;
+
   function find(array, f, obj) {
     for (var i = 0; i < array.length; i += 1) {
       if (f(obj) === f(array[i])) {
@@ -25258,6 +25259,66 @@
     return o !== undefined && typeof o.getMonth === "function";
   }
 
+  // partitioning the array into N_p arrays
+  function partition(arr, N_p) {
+    if (arr.length === N_p) {
+      return [arr.map(item => [item])]
+    } else if (N_p === 1) {
+      return [[arr]]
+    } else if (N_p > arr.length) {
+      throw new Error(`Cannot partition the array of ${arr.length} into ${N_p}.`);
+    } else if (arr.length === 0) {
+      return;
+    }
+    let item = [arr[0]];
+    let newArr = arr.slice(1);
+    let results =  partition(newArr, N_p - 1).map(pt => {
+      let newPt = duplicate(pt);
+      newPt.push(item);
+      return newPt
+    });
+    return partition(newArr, N_p).reduce((results, currPt) => {
+
+      return results.concat(currPt.map((p, i, currPt) => {
+        let newPt = duplicate(currPt);
+        let newP = duplicate(p);
+        newP.push(item[0]);
+        newPt[i] = newP;
+        return newPt;
+      }));
+    }, results)
+  }
+  exports.partition = partition;
+
+  function permutate(arr) {
+    if (arr.length === 1) {
+      return [arr];
+    }
+    if (arr.length === 2) {
+      return [arr, [arr[1], arr[0]]];
+    }
+    return arr.reduce((acc, anchor, i) => {
+      const workingArr = duplicate(arr);
+      workingArr.splice(i, 1);
+
+      acc = acc.concat(
+        permutate(workingArr).map(newArr => {
+          return [anchor].concat(newArr);
+        })
+      );
+      return acc;
+    }, []);
+  }
+  exports.permutate = permutate;
+
+  function intersection(arr1, arr2, accessor = (d) => d) {
+    return arr2.filter(x => arr1.find(y => accessor(x) === accessor(y)))
+  }
+  exports.intersection = intersection;
+
+
+
+
   });
   var util_1 = util$1.isArray;
   var util_2 = util$1.isString;
@@ -25265,24 +25326,28 @@
   var util_4 = util$1.json;
   var util_5 = util$1.keys;
   var util_6 = util$1.duplicate;
-  var util_7 = util$1.forEach;
-  var util_8 = util$1.any;
-  var util_9 = util$1.nestedMap;
-  var util_10 = util$1.nestedReduce;
-  var util_11 = util$1.nonEmpty;
-  var util_12 = util$1.traverse;
-  var util_13 = util$1.extend;
-  var util_14 = util$1.union;
-  var util_15 = util$1.gen;
-  var util_16 = util$1.powerset;
-  var util_17 = util$1.chooseKorLess;
-  var util_18 = util$1.chooseK;
-  var util_19 = util$1.cross;
-  var util_20 = util$1.find;
-  var util_21 = util$1.rawEqual;
-  var util_22 = util$1.arrayDiff;
-  var util_23 = util$1.unionObjectArray;
-  var util_24 = util$1.deepEqual;
+  var util_7 = util$1.copy;
+  var util_8 = util$1.forEach;
+  var util_9 = util$1.any;
+  var util_10 = util$1.nestedMap;
+  var util_11 = util$1.nestedReduce;
+  var util_12 = util$1.nonEmpty;
+  var util_13 = util$1.traverse;
+  var util_14 = util$1.extend;
+  var util_15 = util$1.union;
+  var util_16 = util$1.gen;
+  var util_17 = util$1.powerset;
+  var util_18 = util$1.chooseKorLess;
+  var util_19 = util$1.chooseK;
+  var util_20 = util$1.cross;
+  var util_21 = util$1.find;
+  var util_22 = util$1.rawEqual;
+  var util_23 = util$1.arrayDiff;
+  var util_24 = util$1.unionObjectArray;
+  var util_25 = util$1.deepEqual;
+  var util_26 = util$1.partition;
+  var util_27 = util$1.permutate;
+  var util_28 = util$1.intersection;
 
   var DEFAULT_EDIT_OPS = {
     "markEditOps":{"AREA_BAR":{"name":"AREA_BAR","cost":0.03},"AREA_LINE":{"name":"AREA_LINE","cost":0.02},"AREA_POINT":{"name":"AREA_POINT","cost":0.04},"AREA_TEXT":{"name":"AREA_TEXT","cost":0.08},"AREA_TICK":{"name":"AREA_TICK","cost":0.04},"BAR_LINE":{"name":"BAR_LINE","cost":0.04},"BAR_POINT":{"name":"BAR_POINT","cost":0.02},"BAR_TEXT":{"name":"BAR_TEXT","cost":0.06},"BAR_TICK":{"name":"BAR_TICK","cost":0.02},"LINE_POINT":{"name":"LINE_POINT","cost":0.03},"LINE_TEXT":{"name":"LINE_TEXT","cost":0.07},"LINE_TICK":{"name":"LINE_TICK","cost":0.03},"POINT_TEXT":{"name":"POINT_TEXT","cost":0.05},"POINT_TICK":{"name":"POINT_TICK","cost":0.01},"TEXT_TICK":{"name":"TEXT_TICK","cost":0.05}},
@@ -25915,7 +25980,7 @@
     var dFields = dChannels.map(function (key) {
       return d.encoding[key];
     });
-    var additionalFields = util$1.unionObjectArray(dFields, sFields, function (field) { return field.field + "_" + field.type; });
+    var additionalFields = util$1.union(dFields, sFields, function (field) { return field.field + "_" + field.type; });
     var additionalChannels = util$1.arrayDiff(dChannels, sChannels);
     var u;
     function nearestNode(nodes) {
@@ -26556,84 +26621,28 @@
   	applyEncodingEditOp: applyEncodingEditOp_1
   };
 
-  var src = {
-    sequence: sequence_1.sequence,
-    transition: trans.transition,
-    apply: apply_1.apply
-  };
-  var src_2 = src.transition;
-  var src_3 = src.apply;
-
-  function vl2vg4gemini(vlSpec) {
-    let vgSpec = vegaLite.compile(vlSpec).spec;
-    vgSpec.axes = mergeDuplicatedAxes(vgSpec.axes);
-    appendNamesOnGuides(vgSpec);
-    return vgSpec;
-  }
+  // import {default as vl2vg4gemini} from "../../util/vl2vg4gemini"
 
 
-  function appendNamesOnGuides(vgSpec){
-    if (vgSpec.axes) {
-      vgSpec.axes.forEach(axis => {
-        if (!axis.encode) {
-          axis.encode = {axis: {name: axis.scale}};
-        } else {
-          axis.encode.axis = { ...axis.encode.axis, name: axis.scale };
-        }
-      });
+  const { copy: copy$2, deepEqual: deepEqual$1, partition, permutate: permutate$1, union, intersection} = util$1;
+  const apply$1 = apply_1.apply;
+  // Take two vega-lite specs and enumerate paths [{sequence, editOpPartition (aka transition)}]:
+  async function enumerate(sVLSpec, eVLSpec, editOps, transM) {
+    if (editOps.length < transM) {
+      throw new CannotEnumStagesMoreThanTransitions(editOps.length, transM)
     }
-    if (vgSpec.legends) {
-      vgSpec.legends.forEach((legend, i) => {
-        if (!legend.encode) {
-          legend.encode = {legend: {name: `legend${i}`}};
-        } else {
-          legend.encode.legend = Object.assign({}, legend.encode.legend, {name: `legend${i}`});
-        }
-      });
-    }
-  }
 
+    const editOpPartitions = partition(editOps, transM);
 
-  function mergeDuplicatedAxes(vegaAxes) {
-    if (!vegaAxes || vegaAxes.length <= 0) {
-      return [];
-    }
-    let axesScales = vegaAxes.filter(a => a.grid).map(a => a.scale);
-
-    return d3.rollups(vegaAxes,
-      axes => {
-        let axisWithGrid = axes.find(a => a.grid);
-        let axisWithoutGrid = { ...axes.find(a => !a.grid) };
-
-        if (axisWithGrid) {
-          axisWithoutGrid.grid = true;
-          if (axisWithGrid.gridScale) {
-            axisWithoutGrid.gridScale = axisWithGrid.gridScale;
-          }
-          axisWithoutGrid.zindex = 0;
-        }
-        return axisWithoutGrid;
-      },
-      axis => axis.scale
-    ).map(d => d[1])
-     .sort((a,b) => (axesScales.indexOf(a.scale) - axesScales.indexOf(b.scale)));
-  }
-
-  // Take two vega-lite specs and enumerate the keyframe sets of 'stageN' frames.
-  async function enumerateSequences(sVLSpec, eVLSpec, editOps, stageN) {
-
-
-
-    const editOpPartitions = partition(editOps, stageN + 1);
     const orderedEditOpPartitions = editOpPartitions.reduce((ordered, pt) => {
-      return ordered.concat(permutate(pt));
+      return ordered.concat(permutate$1(pt));
     }, []);
     const sequences = [];
     const mergedScaleDomain = await scaleModifier(sVLSpec, eVLSpec);
 
     for (const editOpPartition of orderedEditOpPartitions) {
-      const sequence = [copy(sVLSpec)];
-      let currSpec = copy(sVLSpec);
+      const sequence = [copy$2(sVLSpec)];
+      let currSpec = copy$2(sVLSpec);
       let valid = true;
       for (let i = 0; i < editOpPartition.length; i++) {
         const editOps = editOpPartition[i];
@@ -26643,7 +26652,7 @@
         }
 
         try {
-          currSpec = src_3(copy(currSpec), eVLSpec, editOps);
+          currSpec = apply$1(copy$2(currSpec), eVLSpec, editOps);
 
           for (const channel in mergedScaleDomain) {
             if (mergedScaleDomain.hasOwnProperty(channel)) {
@@ -26668,7 +26677,7 @@
           }
         }
 
-        sequence.push(copy(currSpec));
+        sequence.push(copy$2(currSpec));
       }
 
       if (valid && validate$3(sequence)) {
@@ -26678,14 +26687,15 @@
 
     return sequences
   }
+  var enumerate_2 = enumerate;
 
   async function scaleModifier(sVLSpec, eVLSpec) {
     // Todo: get the scales including all data points while doing transitions.
-    const eView = await new vega.View(vega.parse(vl2vg4gemini(eVLSpec)), {
+    const eView = await new vega__default.View(vega__default.parse(vegaLite__default.compile(eVLSpec).spec), {
       renderer: "svg"
     }).runAsync();
 
-    const sView = await new vega.View(vega.parse(vl2vg4gemini(sVLSpec)), {
+    const sView = await new vega__default.View(vega__default.parse(vegaLite__default.compile(sVLSpec).spec), {
       renderer: "svg"
     }).runAsync();
 
@@ -26728,6 +26738,7 @@
       return newScaleDomain;
     }, {})
   }
+  var scaleModifier_1 = scaleModifier;
 
 
   function validate$3(sequence) {
@@ -26735,15 +26746,30 @@
     let prevChart = sequence[0];
     for (let i = 1; i < sequence.length; i++) {
       const currChart = sequence[i];
-      if (deepEqual(prevChart, currChart)) {
+      if (deepEqual$1(prevChart, currChart)) {
         return false;
       }
       prevChart = sequence[i];
     }
     return true;
   }
+  var validate_1 = validate$3;
 
-  const HEURISTIC_RULES = [
+
+  class CannotEnumStagesMoreThanTransitions extends Error {
+    constructor(editOpsN, transM) {
+      super(`Cannot enumerate ${transM} transitions for ${editOpsN} edit operations. The number of transitions should lesser than the number of possible edit operations.`);
+      this.name = "CannotEnumStagesMoreThanTransitions";
+    }
+  }
+
+  var enumerate_1 = {
+  	enumerate: enumerate_2,
+  	scaleModifier: scaleModifier_1,
+  	validate: validate_1
+  };
+
+  var HEURISTIC_RULES = [
     {
       name: "filter-then-aggregate",
       editOps: ["FILTER", "AGGREGATE"],
@@ -26856,17 +26882,25 @@
     // }
   ];
 
-  function evaluateSequence(editOpPartition) {
-    let satisfiedRules = findRules(editOpPartition, HEURISTIC_RULES);
+  var evaluateRules = {
+  	HEURISTIC_RULES: HEURISTIC_RULES
+  };
+
+  const RULES = evaluateRules.HEURISTIC_RULES;
+  const {copy: copy$3} = util$1;
+
+  function evaluate$1(editOpPartition) {
+    let satisfiedRules = findRules(editOpPartition, RULES);
     let score = satisfiedRules.reduce((score, rule) => {
       return score + rule.score
     }, 0);
     return {score, satisfiedRules}
   }
+  var evaluate_2 = evaluate$1;
 
-  function findRules(editOpPartition, rules = HEURISTIC_RULES) {
+  function findRules(editOpPartition, rules = RULES) {
     return rules.filter(_rule => {
-      let rule = copy(_rule);
+      let rule = copy$3(_rule);
       for (let j = 0; j < rule.editOps.length; j++) {
         const ruleEditOp = rule.editOps[j];
         rule[ruleEditOp] = [];
@@ -26901,6 +26935,8 @@
       return true;
     });
   }
+  var findRules_1 = findRules;
+
   function findEditOp(editOps, query) {
     return editOps.find(eo => {
       if (query === "TRANSFORM") {
@@ -26914,46 +26950,235 @@
     })
   }
 
-  async function recommendForSeq(sequence, opt = {}) {
-    const globalOpt = copy(opt), L = sequence.length;
-    globalOpt.totalDuration = (opt.totalDuration || 2000) / (L - 1);
+  var evaluate_1 = {
+  	evaluate: evaluate_2,
+  	findRules: findRules_1
+  };
 
-    globalOpt.axes = opt.axes || {};
-    for (const scaleName in opt.scales || {}) {
-      globalOpt.axes[scaleName] = globalOpt.axes[scaleName] || {};
-      globalOpt.axes[scaleName].change = globalOpt.axes[scaleName].change || {};
-      globalOpt.axes[scaleName].change.scale = globalOpt.axes[scaleName].change.scale || {};
-      if (globalOpt.axes[scaleName].change.scale !== false) {
-        globalOpt.axes[scaleName].change.scale.domainDimension = globalOpt.axes[scaleName].domainDimension;
+  const {copy: copy$4} = util$1;
+  const { enumerate: enumerate$1 } = enumerate_1;
+  const { evaluate: evaluate$2 } = evaluate_1;
+  const getTransition = trans.transition;
+  async function path(sSpec, eSpec, transM=0) {
+    validateInput(sSpec, eSpec);
+
+    const transition = await getTransition(copy$4(sSpec),  copy$4(eSpec));
+    const editOps = [
+      ...transition.mark,
+      ...transition.transform,
+      ...transition.encoding
+    ];
+    let result = {};
+    if (transM === 0 ) {
+      for (let m = 1; m <= editOps.length; m++) {
+        result[m] = await enumAndEval(sSpec, eSpec, editOps, m);
+      }
+      return result;
+    }
+
+    return await enumAndEval(sSpec, eSpec, editOps, transM)
+  }
+  var path_2 = path;
+
+  async function enumAndEval(sSpec, eSpec, editOps, transM) {
+    let result = await enumerate$1(sSpec, eSpec, editOps, transM);
+    return result.map((seq) => {
+      return {
+        ...seq,
+        eval: evaluate$2(seq.editOpPartition)
+      }
+    }).sort((a,b) => { return b.eval.score - a.eval.score})
+  }
+
+  function validateInput(sSpec, eSpec) {
+    //check if specs are single-view vega-lite chart
+    if (!isValidVLSpec(sSpec) || !isValidVLSpec(eSpec)) {
+      return { error: "Gemini++ cannot recommend keyframes for the given Vega-Lite charts."}
+    }
+  }
+  var validateInput_1 = validateInput;
+
+  function isValidVLSpec(spec) {
+    if (spec.layer || spec.hconcat || spec.vconcat || spec.concat || spec.spec) {
+      return false;
+    }
+    if (spec.$schema && (spec.$schema.indexOf("https://vega.github.io/schema/vega-lite") >= 0)){
+      return true
+    }
+    return false
+
+  }
+  var isValidVLSpec_1 = isValidVLSpec;
+
+  var path_1 = {
+  	path: path_2,
+  	validateInput: validateInput_1,
+  	isValidVLSpec: isValidVLSpec_1
+  };
+
+  var src = {
+    sequence: sequence_1.sequence,
+    transition: trans.transition,
+    apply: apply_1.apply,
+    path: path_1.path
+  };
+  var src_4 = src.path;
+
+  function vl2vg4gemini(vlSpec) {
+    let vgSpec = vegaLite.compile(vlSpec).spec;
+    vgSpec.axes = mergeDuplicatedAxes(vgSpec.axes);
+    appendNamesOnGuides(vgSpec);
+    return vgSpec;
+  }
+
+
+  function appendNamesOnGuides(vgSpec){
+    if (vgSpec.axes) {
+      vgSpec.axes.forEach(axis => {
+        if (!axis.encode) {
+          axis.encode = {axis: {name: axis.scale}};
+        } else {
+          axis.encode.axis = { ...axis.encode.axis, name: axis.scale };
+        }
+      });
+    }
+    if (vgSpec.legends) {
+      vgSpec.legends.forEach((legend, i) => {
+        if (!legend.encode) {
+          legend.encode = {legend: {name: `legend${i}`}};
+        } else {
+          legend.encode.legend = Object.assign({}, legend.encode.legend, {name: `legend${i}`});
+        }
+      });
+    }
+  }
+
+
+  function mergeDuplicatedAxes(vegaAxes) {
+    if (!vegaAxes || vegaAxes.length <= 0) {
+      return [];
+    }
+    let axesScales = vegaAxes.filter(a => a.grid).map(a => a.scale);
+
+    return d3.rollups(vegaAxes,
+      axes => {
+        let axisWithGrid = axes.find(a => a.grid);
+        let axisWithoutGrid = { ...axes.find(a => !a.grid) };
+
+        if (axisWithGrid) {
+          axisWithoutGrid.grid = true;
+          if (axisWithGrid.gridScale) {
+            axisWithoutGrid.gridScale = axisWithGrid.gridScale;
+          }
+          axisWithoutGrid.zindex = 0;
+        }
+        return axisWithoutGrid;
+      },
+      axis => axis.scale
+    ).map(d => d[1])
+     .sort((a,b) => (axesScales.indexOf(a.scale) - axesScales.indexOf(b.scale)));
+  }
+
+  async function recommendKeyframes(sSpec, eSpec, N=0) {
+    return await src_4(copy(sSpec),  copy(eSpec), N);
+  }
+
+
+  async function recommendWithPath(sVlSpec, eVlSpec, opt ={ stageN: 1, totalDuration: 2000 }) {
+
+    let _opt = copy(opt);
+    _opt.totalDuration = opt.totalDuration || 2000;
+    _opt.stageN = opt.stageN || 1;
+    _opt = setUpRecomOpt(_opt);
+
+    const recommendations = {};
+    for (let transM = 1; transM <= _opt.stageN; transM++) {
+      let paths;
+      try {
+        paths = await src_4(copy(sVlSpec), copy(eVlSpec), transM);
+      } catch (error) {
+        if (error.name === "CannotEnumStagesMoreThanTransitions") {
+          continue;
+        }
+        throw error;
+      }
+
+      recommendations[transM] = [];
+      for (const path of paths) {
+        const sequence = path.sequence.map(vl2vg4gemini);
+
+        //enumerate all possible gemini++ specs for the sequence;
+        let recomsPerPath = await recommendForSeq(sequence, opt);
+        recommendations[transM].push({
+          path,
+          recommendations: recomsPerPath
+        });
+
       }
     }
+    return recommendations;
+  }
 
-    const recommendationPerTransition = [];
-    for (let i = 0; i < (L - 1); i++) {
-      const sVis = sequence[i], eVis = sequence[i+1];
 
-      const _opt = {
-        ...{stageN: Number(opt.stageN) || 1},
-        ...globalOpt,
-        ...(opt.perTransitions || [])[i],
-        ...{includeMeta: false}
-      };
-      const _recom = await recommend(sVis, eVis, _opt);
-      recommendationPerTransition.push(_recom);
+
+  function splitStagesPerTransition(stageN, transitionM) {
+    return NSplits(new Array(stageN).fill(1), transitionM)
+        .map(arr => arr.map(a => a.length));
+  }
+
+  async function recommendForSeq(sequence, opt = {}) {
+    let globalOpt = copy(opt),
+      transM = sequence.length-1,
+      stageN = opt.stageN;
+    if (stageN < transM) {
+      throw new Error(`Cannot recommend ${stageN}-stage animations for a sequence with ${transM} transitions.`)
     }
-    let recomsForSequence = crossJoinArrays(recommendationPerTransition);
-    return recomsForSequence.sort((a,b) => {
-      return sumCost(a) - sumCost(b)
+
+    globalOpt = setUpRecomOpt(globalOpt);
+
+    let stageNSplits = splitStagesPerTransition(stageN, transM);
+    let recomsForSequence = [];
+    for (const stageNSplit of stageNSplits) {
+      const recommendationPerTransition = [];
+
+      for (let i = 0; i < transM; i++) {
+        const sVgVis = (sequence[i]),
+          eVgVis = (sequence[i+1]);
+
+        const _opt = {
+          ...globalOpt,
+          ...(opt.perTransitions || [])[i],
+          ...{includeMeta: false},
+          ...{
+            stageN: stageNSplit[i],
+            totalDuration: (opt.totalDuration || 2000) / stageN * stageNSplit[i]
+          }
+        };
+        const _recom = await recommend(sVgVis, eVgVis, _opt);
+        recommendationPerTransition.push(_recom);
+      }
+
+      recomsForSequence = recomsForSequence.concat(crossJoinArrays(recommendationPerTransition));
+    }
+
+    return recomsForSequence.map(recom => {
+      return {
+        specs: recom,
+        cost: sumCost(recom)
+      }
+    }).sort((a,b) => {
+      return a.cost - b.cost
     });
   }
 
   function sumCost(geminiSpecs) {
-    geminiSpecs.reduce((cost, spec) => {
+    return geminiSpecs.reduce((cost, spec) => {
       cost += spec.pseudoTimeline.eval.cost;
       return cost
-    }, 0);
+    }, 0)
   }
-  async function cannotRecommendForSeq(sequence) {
+
+  function cannotRecommendForSeq(sequence) {
     for (let i = 0; i < (sequence.length - 1); i++) {
       const sVis = sequence[i], eVis = sequence[i+1];
       if (cannotRecommend(sVis, eVis)) {
@@ -26965,41 +27190,14 @@
 
   function cannotRecommendKeyframes(sSpec, eSpec) {
     //check if specs are single-view vega-lite chart
-    if (!isValidVLSpec(sSpec) || !isValidVLSpec(eSpec)) {
+    if (!isValidVLSpec$1(sSpec) || !isValidVLSpec$1(eSpec)) {
       return { error: "Gemini++ cannot recommend keyframes for the given Vega-Lite charts."}
     }
   }
 
-  async function recommendKeyframes(sSpec, eSpec, N=0) {
 
-    const transition = await src_2(copy(sSpec),  copy(eSpec));
-    const editOps = [
-      ...transition.mark,
-      ...transition.transform,
-      ...transition.encoding
-    ];
-    let result = {};
-    if (N === 0 ) {
-      for (let n = 1; n < editOps.length; n++) {
-        result[n] = await enumAndEval(sSpec, eSpec, editOps, n);
-      }
-      return result;
-    }
 
-    return await enumAndEval(sSpec, eSpec, editOps, N)
-  }
-
-  async function enumAndEval(sSpec, eSpec, editOps, n) {
-    let result = await enumerateSequences(sSpec, eSpec, editOps, n);
-    return result.map((seq) => {
-      return {
-        ...seq,
-        eval: evaluateSequence(seq.editOpPartition)
-      }
-    }).sort((a,b) => { return b.eval.score - a.eval.score})
-  }
-
-  function isValidVLSpec(spec) {
+  function isValidVLSpec$1(spec) {
     if (spec.layer || spec.hconcat || spec.vconcat || spec.concat || spec.spec) {
       return false;
     }
@@ -27021,6 +27219,7 @@
   exports.recommend = recommend;
   exports.recommendForSeq = recommendForSeq;
   exports.recommendKeyframes = recommendKeyframes;
+  exports.recommendWithPath = recommendWithPath;
   exports.vl2vg4gemini = vl2vg4gemini;
 
   Object.defineProperty(exports, '__esModule', { value: true });

@@ -1,49 +1,110 @@
 import { default as recommend, cannotRecommend } from "../index"
 import { crossJoinArrays, copy } from "../../util/util";
 import * as gs from "graphscape";
-import { enumerateSequences } from "./enumerator";
-import { evaluateSequence } from "./evaluator";
+import {NSplits} from "../../util/util";
+import {setUpRecomOpt} from "../util";
+import vl2vg4gemini from "../../util/vl2vg4gemini";
+
+export async function recommendKeyframes(sSpec, eSpec, N=0) {
+  return await gs.path(copy(sSpec),  copy(eSpec), N);
+}
+
+
+export async function recommendWithPath(sVlSpec, eVlSpec, opt ={ stageN: 1, totalDuration: 2000 }) {
+
+  let _opt = copy(opt)
+  _opt.totalDuration = opt.totalDuration || 2000;
+  _opt.stageN = opt.stageN || 1;
+  _opt = setUpRecomOpt(_opt);
+
+  const recommendations = {};
+  for (let transM = 1; transM <= _opt.stageN; transM++) {
+    let paths;
+    try {
+      paths = await gs.path(copy(sVlSpec), copy(eVlSpec), transM);
+    } catch (error) {
+      if (error.name === "CannotEnumStagesMoreThanTransitions") {
+        continue;
+      }
+      throw error;
+    }
+
+    recommendations[transM] = [];
+    for (const path of paths) {
+      const sequence = path.sequence.map(vl2vg4gemini);
+
+      //enumerate all possible gemini++ specs for the sequence;
+      let recomsPerPath = await recommendForSeq(sequence, opt)
+      recommendations[transM].push({
+        path,
+        recommendations: recomsPerPath
+      })
+
+    }
+  }
+  return recommendations;
+}
+
+
+
+export function splitStagesPerTransition(stageN, transitionM) {
+  return NSplits(new Array(stageN).fill(1), transitionM)
+      .map(arr => arr.map(a => a.length));
+}
 
 export async function recommendForSeq(sequence, opt = {}) {
-  const globalOpt = copy(opt), L = sequence.length;
-  globalOpt.totalDuration = (opt.totalDuration || 2000) / (L - 1);
-
-  globalOpt.axes = opt.axes || {};
-  for (const scaleName in opt.scales || {}) {
-    globalOpt.axes[scaleName] = globalOpt.axes[scaleName] || {};
-    globalOpt.axes[scaleName].change = globalOpt.axes[scaleName].change || {};
-    globalOpt.axes[scaleName].change.scale = globalOpt.axes[scaleName].change.scale || {};
-    if (globalOpt.axes[scaleName].change.scale !== false) {
-      globalOpt.axes[scaleName].change.scale.domainDimension = globalOpt.axes[scaleName].domainDimension;
-    }
+  let globalOpt = copy(opt),
+    transM = sequence.length-1,
+    stageN = opt.stageN;
+  if (stageN < transM) {
+    throw new Error(`Cannot recommend ${stageN}-stage animations for a sequence with ${transM} transitions.`)
   }
 
-  const recommendationPerTransition = [];
-  for (let i = 0; i < (L - 1); i++) {
-    const sVis = sequence[i], eVis = sequence[i+1];
+  globalOpt = setUpRecomOpt(globalOpt)
 
-    const _opt = {
-      ...{stageN: Number(opt.stageN) || 1},
-      ...globalOpt,
-      ...(opt.perTransitions || [])[i],
-      ...{includeMeta: false}
+  let stageNSplits = splitStagesPerTransition(stageN, transM)
+  let recomsForSequence = [];
+  for (const stageNSplit of stageNSplits) {
+    const recommendationPerTransition = [];
+
+    for (let i = 0; i < transM; i++) {
+      const sVgVis = (sequence[i]),
+        eVgVis = (sequence[i+1]);
+
+      const _opt = {
+        ...globalOpt,
+        ...(opt.perTransitions || [])[i],
+        ...{includeMeta: false},
+        ...{
+          stageN: stageNSplit[i],
+          totalDuration: (opt.totalDuration || 2000) / stageN * stageNSplit[i]
+        }
+      }
+      const _recom = await recommend(sVgVis, eVgVis, _opt);
+      recommendationPerTransition.push(_recom);
     }
-    const _recom = await recommend(sVis, eVis, _opt);
-    recommendationPerTransition.push(_recom);
+
+    recomsForSequence = recomsForSequence.concat(crossJoinArrays(recommendationPerTransition));
   }
-  let recomsForSequence = crossJoinArrays(recommendationPerTransition);
-  return recomsForSequence.sort((a,b) => {
-    return sumCost(a) - sumCost(b)
+
+  return recomsForSequence.map(recom => {
+    return {
+      specs: recom,
+      cost: sumCost(recom)
+    }
+  }).sort((a,b) => {
+    return a.cost - b.cost
   });
 }
 
 function sumCost(geminiSpecs) {
-  geminiSpecs.reduce((cost, spec) => {
+  return geminiSpecs.reduce((cost, spec) => {
     cost += spec.pseudoTimeline.eval.cost;
     return cost
   }, 0)
 }
-export async function cannotRecommendForSeq(sequence) {
+
+export function cannotRecommendForSeq(sequence) {
   for (let i = 0; i < (sequence.length - 1); i++) {
     const sVis = sequence[i], eVis = sequence[i+1];
     if (cannotRecommend(sVis, eVis)) {
@@ -60,34 +121,7 @@ export function cannotRecommendKeyframes(sSpec, eSpec) {
   }
 }
 
-export async function recommendKeyframes(sSpec, eSpec, N=0) {
 
-  const transition = await gs.transition(copy(sSpec),  copy(eSpec))
-  const editOps = [
-    ...transition.mark,
-    ...transition.transform,
-    ...transition.encoding
-  ];
-  let result = {}
-  if (N === 0 ) {
-    for (let n = 1; n < editOps.length; n++) {
-      result[n] = await enumAndEval(sSpec, eSpec, editOps, n)
-    }
-    return result;
-  }
-
-  return await enumAndEval(sSpec, eSpec, editOps, N)
-}
-
-async function enumAndEval(sSpec, eSpec, editOps, n) {
-  let result = await enumerateSequences(sSpec, eSpec, editOps, n)
-  return result.map((seq) => {
-    return {
-      ...seq,
-      eval: evaluateSequence(seq.editOpPartition)
-    }
-  }).sort((a,b) => { return b.eval.score - a.eval.score})
-}
 
 export function isValidVLSpec(spec) {
   if (spec.layer || spec.hconcat || spec.vconcat || spec.concat || spec.spec) {

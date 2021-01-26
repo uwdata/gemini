@@ -71,4 +71,25 @@ function getCoreAttr(subEncode, channel, marktype){
   return subEncode[channel];
 }
 
-export { CHANNELS, CHANNEL_TO_ATTRS_OBJ, MIN_POS_DELTA, getSubEncodeByChannel, getCoreAttr };
+function setUpRecomOpt(opt) {
+  let _opt = copy(opt);
+  _opt.axes = _opt.axes || {};
+  for (const scaleName in _opt.scales || {}) {
+    _opt.axes[scaleName] = _opt.axes[scaleName] || {};
+    _opt.axes[scaleName].change = _opt.axes[scaleName].change || {};
+    _opt.axes[scaleName].change.scale = _opt.axes[scaleName].change.scale || {};
+    if (_opt.axes[scaleName].change.scale !== false) {
+      _opt.axes[scaleName].change.scale.domainDimension = _opt.scales[scaleName].domainDimension;
+    }
+  }
+  return _opt
+}
+
+export {
+  CHANNELS,
+  CHANNEL_TO_ATTRS_OBJ,
+  MIN_POS_DELTA,
+  getSubEncodeByChannel,
+  getCoreAttr,
+  setUpRecomOpt
+};

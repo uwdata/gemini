@@ -123,6 +123,7 @@
     }
   ],
   "opt": {
-    "totalDuration": 2000
+    "totalDuration": 2000,
+    "stageN": 3
   }
 }

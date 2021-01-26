@@ -5,6 +5,7 @@ import { evaluate } from "./pseudoTimelineEvaluator";
 import { generateTimeline } from "./timelineGenerator";
 import { copy } from "../util/util";
 import { getComponents, getChanges } from "../changeFetcher/change";
+import { setUpRecomOpt } from "./util"
 
 export default async function (
   sSpec,
@@ -60,22 +61,11 @@ export function compareCost(a, b) {
 }
 
 async function initialSetUp(sSpec, eSpec, opt = { marks: {}, axes: {}, legends: {}, scales: {} }) {
-  const userInput = opt;
+  let _opt = copy(opt);
   const stageN = Number(opt.stageN) || 2;
   const { includeMeta } = opt;
-  const timing = { totalDuration: userInput.totalDuration || 2000 };
-
-  userInput.axes = userInput.axes || {};
-  for (const scaleName in userInput.scales || {}) {
-    userInput.axes[scaleName] = userInput.axes[scaleName] || {};
-    userInput.axes[scaleName].change = userInput.axes[scaleName].change || {};
-    userInput.axes[scaleName].change.scale =
-      userInput.axes[scaleName].change.scale || {};
-    if (userInput.axes[scaleName].change.scale !== false) {
-      userInput.axes[scaleName].change.scale.domainDimension =
-        userInput.scales[scaleName].domainDimension;
-    }
-  }
+  const timing = { totalDuration: _opt.totalDuration || 2000 };
+  _opt = setUpRecomOpt(_opt);
   const eView = await new vega.View(vega.parse(eSpec), {
     renderer: "svg"
   }).runAsync();
@@ -90,7 +80,7 @@ async function initialSetUp(sSpec, eSpec, opt = { marks: {}, axes: {}, legends: 
     eVis: { spec: copy(eSpec), view: eView }
   };
 
-  return { rawInfo, userInput, stageN, includeMeta, timing}
+  return { rawInfo, userInput: _opt, stageN, includeMeta, timing}
 }
 
 export function cannotRecommend(sSpec, eSpec) {
@@ -110,3 +100,4 @@ export function cannotRecommend(sSpec, eSpec) {
   }
   return false;
 }
+
