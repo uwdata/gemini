@@ -7656,6 +7656,13 @@
       },
       additionalProperties: false,
       defs: {
+        ease: {
+          type: "string",
+          enum: ["linear", "cubic", "quad", "exp", "bounce", "circle", "sin",
+            "linearIn", "cubicIn", "quadIn", "expIn", "bounceIn", "circleIn", "sinIn",
+            "linearOut", "cubicOut", "quadOut", "expOut", "bounceOut", "circleOut", "sinOut"
+          ]
+        },
         enumerator: {
           type: "object",
           properties: {
@@ -7689,6 +7696,7 @@
             },
             overlap: { type: "number" },
             order: { type: "string", enum: ["ascending", "descending"] },
+            ease: { $ref: "#/defs/ease" },
             staggering: { $ref: "#/defs/subStaggering" }
           },
           additionalProperties: false,
@@ -7962,7 +7970,8 @@
                 { type: "object", properties: { ratio: { type: "number" } } }
               ]
             },
-            staggering: { type: "string" }
+            staggering: { type: "string" },
+            ease: { $ref: "#/defs/ease" },
           }
         },
         encode: {
@@ -10353,23 +10362,25 @@
   }
   function axisTextDpos(attr, spec) {
     const orient = spec ? spec.orient : undefined;
+    const posOffset = (spec.ticks !== false ?
+        ( isNumber(spec.tickSize) ? spec.tickSize : vegaConfig.axis.tickSize)
+         : 0)
+      + (isNumber(spec.labelPadding) ? spec.labelPadding : vegaConfig.axis.labelPadding);
 
-    if (spec.ticks === false) {
-      return 0;
-    }
+
     if (attr === "dx") {
       if (orient === "right") {
-        return 7;
+        return posOffset;
       }
       if (orient === "left") {
-        return -7;
+        return -posOffset;
       }
     } else if (attr === "dy") {
       if (orient === "bottom") {
-        return 7;
+        return posOffset;
       }
       if (orient === "top") {
-        return -7;
+        return - posOffset;
       }
     }
     return 0;
@@ -16172,7 +16183,7 @@
         return val === undefined ? "__empty__" : val;
       });
       if (typeof(orderFn) === "function") {
-        grouped.sort((a,b) => orderFn(a,b));
+        grouped.sort((a,b) => orderFn(a[0], b[0]));
       }
     } else if (typeof staggering.by === "string") {
 
@@ -16184,7 +16195,7 @@
 
       const orderFn = getOrderFn(isNumber, staggering.order);
       if (typeof(orderFn) === "function") {
-        grouped.sort((a,b) => orderFn(a,b));
+        grouped.sort((a,b) => orderFn(a[0], b[0]));
       }
     } else if (staggering.by.initial || staggering.by.final) {
       const which = staggering.by.initial ? "initial" : "final";
@@ -16199,7 +16210,7 @@
 
       const orderFn = getOrderFn(isNumber, staggering.order);
       if (typeof(orderFn) === "function") {
-        grouped.sort((a,b) => orderFn(a,b));
+        grouped.sort((a,b) => orderFn(a[0], b[0]));
       }
     }
 
