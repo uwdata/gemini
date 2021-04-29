@@ -1,11 +1,11 @@
 import { Gemini } from "./gemini.js";
-import { default as recommend, compareCost, cannotRecommend } from "./recommender";
+import { default as recommend, compareCost, cannotRecommend, allAtOnce } from "./recommender";
 import { recommendForSeq,
   recommendKeyframes,
   recommendWithPath,
   cannotRecommendKeyframes,
   cannotRecommendForSeq } from "./recommender/sequence";
-import { default as vl2vg4gemini } from "./util/vl2vg4gemini";
+import { default as vl2vg4gemini, castVL2VG } from "./util/vl2vg4gemini";
 
 const { animate, animateSequence } = Gemini;
 export { animate,
@@ -18,5 +18,7 @@ export { animate,
   cannotRecommendKeyframes,
   recommendWithPath,
   compareCost,
-  vl2vg4gemini
+  vl2vg4gemini,
+  castVL2VG,
+  allAtOnce
 };

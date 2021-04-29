@@ -217,7 +217,7 @@ export function getPropVal(propInfo, encodes, scales, signals, d, oldD) {
       return getShape(d, scales, encode, signal).path;
     }
     if (propInfo.val === "transform") {
-      const trfD = transformD.bind(this)(encode, scales, signal, d, false);
+      const trfD = transformD.bind(this)(encodes, scales, signal, d, false);
       return transformItem(Object.keys(trfD).length === 0 ? d : trfD);
     }
   } else if (propInfo.elmType === "gradient") {
@@ -599,10 +599,9 @@ export function getPropVal(propInfo, encodes, scales, signals, d, oldD) {
 }
 
 export function transformD(encodes, scales, signal, d, inherit = true) {
-  const encode = encodes.primary || encodes;
   return Object.assign(
     {},
-    Object.keys(encode)
+    Object.keys(encodes.primary || encodes.final || encodes)
       .filter(key => ["x", "y", "angle", "yc", "xc"].indexOf(key) >= 0)
       .reduce((acc, curr) => {
         const newVal = decodeEncode.bind(this)(
@@ -628,8 +627,7 @@ export function transformD(encodes, scales, signal, d, inherit = true) {
     inherit ? d : {}
   );
 }
-export
-function calculateGetValeus(encodes, scales, signals, computeScale, scNames) {
+export function calculateGetValeus(encodes, scales, signals, computeScale, scNames) {
   return {
     update: {
       initial: (attr, getScales, d) => {

@@ -40,33 +40,36 @@ function legendBandPos(spec) {
 }
 
 function legendLablePos(spec) {
-  let grLength = spec ? spec.gradientLength : undefined;
-  grLength = isNaN(grLength) ? vgConfig.legend.gradientLength : grLength;
-  let grThickness = spec ? spec.gradientThickness : undefined;
-  grThickness = isNaN(grThickness) ? vgConfig.legend.gradientThickness : grThickness;
-  let grLabelOffset = spec ? spec.gradientLabelOffset : undefined;
-  grLabelOffset = isNaN(grLabelOffset) ? vgConfig.legend.gradientLabelOffset : grLabelOffset;
+  const columns = !spec ? 1 : (spec.columns || (spec.direction === "vertical" ? 1 : 0))
+  const clipHeight = (spec && spec.clipHeight) ? spec.clipHeight : null;
 
   if (spec.type === "symbol") {
     return {
-      x: { value: 0 },
-      y: { value: 0 },
-      dx: { value: 16 },
-      dy: { value: 6 }
+      x: { signal: columns ? `datum['offset']` : `datum['size']`, offset: vgConfig.legend.labelOffset },
+      y: { signal: clipHeight ? `${clipHeight}` : `datum['size']`, mult: 0.5}
     };
-  }
-  if (spec.direction === "vertical") {
+  } else {
+    let grLength = spec ? spec.gradientLength : undefined;
+    grLength = isNaN(grLength) ? vgConfig.legend.gradientLength : grLength;
+    let grThickness = spec ? spec.gradientThickness : undefined;
+    grThickness = isNaN(grThickness) ? vgConfig.legend.gradientThickness : grThickness;
+    let grLabelOffset = spec ? spec.gradientLabelOffset : undefined;
+    grLabelOffset = isNaN(grLabelOffset) ? vgConfig.legend.gradientLabelOffset : grLabelOffset;
+
+    if (spec.direction === "vertical") {
+      return {
+        x: { value: 0, },
+        y: { signal: `(1-datum.perc) * clamp(height, 64, ${grLength})` },
+        dx: { value: grThickness + grLabelOffset }
+      };
+    }
     return {
-      x: { value: 0, },
-      y: { signal: `(1-datum.perc) * clamp(height, 64, ${grLength})` },
-      dx: { value: grThickness + grLabelOffset }
+      x: { signal: `(datum.perc) * clamp(width, 64, ${grLength})` },
+      y: { value: 0, },
+      dy: { value: grThickness + grLabelOffset }
     };
   }
-  return {
-    x: { signal: `(datum.perc) * clamp(width, 64, ${grLength})` },
-    y: { value: 0, },
-    dy: { value: grThickness + grLabelOffset }
-  };
+
 }
 
 

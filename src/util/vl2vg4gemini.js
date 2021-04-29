@@ -9,6 +9,14 @@ export default function vl2vg4gemini(vlSpec) {
 }
 
 
+export function castVL2VG(vlSpec) {
+  if (vlSpec && vlSpec.$schema && vlSpec.$schema.indexOf("https://vega.github.io/schema/vega-lite") >= 0){
+    return vl2vg4gemini(vlSpec)
+  }
+  return vlSpec
+}
+
+
 function appendNamesOnGuides(vgSpec){
   if (vgSpec.axes) {
     vgSpec.axes.forEach(axis => {

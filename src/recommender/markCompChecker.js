@@ -109,13 +109,17 @@ function checkMarkComp(markCompSummary) {
           return { reasons: ["encode", "scale"], result: false };
         }
       }
-      if (enAttr && enAttr.field) {
-        if (data.fields.indexOf(enAttr.field) < 0) {
+      if (enAttr && enAttr.field && !enAttr.field.group) {
+        let field = enAttr.field;
+        if (enAttr.field.parent) {
+          field = enAttr.field.parent;
+        }
+        if (data.fields.indexOf(field) < 0) {
           return { result: false, reasons: ["encode", "data"] };
         }
         if (enAttr.scale) {
           const foundScale = scales[enAttr.scale];
-          const vals = data.values.map(d => d.datum[enAttr.field]);
+          const vals = data.values.map(d => d.datum[field]);
           const scaleDomain = foundScale.domain();
           let valid = true;
 

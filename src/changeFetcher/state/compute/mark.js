@@ -2,7 +2,7 @@ import { dataPreservedScale, computeKeptEncode, replacePositionAttrs } from "./u
 import { copy2, copy, get } from "../../../util/util";
 import { DEFAULT_ENCODE, DEFAULT_STYLE } from "../../../default";
 import { computeHasFacet } from "../util";
-import { getAggregate } from "../dataJoin";
+import { getAggregate, getBin } from "../dataJoin";
 
 
 export function compute(rawInfo, step, lastState) {
@@ -36,11 +36,22 @@ export function compute(rawInfo, step, lastState) {
     initial: lastState.aggregate,
     final: lastState.aggregate
   };
+  const bins = {
+    initial: lastState.bin,
+    final: lastState.bin
+  };
 
   if (change.data) {
     // aggregates.done = true;
     aggregates.final = getAggregate(change, rawInfo).final;
+    bins.final = getBin(change, rawInfo).final
   }
+
+  const beingAggregated = change.data && !aggregates.initial && aggregates.final;
+  const beingDisaggregated = change.data && aggregates.initial && !aggregates.final;
+  const beingBinned = change.data && !bins.initial && bins.final;
+  const beingDisbinned = change.data && bins.initial && !bins.final;
+
 
   const marktypes = {
     initial: lastState.marktype, // change.initial ? change.initial.type : undefined,
@@ -123,10 +134,10 @@ export function compute(rawInfo, step, lastState) {
     });
   }
 
-  if (change.data && !aggregates.initial && aggregates.final && aggregates.final.ops.indexOf("count") >= 0) {
+  if (beingAggregated && aggregates.final.ops.indexOf("count") >= 0) {
     step.specificScaleFor = { ...step.specificScaleFor, enter: {initial: "final"} };
   }
-  if (change.data && aggregates.initial && !aggregates.final && aggregates.initial.ops.indexOf("count") >= 0) {
+  if (beingDisaggregated && aggregates.initial.ops.indexOf("count") >= 0) {
     step.specificScaleFor = { ...step.specificScaleFor, exit: {final: "initial"} };
   }
 
@@ -149,10 +160,15 @@ export function compute(rawInfo, step, lastState) {
     : {};
   delete manualEncodeEnterWithoutInitial.initial;
 
+
   encodes.initial.enter = Object.assign(
     {},
-    (change.data && !aggregates.initial && aggregates.final) ? copy(get(change, "final", "encode", "update") || {}) : lastState.encode.update,
+    lastState.encode.update,
     DEFAULT_ENCODE.mark.enter,
+    beingAggregated ? computeKeptEncode(
+      manualEncode,
+      get(change, "final", "encode", "update") || {}
+    ) : {},
     manualEncode && manualEncode.enter ? manualEncode.enter.initial : {}
   );
 
@@ -245,7 +261,7 @@ export function compute(rawInfo, step, lastState) {
   }
 
 
-  if (!aggregates.initial && aggregates.final && change.data ) {
+  if (beingAggregated) {
     // when aggregate
     encodes.final.exit = Object.assign(
       change.marktype && (marktypes.initial !== marktypes.final) ? replacePositionAttrs(marktypes.initial, encodes.final.exit, encodes.final.update) : encodes.final.update,
@@ -256,7 +272,7 @@ export function compute(rawInfo, step, lastState) {
 
 
     encodes.final.update = copy(encodes.final.enter);
-  } else if (aggregates.initial && !aggregates.final && change.data ) {
+  } else if (beingDisaggregated) {
     // when disaggregate
 
     encodes.initial.enter = Object.assign(
@@ -276,6 +292,7 @@ export function compute(rawInfo, step, lastState) {
     marktypes,
     hasFacet,
     aggregates,
+    bins,
     styleEncodes
   };
 }

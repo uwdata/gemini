@@ -213,11 +213,13 @@ function detectScaleDiffs(match, rawInfo, userInputScales = {}) {
   } if (!match.final) {
     return {remove: true};
   }
-  let scaleDiff = deepEqual(match.initial, match.final) ? false : {};
+
+  //get range diff
+  let rangeDelta = 0;
 
   let rangeVals_i = rawInfo.sVis.view.scale(match.initial.name).range(),
     rangeVals_f = rawInfo.eVis.view.scale(match.final.name).range();
-  let rangeDelta = 0;
+
   if (!deepEqual(rangeVals_i, rangeVals_f)){
     if ((rangeVals_i.length === 2 && isNumber(rangeVals_i[0]) && isNumber(rangeVals_i[1]))
       && (rangeVals_f.length === 2 && isNumber(rangeVals_f[0]) && isNumber(rangeVals_f[1]))) {
@@ -225,12 +227,24 @@ function detectScaleDiffs(match, rawInfo, userInputScales = {}) {
     }
   }
 
+  //get domain diff
   let domainVals_i = rawInfo.sVis.view.scale(match.initial.name).domain(),
     domainVals_f = rawInfo.eVis.view.scale(match.final.name).domain();
+  let domainValueDiff = !deepEqual(domainVals_i, domainVals_f);
 
-  if (!scaleDiff && deepEqual(domainVals_i, domainVals_f) && (rangeDelta === 0)) {
+  //get the other diffs
+  let others_i = copy(match.initial)
+  delete others_i.range;
+  delete others_i.domain;
+  let others_f = copy(match.final)
+  delete others_f.range;
+  delete others_f.domain;
+  let scaleDiff = !deepEqual(others_i, others_f);
+
+  if (!scaleDiff && !domainValueDiff && rangeDelta === 0) {
     return false;
   }
+
   scaleDiff = {
     rangeDelta: rangeDelta,
     domainValueDiff: !deepEqual(domainVals_i, domainVals_f)

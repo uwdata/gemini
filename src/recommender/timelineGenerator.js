@@ -106,7 +106,7 @@ function generateAxisCompStep(pseudoStep, opt) {
   ) {
     step.change.encode = {
       grid: true,
-      axis: false,
+      axis: true,
       labels: false,
       title: false,
       ticks: false,

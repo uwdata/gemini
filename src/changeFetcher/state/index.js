@@ -1,5 +1,5 @@
 import * as vega from "vega";
-import { joinData, initialData, getAggregate } from "./dataJoin";
+import { joinData, initialData, getAggregate, getBin } from "./dataJoin";
 import { findComp } from "../../actuator/util";
 import { DEFAULT_ENCODE, DEFAULT_STYLE } from "../../default";
 import * as computeStates from "./compute";
@@ -107,6 +107,7 @@ export async function attachStates(schedule, rawInfo) {
       lastState.marktype = step.marktypes ? step.marktypes.final : undefined;
       lastState.hasFacet = step.hasFacet ? step.hasFacet.final : undefined;
       lastState.aggregate = step.aggregates ? step.aggregates.final : undefined;
+      lastState.bin = step.bins ? step.bins.final : undefined;
       lastState.isAdd = step.isAdd;
       lastState.isRemove = step.isRemove;
       lastState.sameDomainDimension = step.sameDomainDimension;
@@ -439,6 +440,11 @@ function initializeState(schedule, rawInfo) {
         track.steps[0].change,
         rawInfo
       ).initial;
+      compState.bin = getBin(
+        track.steps[0].change,
+        rawInfo
+      ).initial;
+
       // compState.aggregate.done = false;
     } else if (track.compType === "axis") {
       // for axis comp

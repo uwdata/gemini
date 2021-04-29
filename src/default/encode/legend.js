@@ -1,4 +1,4 @@
-import { vegaConfig as vgConfig } from "../vegaConfig";
+import { vegaConfig, vegaConfig as vgConfig } from "../vegaConfig";
 import * as vg from "./vegaDefault";
 import { copy } from "../../util/util";
 const LEGEND_SYMBOL_CHANNEL = [
@@ -51,9 +51,11 @@ export const DEFAULT_ENCODE_LEGEND = {
     };
   },
   symbols: spec => {
+    const columns = !spec ? 1 : (spec.columns || (spec.direction === "vertical" ? 1 : 0))
+    const clipHeight = (spec && spec.clipHeight) ? spec.clipHeight : null;
     const defaultEncode = {
-      y: { value: 6 },
-      x: { value: 6 },
+      y: { signal: clipHeight ? `${clipHeight}` : `datum['size']`, mult: 0.5},
+      x: { signal: columns ? `datum['offset']` : `datum['size']`, mult: 0.5, offset: vegaConfig.legend.symbolOffset },
       shape: { value: vgConfig.legend.symbolType },
       size: { value: vgConfig.legend.symbolSize },
       strokeWidth: { value: vgConfig.legend.symbolStrokeWidth }

@@ -268,6 +268,7 @@ function joinData(step, rawInfo, initialData) {
 
 
     const aggregate = step.aggregates;
+    const bin = step.bins;
     const isGroupingMarktypes = {
       initial: isGroupingMarktype(marktypes.initial || marktypes.final),
       final: isGroupingMarktype(marktypes.final || marktypes.initial)
@@ -369,6 +370,16 @@ function joinData(step, rawInfo, initialData) {
           });
         }
       } else if (!isGroupingMarktypes.initial && !isGroupingMarktypes.final) {
+
+        // if iData or fData are binned, attach the representative fields.
+        // E.g., bin_A, bin_A_end -> A
+        if (bin.initial) {
+          extendBinnedData(iData, bin.initial);
+        }
+        if (bin.final) {
+          extendBinnedData(fData, bin.final);
+        }
+
         if (
           aggregate.initial &&
           aggregate.final &&
@@ -577,6 +588,14 @@ function joinThem(iData, fData, computeId, step) {
     exit: exitData
   };
 }
+
+function extendBinnedData(binData, bin) {
+  bin.forEach(b => {
+    binData.forEach(d => {
+      d.datum[b.field] = d.datum[b.field] === undefined ? (d.datum[b.as[0]] + d.datum[b.as[1]])/2 : d.datum[b.field];
+    });
+  })
+}
 function extendAggData(aggData, agg) {
   aggData.forEach(aggDatum => {
     agg.as.forEach((aggField, i) => {
@@ -639,7 +658,38 @@ function appendPostfix(computeId, postFix) {
     return computeId(d, i) + postFix;
   };
 }
+function getBin(change, rawInfo) {
+  const bin = {};
+  if (!change.initial || !change.final) {
+    return bin;
+  }
+  const sSpec = rawInfo.sVis.spec;
+  const eSpec = rawInfo.eVis.spec;
 
+  const dataName = compSpec => {
+    return computeHasFacet(compSpec)
+      ? compSpec.parent.from.facet.data
+      : compSpec.from.data;
+  };
+
+  const dataSource_f = eSpec.data.find(
+    dset => dset.name === dataName(change.final)
+  );
+  if (dataSource_f.transform) {
+    bin.final = dataSource_f.transform.filter(
+      trsfm => trsfm.type === "bin"
+    );
+  }
+  const dataSource_i = sSpec.data.find(
+    dset => dset.name === dataName(change.initial)
+  );
+  if (dataSource_i.transform) {
+    bin.initial = dataSource_i.transform.filter(
+      trsfm => trsfm.type === "bin"
+    );
+  }
+  return bin;
+}
 function getAggregate(change, rawInfo) {
   const aggregate = {};
   if (!change.initial || !change.final) {
@@ -679,4 +729,4 @@ function setJoinInfo(datum, step, info) {
   Object.assign(datum.__gemini__[step.stepId], info);
 }
 
-export { joinData, initialData, getAggregate };
+export { joinData, initialData, getAggregate, getBin };

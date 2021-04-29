@@ -21,11 +21,19 @@ function dataPreservedScale(sSpec, eSpec, scName) {
   return tempView._runtime.scales[scName].value;
 }
 
-function computeKeptEncode(manualEncode, referenceEncode, set) {
-  return Object.keys(manualEncode && manualEncode[set] ? manualEncode[set] : {})
-    .filter(attr => manualEncode[set][attr] === false)
+function computeKeptEncode(manualEncode, referenceEncode, set = null) {
+
+  let manual = manualEncode;
+  if (set !== null) {
+    manual = manualEncode && manualEncode[set] ? manualEncode[set] : {};
+  }
+  const ref = set !== null ? referenceEncode[set] : referenceEncode;
+
+
+  return Object.keys(manual)
+    .filter(attr => manual[attr] === false)
     .reduce((keptEncode, attr) => {
-      keptEncode[attr] = referenceEncode[set][attr];
+      keptEncode[attr] = ref[attr];
       return keptEncode;
     }, {});
 }

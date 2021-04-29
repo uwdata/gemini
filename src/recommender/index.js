@@ -4,6 +4,7 @@ import { enumeratePseudoTimelines } from "./pseudoTimelineEnumerator";
 import { evaluate } from "./pseudoTimelineEvaluator";
 import { generateTimeline } from "./timelineGenerator";
 import { copy } from "../util/util";
+import { castVL2VG } from "../util/vl2vg4gemini";
 import { getComponents, getChanges } from "../changeFetcher/change";
 import { setUpRecomOpt } from "./util"
 
@@ -12,10 +13,6 @@ export default async function (
   eSpec,
   opt = { marks: {}, axes: {}, legends: {}, scales: {} }
 ) {
-  if (cannotRecommend(sSpec, eSpec)) {
-    return cannotRecommend(sSpec, eSpec);
-  }
-
   const {
     rawInfo,
     userInput,
@@ -24,11 +21,11 @@ export default async function (
     timing
   } = await initialSetUp(sSpec, eSpec, opt);
 
-  const detected = detectDiffs(rawInfo, userInput);
-  // for (let i = 1; i <= maxStageN; i++) {
-  //   pseudoTls = pseudoTls.concat(enumeratePseudoTimelines(detected, i, rawInfo));
-  // }
+  if (cannotRecommend(sSpec, eSpec) && stageN !== 1) {
+    return cannotRecommend(sSpec, eSpec);
+  }
 
+  const detected = detectDiffs(rawInfo, userInput);
 
   let pseudoTls = enumeratePseudoTimelines(detected, stageN, rawInfo, timing);
   pseudoTls = pseudoTls
@@ -101,3 +98,44 @@ export function cannotRecommend(sSpec, eSpec) {
   return false;
 }
 
+export async function allAtOnce(sSpec,
+  eSpec,
+  opt = { marks: {}, axes: {}, legends: {}, scales: {} }
+) {
+  const sVGSpec = castVL2VG(sSpec), eVGSpec = castVL2VG(eSpec)
+  const {
+    rawInfo,
+    userInput,
+    stageN,
+    includeMeta,
+    timing
+  } = await initialSetUp(sVGSpec, eVGSpec, {stageN:1, ...opt});
+
+  const detected = detectDiffs(rawInfo, userInput);
+
+  const steps = detected.compDiffs.map(cmpDiff => {
+    let comp = {}
+    comp[cmpDiff.compType] = cmpDiff.compName;
+    return {
+      component: comp,
+      timing: {duration: {ratio: 1}}
+    }
+  });
+  for (const incOrDec of ["increase", "decrease"]) {
+    if (detected.viewDiffs.height[incOrDec] || detected.viewDiffs.width[incOrDec]) {
+      steps.push({
+        component: "view",
+        timing: {duration: {ratio: 1}}
+      })
+      break;
+    }
+  }
+
+  return {
+    timeline: {
+      sync: steps
+    },
+    totalDuration: opt.totalDuration || 2000
+  }
+
+}

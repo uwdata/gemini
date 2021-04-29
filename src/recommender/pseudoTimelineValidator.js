@@ -3,7 +3,7 @@ import { MIN_POS_DELTA } from "./util";
 
 function validate(pseudoTimeline, stageN) {
   return (
-    checkViewAxisConstraint(pseudoTimeline) &&
+    // checkViewAxisConstraint(pseudoTimeline) &&
     checkViewLegendConstraint(pseudoTimeline) &&
     checkUnempty(pseudoTimeline) &&
     pseudoTimeline.concat.length === stageN &&

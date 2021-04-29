@@ -6,7 +6,7 @@ function getComponents(vgSpec) {
   const components = [];
   function collectComp(mark, currComp, isRoot = false) {
     if (isRoot) {
-      mark.name = "root";
+      mark.name = mark.name || "root";
     }
     let newComp = currComp;
     if (mark.axes) {
@@ -50,7 +50,7 @@ function getComponents(vgSpec) {
     return newComp;
   }
 
-  return collectComp(vgSpec, components, true);
+  return collectComp(copy(vgSpec), components, true);
 }
 function getChanges(sComponents, eComponents) {
   const IDENTIFIERS = {

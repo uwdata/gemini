@@ -118,51 +118,66 @@ function enumeratePseudoTimelines(diffs, stageN, rawInfo, timing) {
         })
       };
     });
-  } else {
+  } else if (stageN ===1 ) {
+    pseudoTimelines = [
+      {
+        concat: [
+          {
+            sync: [
+              ...enumedMarksPusedoSteps.map(steps => steps[0][0]),
+              ...legendspseudoSteps,
+              ...axespseudoSteps
+            ]
+          }
+        ]
+      }
+    ];
+  }
+  else {
     console.error(
       "Currently, Gemini Recommendation only supports a single mark without adding or removing."
     );
     console.error("TODO: cross join the pseudo timelines of each mark.");
   }
 
-  return (
-    pseudoTimelines
-      .map(pseudoTl => {
-        pseudoTl.concat = pseudoTl.concat.map(stage => {
-          let currSync = stage.sync;
 
-          // filter empty mark pStep
-          currSync = currSync.filter(pStep => {
-            return (pStep.diff.compType !== "mark") ||
-              (
-                !(
-                  (pStep.factorSets.applied.length === 0) ||
-                  (pStep.factorSets.current.length === 0)
-                ) &&
-                !(
-                  (pStep.factorSets.all.indexOf("add") >= 0) &&
-                  (pStep.factorSets.applied.indexOf("add") < 0)
-                ) &&
-                !(
-                  (pStep.factorSets.all.indexOf("remove") >= 0) &&
-                  (pStep.factorSets.applied.length !== pStep.factorSets.current.length)
-                )
-              );
+  pseudoTimelines = pseudoTimelines
+    .map(pseudoTl => {
+      pseudoTl.concat = pseudoTl.concat.map(stage => {
+        let currSync = stage.sync;
 
-          });
-
-
-
-          return { sync: currSync };
+        // filter empty mark pStep
+        currSync = currSync.filter(pStep => {
+          return (pStep.diff.compType !== "mark") ||
+            (
+              !(
+                (pStep.factorSets.applied.length === 0) ||
+                (pStep.factorSets.current.length === 0)
+              ) &&
+              !(
+                (pStep.factorSets.all.indexOf("add") >= 0) &&
+                (pStep.factorSets.applied.indexOf("add") < 0)
+              ) &&
+              !(
+                (pStep.factorSets.all.indexOf("remove") >= 0) &&
+                (pStep.factorSets.applied.length !== pStep.factorSets.current.length)
+              )
+            );
         });
-        return pseudoTl;
-      })
-      .filter(pseudoTl => validate(pseudoTl, stageN))
-      // .map((pseudoTl, i) => appendGuideMoves(pseudoTl, axespseudoSteps, legendspseudoSteps))
-      .map(pseudoTl => appendViewDiff(pseudoTl, diffs.viewDiffs))
-      .map(pseudoTl => appendGridChanges(pseudoTl))
-      .map(pseudoTl => appendTiming(pseudoTl, timing))
-  );
+        return { sync: currSync };
+      });
+      return pseudoTl;
+  })
+
+  pseudoTimelines = pseudoTimelines.filter(pseudoTl => validate(pseudoTl, stageN))
+    // .map((pseudoTl, i) => appendGuideMoves(pseudoTl, axespseudoSteps, legendspseudoSteps))
+  pseudoTimelines = pseudoTimelines.map(pseudoTl => appendViewDiff(pseudoTl, diffs.viewDiffs))
+    .map(pseudoTl => appendGridChanges(pseudoTl))
+    .map(pseudoTl => appendTiming(pseudoTl, timing))
+
+
+
+  return pseudoTimelines;
 }
 
 function appendTiming(pseudoTl, timing = {}) {
@@ -233,6 +248,10 @@ function getAxisPseudoSteps(diffs) {
           Math.abs(diff.meta.view.deltaW) - MIN_POS_DELTA > 0)
     )
     .filter(diff => {
+      if (diff.meta.remove || diff.meta.add) {
+        return true;
+      }
+
       if (diff.meta.scale[diff.meta.usedScales[0]]) {
         const scaleDiff = diff.meta.scale[diff.meta.usedScales[0]];
         return scaleDiff.rangeDelta === 0 &&

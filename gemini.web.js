@@ -10282,33 +10282,36 @@
   }
 
   function legendLablePos(spec) {
-    let grLength = spec ? spec.gradientLength : undefined;
-    grLength = isNaN(grLength) ? vegaConfig.legend.gradientLength : grLength;
-    let grThickness = spec ? spec.gradientThickness : undefined;
-    grThickness = isNaN(grThickness) ? vegaConfig.legend.gradientThickness : grThickness;
-    let grLabelOffset = spec ? spec.gradientLabelOffset : undefined;
-    grLabelOffset = isNaN(grLabelOffset) ? vegaConfig.legend.gradientLabelOffset : grLabelOffset;
+    const columns = !spec ? 1 : (spec.columns || (spec.direction === "vertical" ? 1 : 0));
+    const clipHeight = (spec && spec.clipHeight) ? spec.clipHeight : null;
 
     if (spec.type === "symbol") {
       return {
-        x: { value: 0 },
-        y: { value: 0 },
-        dx: { value: 16 },
-        dy: { value: 6 }
+        x: { signal: columns ? `datum['offset']` : `datum['size']`, offset: vegaConfig.legend.labelOffset },
+        y: { signal: clipHeight ? `${clipHeight}` : `datum['size']`, mult: 0.5}
       };
-    }
-    if (spec.direction === "vertical") {
+    } else {
+      let grLength = spec ? spec.gradientLength : undefined;
+      grLength = isNaN(grLength) ? vegaConfig.legend.gradientLength : grLength;
+      let grThickness = spec ? spec.gradientThickness : undefined;
+      grThickness = isNaN(grThickness) ? vegaConfig.legend.gradientThickness : grThickness;
+      let grLabelOffset = spec ? spec.gradientLabelOffset : undefined;
+      grLabelOffset = isNaN(grLabelOffset) ? vegaConfig.legend.gradientLabelOffset : grLabelOffset;
+
+      if (spec.direction === "vertical") {
+        return {
+          x: { value: 0, },
+          y: { signal: `(1-datum.perc) * clamp(height, 64, ${grLength})` },
+          dx: { value: grThickness + grLabelOffset }
+        };
+      }
       return {
-        x: { value: 0, },
-        y: { signal: `(1-datum.perc) * clamp(height, 64, ${grLength})` },
-        dx: { value: grThickness + grLabelOffset }
+        x: { signal: `(datum.perc) * clamp(width, 64, ${grLength})` },
+        y: { value: 0, },
+        dy: { value: grThickness + grLabelOffset }
       };
     }
-    return {
-      x: { signal: `(datum.perc) * clamp(width, 64, ${grLength})` },
-      y: { value: 0, },
-      dy: { value: grThickness + grLabelOffset }
-    };
+
   }
 
 
@@ -10530,9 +10533,11 @@
       };
     },
     symbols: spec => {
+      const columns = !spec ? 1 : (spec.columns || (spec.direction === "vertical" ? 1 : 0));
+      const clipHeight = (spec && spec.clipHeight) ? spec.clipHeight : null;
       const defaultEncode = {
-        y: { value: 6 },
-        x: { value: 6 },
+        y: { signal: clipHeight ? `${clipHeight}` : `datum['size']`, mult: 0.5},
+        x: { signal: columns ? `datum['offset']` : `datum['size']`, mult: 0.5, offset: vegaConfig.legend.symbolOffset },
         shape: { value: vegaConfig.legend.symbolType },
         size: { value: vegaConfig.legend.symbolSize },
         strokeWidth: { value: vegaConfig.legend.symbolStrokeWidth }
@@ -11973,6 +11978,7 @@
 
 
       const aggregate = step.aggregates;
+      const bin = step.bins;
       const isGroupingMarktypes = {
         initial: isGroupingMarktype(marktypes.initial || marktypes.final),
         final: isGroupingMarktype(marktypes.final || marktypes.initial)
@@ -12074,6 +12080,16 @@
             });
           }
         } else if (!isGroupingMarktypes.initial && !isGroupingMarktypes.final) {
+
+          // if iData or fData are binned, attach the representative fields.
+          // E.g., bin_A, bin_A_end -> A
+          if (bin.initial) {
+            extendBinnedData(iData, bin.initial);
+          }
+          if (bin.final) {
+            extendBinnedData(fData, bin.final);
+          }
+
           if (
             aggregate.initial &&
             aggregate.final &&
@@ -12282,6 +12298,14 @@
       exit: exitData
     };
   }
+
+  function extendBinnedData(binData, bin) {
+    bin.forEach(b => {
+      binData.forEach(d => {
+        d.datum[b.field] = d.datum[b.field] === undefined ? (d.datum[b.as[0]] + d.datum[b.as[1]])/2 : d.datum[b.field];
+      });
+    });
+  }
   function extendAggData(aggData, agg) {
     aggData.forEach(aggDatum => {
       agg.as.forEach((aggField, i) => {
@@ -12344,7 +12368,38 @@
       return computeId(d, i) + postFix;
     };
   }
+  function getBin(change, rawInfo) {
+    const bin = {};
+    if (!change.initial || !change.final) {
+      return bin;
+    }
+    const sSpec = rawInfo.sVis.spec;
+    const eSpec = rawInfo.eVis.spec;
 
+    const dataName = compSpec => {
+      return computeHasFacet(compSpec)
+        ? compSpec.parent.from.facet.data
+        : compSpec.from.data;
+    };
+
+    const dataSource_f = eSpec.data.find(
+      dset => dset.name === dataName(change.final)
+    );
+    if (dataSource_f.transform) {
+      bin.final = dataSource_f.transform.filter(
+        trsfm => trsfm.type === "bin"
+      );
+    }
+    const dataSource_i = sSpec.data.find(
+      dset => dset.name === dataName(change.initial)
+    );
+    if (dataSource_i.transform) {
+      bin.initial = dataSource_i.transform.filter(
+        trsfm => trsfm.type === "bin"
+      );
+    }
+    return bin;
+  }
   function getAggregate(change, rawInfo) {
     const aggregate = {};
     if (!change.initial || !change.final) {
@@ -12405,11 +12460,19 @@
     return tempView._runtime.scales[scName].value;
   }
 
-  function computeKeptEncode(manualEncode, referenceEncode, set) {
-    return Object.keys(manualEncode && manualEncode[set] ? manualEncode[set] : {})
-      .filter(attr => manualEncode[set][attr] === false)
+  function computeKeptEncode(manualEncode, referenceEncode, set = null) {
+
+    let manual = manualEncode;
+    if (set !== null) {
+      manual = manualEncode && manualEncode[set] ? manualEncode[set] : {};
+    }
+    const ref = set !== null ? referenceEncode[set] : referenceEncode;
+
+
+    return Object.keys(manual)
+      .filter(attr => manual[attr] === false)
       .reduce((keptEncode, attr) => {
-        keptEncode[attr] = referenceEncode[set][attr];
+        keptEncode[attr] = ref[attr];
         return keptEncode;
       }, {});
   }
@@ -12503,11 +12566,22 @@
       initial: lastState.aggregate,
       final: lastState.aggregate
     };
+    const bins = {
+      initial: lastState.bin,
+      final: lastState.bin
+    };
 
     if (change.data) {
       // aggregates.done = true;
       aggregates.final = getAggregate(change, rawInfo).final;
+      bins.final = getBin(change, rawInfo).final;
     }
+
+    const beingAggregated = change.data && !aggregates.initial && aggregates.final;
+    const beingDisaggregated = change.data && aggregates.initial && !aggregates.final;
+    const beingBinned = change.data && !bins.initial && bins.final;
+    const beingDisbinned = change.data && bins.initial && !bins.final;
+
 
     const marktypes = {
       initial: lastState.marktype, // change.initial ? change.initial.type : undefined,
@@ -12590,10 +12664,10 @@
       });
     }
 
-    if (change.data && !aggregates.initial && aggregates.final && aggregates.final.ops.indexOf("count") >= 0) {
+    if (beingAggregated && aggregates.final.ops.indexOf("count") >= 0) {
       step.specificScaleFor = { ...step.specificScaleFor, enter: {initial: "final"} };
     }
-    if (change.data && aggregates.initial && !aggregates.final && aggregates.initial.ops.indexOf("count") >= 0) {
+    if (beingDisaggregated && aggregates.initial.ops.indexOf("count") >= 0) {
       step.specificScaleFor = { ...step.specificScaleFor, exit: {final: "initial"} };
     }
 
@@ -12616,10 +12690,15 @@
       : {};
     delete manualEncodeEnterWithoutInitial.initial;
 
+
     encodes.initial.enter = Object.assign(
       {},
-      (change.data && !aggregates.initial && aggregates.final) ? copy(get(change, "final", "encode", "update") || {}) : lastState.encode.update,
+      lastState.encode.update,
       DEFAULT_ENCODE.mark.enter,
+      beingAggregated ? computeKeptEncode(
+        manualEncode,
+        get(change, "final", "encode", "update") || {}
+      ) : {},
       manualEncode && manualEncode.enter ? manualEncode.enter.initial : {}
     );
 
@@ -12712,7 +12791,7 @@
     }
 
 
-    if (!aggregates.initial && aggregates.final && change.data ) {
+    if (beingAggregated) {
       // when aggregate
       encodes.final.exit = Object.assign(
         change.marktype && (marktypes.initial !== marktypes.final) ? replacePositionAttrs(marktypes.initial, encodes.final.exit, encodes.final.update) : encodes.final.update,
@@ -12723,7 +12802,7 @@
 
 
       encodes.final.update = copy(encodes.final.enter);
-    } else if (aggregates.initial && !aggregates.final && change.data ) {
+    } else if (beingDisaggregated) {
       // when disaggregate
 
       encodes.initial.enter = Object.assign(
@@ -12743,6 +12822,7 @@
       marktypes,
       hasFacet,
       aggregates,
+      bins,
       styleEncodes
     };
   }
@@ -13349,7 +13429,7 @@
     const components = [];
     function collectComp(mark, currComp, isRoot = false) {
       if (isRoot) {
-        mark.name = "root";
+        mark.name = mark.name || "root";
       }
       let newComp = currComp;
       if (mark.axes) {
@@ -13393,7 +13473,7 @@
       return newComp;
     }
 
-    return collectComp(vgSpec, components, true);
+    return collectComp(copy(vgSpec), components, true);
   }
   function getChanges(sComponents, eComponents) {
     const IDENTIFIERS = {
@@ -13648,6 +13728,7 @@
         lastState.marktype = step.marktypes ? step.marktypes.final : undefined;
         lastState.hasFacet = step.hasFacet ? step.hasFacet.final : undefined;
         lastState.aggregate = step.aggregates ? step.aggregates.final : undefined;
+        lastState.bin = step.bins ? step.bins.final : undefined;
         lastState.isAdd = step.isAdd;
         lastState.isRemove = step.isRemove;
         lastState.sameDomainDimension = step.sameDomainDimension;
@@ -13979,6 +14060,11 @@
           track.steps[0].change,
           rawInfo
         ).initial;
+        compState.bin = getBin(
+          track.steps[0].change,
+          rawInfo
+        ).initial;
+
         // compState.aggregate.done = false;
       } else if (track.compType === "axis") {
         // for axis comp
@@ -15561,7 +15647,7 @@
         return getShape(d, scales, encode, signal).path;
       }
       if (propInfo.val === "transform") {
-        const trfD = transformD.bind(this)(encode, scales, signal, d, false);
+        const trfD = transformD.bind(this)(encodes, scales, signal, d, false);
         return transformItem(Object.keys(trfD).length === 0 ? d : trfD);
       }
     } else if (propInfo.elmType === "gradient") {
@@ -15936,10 +16022,9 @@
   }
 
   function transformD(encodes, scales, signal, d, inherit = true) {
-    const encode = encodes.primary || encodes;
     return Object.assign(
       {},
-      Object.keys(encode)
+      Object.keys(encodes.primary || encodes.final || encodes)
         .filter(key => ["x", "y", "angle", "yc", "xc"].indexOf(key) >= 0)
         .reduce((acc, curr) => {
           const newVal = decodeEncode.bind(this)(
@@ -16993,6 +17078,11 @@
             primary: scales.final,
             secondary: scales.initial
           });
+          let encodes = {
+            ...encode,
+            primary: encode.final || encodes.final.exit,
+            secondary: encode.initial || encodes.final.exit
+          };
           if (specificScaleFor && specificScaleFor.exit && specificScaleFor.exit.final === "initial") {
             scalesForExit.primary = scales.initial;
           }
@@ -17001,7 +17091,7 @@
             MARK_ATTRS[marktype],
             scalesForExit,
             signals,
-            encode || encodes.final.exit,
+            encodes, // encode || encodes.final.exit,
             prevData
           );
 
@@ -20730,7 +20820,7 @@
     return new Animation(attachAnimTemplates(finalTimeline), rawInfo, gemSpec);
   }
 
-  const MIN_POS_DELTA = 10;
+  const MIN_POS_DELTA = 3;
   const CHANNEL_TO_ATTRS = [
     { channel: "x", attrs: ["x", "x2", "xc", "width"] },
     { channel: "y", attrs: ["y", "y2", "yc", "height"] },
@@ -21020,11 +21110,13 @@
     } if (!match.final) {
       return {remove: true};
     }
-    let scaleDiff = deepEqual(match.initial, match.final) ? false : {};
+
+    //get range diff
+    let rangeDelta = 0;
 
     let rangeVals_i = rawInfo.sVis.view.scale(match.initial.name).range(),
       rangeVals_f = rawInfo.eVis.view.scale(match.final.name).range();
-    let rangeDelta = 0;
+
     if (!deepEqual(rangeVals_i, rangeVals_f)){
       if ((rangeVals_i.length === 2 && isNumber(rangeVals_i[0]) && isNumber(rangeVals_i[1]))
         && (rangeVals_f.length === 2 && isNumber(rangeVals_f[0]) && isNumber(rangeVals_f[1]))) {
@@ -21032,12 +21124,24 @@
       }
     }
 
+    //get domain diff
     let domainVals_i = rawInfo.sVis.view.scale(match.initial.name).domain(),
       domainVals_f = rawInfo.eVis.view.scale(match.final.name).domain();
+    let domainValueDiff = !deepEqual(domainVals_i, domainVals_f);
 
-    if (!scaleDiff && deepEqual(domainVals_i, domainVals_f) && (rangeDelta === 0)) {
+    //get the other diffs
+    let others_i = copy(match.initial);
+    delete others_i.range;
+    delete others_i.domain;
+    let others_f = copy(match.final);
+    delete others_f.range;
+    delete others_f.domain;
+    let scaleDiff = !deepEqual(others_i, others_f);
+
+    if (!scaleDiff && !domainValueDiff && rangeDelta === 0) {
       return false;
     }
+
     scaleDiff = {
       rangeDelta: rangeDelta,
       domainValueDiff: !deepEqual(domainVals_i, domainVals_f)
@@ -21565,13 +21669,17 @@
             return { reasons: ["encode", "scale"], result: false };
           }
         }
-        if (enAttr && enAttr.field) {
-          if (data.fields.indexOf(enAttr.field) < 0) {
+        if (enAttr && enAttr.field && !enAttr.field.group) {
+          let field = enAttr.field;
+          if (enAttr.field.parent) {
+            field = enAttr.field.parent;
+          }
+          if (data.fields.indexOf(field) < 0) {
             return { result: false, reasons: ["encode", "data"] };
           }
           if (enAttr.scale) {
             const foundScale = scales[enAttr.scale];
-            const vals = data.values.map(d => d.datum[enAttr.field]);
+            const vals = data.values.map(d => d.datum[field]);
             const scaleDomain = foundScale.domain();
             let valid = true;
 
@@ -21615,7 +21723,7 @@
 
   function validate$2(pseudoTimeline, stageN) {
     return (
-      checkViewAxisConstraint(pseudoTimeline) &&
+      // checkViewAxisConstraint(pseudoTimeline) &&
       checkViewLegendConstraint(pseudoTimeline) &&
       checkUnempty(pseudoTimeline) &&
       pseudoTimeline.concat.length === stageN &&
@@ -21624,65 +21732,6 @@
   }
   function checkUnempty(pseudoTl) {
     return !pseudoTl.concat.find(stage => stage.sync.length === 0);
-  }
-
-  function checkViewAxisConstraint(pseudoTl) {
-    let yAxisViewChange, markViewChanges = [], xAxisViewChange;
-    pseudoTl.concat.forEach((stage, i) => {
-      stage.sync.forEach(pseudoStep => {
-        let deltaW = get(pseudoStep, "diff", "meta", "view", "x"),
-          deltaH = get(pseudoStep, "diff", "meta", "view", "y");
-
-        if (pseudoStep.diff.compType === "axis" && pseudoStep.diff.compName === "x" && !xAxisViewChange) {
-          xAxisViewChange = {
-            width: deltaW >= MIN_POS_DELTA ? "inc" : (deltaW <= -MIN_POS_DELTA ? "dec" : false),
-            height: deltaH >= MIN_POS_DELTA ? "inc" : (deltaH <= -MIN_POS_DELTA ? "dec" : false),
-            orient: get(pseudoStep, "diff", "initial", "orient") || get(pseudoStep, "diff", "final", "orient"),
-            when: i
-          };
-        }
-        if (pseudoStep.diff.compType === "axis" && pseudoStep.diff.compName === "y" && !yAxisViewChange) {
-          yAxisViewChange = {
-            width: deltaW >= MIN_POS_DELTA ? "inc" : (deltaW <= -MIN_POS_DELTA ? "dec" : false),
-            height: deltaH >= MIN_POS_DELTA ? "inc" : (deltaH <= -MIN_POS_DELTA ? "dec" : false),
-            orient: get(pseudoStep, "diff", "initial", "orient") || get(pseudoStep, "diff", "final", "orient"),
-            when: i
-          };
-        }
-
-        if (pseudoStep.diff.compType === "mark" ) {
-          markViewChanges.push({
-            width: deltaW >= MIN_POS_DELTA ? "inc" : (deltaW <= -MIN_POS_DELTA ? "dec" : false),
-            height: deltaH >= MIN_POS_DELTA ? "inc" : (deltaH <= -MIN_POS_DELTA ? "dec" : false),
-            when: i
-          });
-        }
-      });
-    });
-
-    for (const condition of [[xAxisViewChange, yAxisViewChange, "bottom", "height"], [yAxisViewChange, xAxisViewChange, "right", "width"]]) {
-      let [axis, otherAxis, orient, side] = condition;
-
-      if (get(axis, "orient") === orient) {
-        if (axis[side] === "inc") {
-          if (axis.when > get(otherAxis, "when")) {
-            return false;
-          } if ((markViewChanges.length > 0) &&
-            (axis.when > Math.min(...markViewChanges.map(c => c.when)))) {
-            return false;
-          }
-        } else if (axis[side] === "dec") {
-          if (axis.when < get(otherAxis, "when")) {
-            return false;
-          } else if ((markViewChanges.length > 0) &&
-            (axis.when < Math.max(...markViewChanges.map(c => c.when)))) {
-            return false;
-          }
-        }
-      }
-    }
-
-    return true;
   }
 
   function checkViewLegendConstraint(pseudoTl) {
@@ -21940,51 +21989,66 @@
           })
         };
       });
-    } else {
+    } else if (stageN ===1 ) {
+      pseudoTimelines = [
+        {
+          concat: [
+            {
+              sync: [
+                ...enumedMarksPusedoSteps.map(steps => steps[0][0]),
+                ...legendspseudoSteps,
+                ...axespseudoSteps
+              ]
+            }
+          ]
+        }
+      ];
+    }
+    else {
       console.error(
         "Currently, Gemini Recommendation only supports a single mark without adding or removing."
       );
       console.error("TODO: cross join the pseudo timelines of each mark.");
     }
 
-    return (
-      pseudoTimelines
-        .map(pseudoTl => {
-          pseudoTl.concat = pseudoTl.concat.map(stage => {
-            let currSync = stage.sync;
 
-            // filter empty mark pStep
-            currSync = currSync.filter(pStep => {
-              return (pStep.diff.compType !== "mark") ||
-                (
-                  !(
-                    (pStep.factorSets.applied.length === 0) ||
-                    (pStep.factorSets.current.length === 0)
-                  ) &&
-                  !(
-                    (pStep.factorSets.all.indexOf("add") >= 0) &&
-                    (pStep.factorSets.applied.indexOf("add") < 0)
-                  ) &&
-                  !(
-                    (pStep.factorSets.all.indexOf("remove") >= 0) &&
-                    (pStep.factorSets.applied.length !== pStep.factorSets.current.length)
-                  )
-                );
+    pseudoTimelines = pseudoTimelines
+      .map(pseudoTl => {
+        pseudoTl.concat = pseudoTl.concat.map(stage => {
+          let currSync = stage.sync;
 
-            });
-
-
-
-            return { sync: currSync };
+          // filter empty mark pStep
+          currSync = currSync.filter(pStep => {
+            return (pStep.diff.compType !== "mark") ||
+              (
+                !(
+                  (pStep.factorSets.applied.length === 0) ||
+                  (pStep.factorSets.current.length === 0)
+                ) &&
+                !(
+                  (pStep.factorSets.all.indexOf("add") >= 0) &&
+                  (pStep.factorSets.applied.indexOf("add") < 0)
+                ) &&
+                !(
+                  (pStep.factorSets.all.indexOf("remove") >= 0) &&
+                  (pStep.factorSets.applied.length !== pStep.factorSets.current.length)
+                )
+              );
           });
-          return pseudoTl;
-        })
-        .filter(pseudoTl => validate$2(pseudoTl, stageN))
-        // .map((pseudoTl, i) => appendGuideMoves(pseudoTl, axespseudoSteps, legendspseudoSteps))
-        .map(pseudoTl => appendViewDiff(pseudoTl, diffs.viewDiffs))
-        .map(pseudoTl => appendGridChanges(pseudoTl))
-        .map(pseudoTl => appendTiming(pseudoTl, timing))
-    );
+          return { sync: currSync };
+        });
+        return pseudoTl;
+    });
+
+    pseudoTimelines = pseudoTimelines.filter(pseudoTl => validate$2(pseudoTl, stageN));
+      // .map((pseudoTl, i) => appendGuideMoves(pseudoTl, axespseudoSteps, legendspseudoSteps))
+    pseudoTimelines = pseudoTimelines.map(pseudoTl => appendViewDiff(pseudoTl, diffs.viewDiffs))
+      .map(pseudoTl => appendGridChanges(pseudoTl))
+      .map(pseudoTl => appendTiming(pseudoTl, timing));
+
+
+
+    return pseudoTimelines;
   }
 
   function appendTiming(pseudoTl, timing = {}) {
@@ -22055,6 +22119,10 @@
             Math.abs(diff.meta.view.deltaW) - MIN_POS_DELTA > 0)
       )
       .filter(diff => {
+        if (diff.meta.remove || diff.meta.add) {
+          return true;
+        }
+
         if (diff.meta.scale[diff.meta.usedScales[0]]) {
           const scaleDiff = diff.meta.scale[diff.meta.usedScales[0]];
           return scaleDiff.rangeDelta === 0 &&
@@ -22940,7 +23008,7 @@
     ) {
       step.change.encode = {
         grid: true,
-        axis: false,
+        axis: true,
         labels: false,
         title: false,
         ticks: false,
@@ -23101,15 +23169,74 @@
     );
   }
 
+  function vl2vg4gemini(vlSpec) {
+    let vgSpec = vegaLite.compile(vlSpec).spec;
+    vgSpec.axes = mergeDuplicatedAxes(vgSpec.axes);
+    appendNamesOnGuides(vgSpec);
+    return vgSpec;
+  }
+
+
+  function castVL2VG(vlSpec) {
+    if (vlSpec && vlSpec.$schema && vlSpec.$schema.indexOf("https://vega.github.io/schema/vega-lite") >= 0){
+      return vl2vg4gemini(vlSpec)
+    }
+    return vlSpec
+  }
+
+
+  function appendNamesOnGuides(vgSpec){
+    if (vgSpec.axes) {
+      vgSpec.axes.forEach(axis => {
+        if (!axis.encode) {
+          axis.encode = {axis: {name: axis.scale}};
+        } else {
+          axis.encode.axis = { ...axis.encode.axis, name: axis.scale };
+        }
+      });
+    }
+    if (vgSpec.legends) {
+      vgSpec.legends.forEach((legend, i) => {
+        if (!legend.encode) {
+          legend.encode = {legend: {name: `legend${i}`}};
+        } else {
+          legend.encode.legend = Object.assign({}, legend.encode.legend, {name: `legend${i}`});
+        }
+      });
+    }
+  }
+
+
+  function mergeDuplicatedAxes(vegaAxes) {
+    if (!vegaAxes || vegaAxes.length <= 0) {
+      return [];
+    }
+    let axesScales = vegaAxes.filter(a => a.grid).map(a => a.scale);
+
+    return d3.rollups(vegaAxes,
+      axes => {
+        let axisWithGrid = axes.find(a => a.grid);
+        let axisWithoutGrid = { ...axes.find(a => !a.grid) };
+
+        if (axisWithGrid) {
+          axisWithoutGrid.grid = true;
+          if (axisWithGrid.gridScale) {
+            axisWithoutGrid.gridScale = axisWithGrid.gridScale;
+          }
+          axisWithoutGrid.zindex = 0;
+        }
+        return axisWithoutGrid;
+      },
+      axis => axis.scale
+    ).map(d => d[1])
+     .sort((a,b) => (axesScales.indexOf(a.scale) - axesScales.indexOf(b.scale)));
+  }
+
   async function recommend (
     sSpec,
     eSpec,
     opt = { marks: {}, axes: {}, legends: {}, scales: {} }
   ) {
-    if (cannotRecommend(sSpec, eSpec)) {
-      return cannotRecommend(sSpec, eSpec);
-    }
-
     const {
       rawInfo,
       userInput,
@@ -23118,11 +23245,11 @@
       timing
     } = await initialSetUp(sSpec, eSpec, opt);
 
-    const detected = detectDiffs(rawInfo, userInput);
-    // for (let i = 1; i <= maxStageN; i++) {
-    //   pseudoTls = pseudoTls.concat(enumeratePseudoTimelines(detected, i, rawInfo));
-    // }
+    if (cannotRecommend(sSpec, eSpec) && stageN !== 1) {
+      return cannotRecommend(sSpec, eSpec);
+    }
 
+    const detected = detectDiffs(rawInfo, userInput);
 
     let pseudoTls = enumeratePseudoTimelines(detected, stageN, rawInfo, timing);
     pseudoTls = pseudoTls
@@ -23193,6 +23320,48 @@
       }
     }
     return false;
+  }
+
+  async function allAtOnce(sSpec,
+    eSpec,
+    opt = { marks: {}, axes: {}, legends: {}, scales: {} }
+  ) {
+    const sVGSpec = castVL2VG(sSpec), eVGSpec = castVL2VG(eSpec);
+    const {
+      rawInfo,
+      userInput,
+      stageN,
+      includeMeta,
+      timing
+    } = await initialSetUp(sVGSpec, eVGSpec, {stageN:1, ...opt});
+
+    const detected = detectDiffs(rawInfo, userInput);
+
+    const steps = detected.compDiffs.map(cmpDiff => {
+      let comp = {};
+      comp[cmpDiff.compType] = cmpDiff.compName;
+      return {
+        component: comp,
+        timing: {duration: {ratio: 1}}
+      }
+    });
+    for (const incOrDec of ["increase", "decrease"]) {
+      if (detected.viewDiffs.height[incOrDec] || detected.viewDiffs.width[incOrDec]) {
+        steps.push({
+          component: "view",
+          timing: {duration: {ratio: 1}}
+        });
+        break;
+      }
+    }
+
+    return {
+      timeline: {
+        sync: steps
+      },
+      totalDuration: opt.totalDuration || 2000
+    }
+
   }
 
   const RawCode$1 = 'RawCode';
@@ -25312,12 +25481,18 @@
   exports.permutate = permutate;
 
   function intersection(arr1, arr2, accessor = (d) => d) {
-    return arr2.filter(x => arr1.find(y => accessor(x) === accessor(y)))
+    return arr2.filter(x => arr1.filter(y => accessor(x) === accessor(y)).length > 0)
   }
   exports.intersection = intersection;
 
-
-
+  function unique(arr, accessor = (d) =>  d) {
+    let maps = arr.map(accessor).reduce((acc, curr) => {
+      acc[curr] = true;
+      return acc;
+    }, {});
+    return Object.keys(maps)
+  }
+  exports.unique = unique;
 
   });
   var util_1 = util$1.isArray;
@@ -25348,6 +25523,7 @@
   var util_26 = util$1.partition;
   var util_27 = util$1.permutate;
   var util_28 = util$1.intersection;
+  var util_29 = util$1.unique;
 
   var DEFAULT_EDIT_OPS = {
     "markEditOps":{"AREA_BAR":{"name":"AREA_BAR","cost":0.03},"AREA_LINE":{"name":"AREA_LINE","cost":0.02},"AREA_POINT":{"name":"AREA_POINT","cost":0.04},"AREA_TEXT":{"name":"AREA_TEXT","cost":0.08},"AREA_TICK":{"name":"AREA_TICK","cost":0.04},"BAR_LINE":{"name":"BAR_LINE","cost":0.04},"BAR_POINT":{"name":"BAR_POINT","cost":0.02},"BAR_TEXT":{"name":"BAR_TEXT","cost":0.06},"BAR_TICK":{"name":"BAR_TICK","cost":0.02},"LINE_POINT":{"name":"LINE_POINT","cost":0.03},"LINE_TEXT":{"name":"LINE_TEXT","cost":0.07},"LINE_TICK":{"name":"LINE_TICK","cost":0.03},"POINT_TEXT":{"name":"POINT_TEXT","cost":0.05},"POINT_TICK":{"name":"POINT_TICK","cost":0.01},"TEXT_TICK":{"name":"TEXT_TICK","cost":0.05}},
@@ -25614,15 +25790,18 @@
     var editOps = [];
     var markEditOps = importedMarkEditOps || DEFAULT_EDIT_OPS$1["markEditOps"];
     var newEditOp;
-    if (s.mark === d.mark) {
+    const sMarkType = typeof(s.mark) === "object" ? s.mark.type : s.mark;
+    const dMarkType = typeof(d.mark) === "object" ? d.mark.type : d.mark;
+    if (!sMarkType || !dMarkType || (sMarkType === dMarkType) || sMarkType === "null" || dMarkType === "null") {
       return editOps;
-    }
-    else {
-      var editOpName = [s.mark.toUpperCase(), d.mark.toUpperCase()].sort().join("_");
+    } else {
+      var editOpName = [sMarkType.toUpperCase(), dMarkType.toUpperCase()].sort().join("_");
       if (markEditOps[editOpName]) {
         newEditOp = util$1.duplicate(markEditOps[editOpName]);
-        newEditOp.detail = { "before":s.mark.toUpperCase(), "after":d.mark.toUpperCase() };
+        newEditOp.detail = { "before": sMarkType, "after": dMarkType };
         editOps.push(newEditOp);
+      } else {
+        console.error(`Cannot find ${editOpName} marktype change edit op.`);
       }
     }
     return editOps;
@@ -25630,12 +25809,15 @@
   var markEditOps_1 = markEditOps;
 
   async function transformEditOps(s, d, importedTransformEditOps, transOptions) {
+    const TRANSFORM_TYPES = ["SCALE", "SORT", "AGGREGATE", "BIN", "SETTYPE"];
     var transformEditOps = importedTransformEditOps || DEFAULT_EDIT_OPS$1["transformEditOps"];
     var editOps = [];
+
     for (let i = 0; i < CHANNELS$2.length; i++) {
       const channel = CHANNELS$2[i];
 
-      ["SCALE", "SORT", "AGGREGATE", "BIN", "SETTYPE"].map(async function (transformType) {
+      for (let j = 0; j < TRANSFORM_TYPES.length; j++) {
+        const transformType = TRANSFORM_TYPES[j];
         let editOp;
 
         if (transformType === "SETTYPE" && transformEditOps[transformType]) {
@@ -25645,6 +25827,7 @@
         } else if (transformEditOps[transformType]) {
           editOp = transformBasic(s, d, channel, transformType, transformEditOps);
         }
+
         if (editOp) {
           let found = editOps.find(eo => eo.name === editOp.name);
           if (found) {
@@ -25652,16 +25835,19 @@
           } else {
             editOp.detail = [editOp.detail];
             editOps.push(editOp);
+
           }
         }
-      });
-    }  var importedFilterEditOps = {
+      }
+    }
+    var importedFilterEditOps = {
       "MODIFY_FILTER": transformEditOps["MODIFY_FILTER"],
       "ADD_FILTER": transformEditOps["ADD_FILTER"],
       "REMOVE_FILTER": transformEditOps["REMOVE_FILTER"]
     };
 
     editOps = editOps.concat(filterEditOps(s, d, importedFilterEditOps));
+
     return editOps;
   }
   var transformEditOps_1 = transformEditOps;
@@ -25681,17 +25867,17 @@
 
     if (sHas && dHas && (!util$1.rawEqual(sEditOp, dEditOp))) {
       editOp = util$1.duplicate(transformEditOps[transform]);
-      editOp.detail = { "how": "modified", "channel": channel };
+      editOp.detail = { how: "modified", channel: channel };
       return editOp;
     }
     else if (sHas && !dHas) {
       editOp = util$1.duplicate(transformEditOps[transform]);
-      editOp.detail = { "how": "removed", "channel": channel };
+      editOp.detail = { how: "removed", channel: channel };
       return editOp;
     }
     else if (!sHas && dHas) {
       editOp = util$1.duplicate(transformEditOps[transform]);
-      editOp.detail = { "how": "added", "channel": channel };
+      editOp.detail = { how: "added", channel: channel };
       return editOp;
     }
   }
@@ -25700,53 +25886,63 @@
   async function scaleEditOps(s, d, channel, scaleTransformEditOps, transOptions) {
     var sHas = false, sOnlyHasDomainRelated = false;
     var dHas = false, dOnlyHasDomainRelated = false;
-    var editOp;
-    var sEditOp, dEditOp;
+    var editOp, sScaleDef, dScaleDef;
+
     if (s.encoding[channel] && s.encoding[channel].scale) {
       sHas = true;
-      sEditOp = {...s.encoding[channel].scale};
-      if (!Object.keys(sEditOp).find(key => ["domain", "zero"].indexOf(key) < 0) ) {
+      sScaleDef = {...s.encoding[channel].scale};
+      if (!Object.keys(sScaleDef).find(key => ["domain", "zero"].indexOf(key) < 0) ) {
         sOnlyHasDomainRelated = true;
       }
     }
     if (d.encoding[channel] && d.encoding[channel].scale) {
       dHas = true;
-      dEditOp = {...d.encoding[channel].scale};
-      if (!Object.keys(dEditOp).find(key => ["domain", "zero"].indexOf(key) < 0) ) {
+      dScaleDef = {...d.encoding[channel].scale};
+      if (!Object.keys(dScaleDef).find(key => ["domain", "zero"].indexOf(key) < 0) ) {
         dOnlyHasDomainRelated = true;
       }
     }
     if (transOptions && transOptions.omitIncludeRawDomain) {
-      if (sEditOp && sEditOp.domain && dEditOp.domain === "unaggregated") {
-        delete sEditOp.domain;
-        if (Object.keys(sEditOp).length === 0) {
+      if (sScaleDef && sScaleDef.domain && dScaleDef.domain === "unaggregated") {
+        delete sScaleDef.domain;
+        if (Object.keys(sScaleDef).length === 0) {
           sOnlyHasDomainRelated = false;
           sHas = false;
         }
       }
 
-      if (dEditOp && dEditOp.domain && (dEditOp.domain === "unaggregated")) {
-        delete dEditOp.domain;
-        if (Object.keys(dEditOp).length === 0) {
+      if (dScaleDef && dScaleDef.domain && (dScaleDef.domain === "unaggregated")) {
+        delete dScaleDef.domain;
+        if (Object.keys(dScaleDef).length === 0) {
           dOnlyHasDomainRelated = false;
           dHas = false;
         }
       }
     }
-    if (sHas && dHas && (!util$1.rawEqual(sEditOp, dEditOp))) {
+
+    if (sHas && dHas && (!util$1.rawEqual(sScaleDef, dScaleDef))) {
       if (sOnlyHasDomainRelated && dOnlyHasDomainRelated && await sameDomain$1(s,d, channel)) {
         return;
       }
       editOp = util$1.duplicate(scaleTransformEditOps);
-      editOp.detail = { "how": "modified", "channel": channel };
+      editOp.detail = {
+        how: "modified",
+        channel: channel,
+        fieldType: {
+          from: s.encoding[channel].type,
+          to: d.encoding[channel].type
+        }
+      };
       return editOp;
     }
     else if (sHas && !dHas) {
+
       if (sOnlyHasDomainRelated && await sameDomain$1(s,d, channel)) {
         return;
       }
+
       editOp = util$1.duplicate(scaleTransformEditOps);
-      editOp.detail = { "how": "removed", "channel": channel };
+      editOp.detail = { how: "removed", channel: channel, fieldType: s.encoding[channel].type };
       return editOp;
     }
     else if (!sHas && dHas) {
@@ -25754,25 +25950,35 @@
         return;
       }
       editOp = util$1.duplicate(scaleTransformEditOps);
-      editOp.detail = { "how": "added", "channel": channel };
+      editOp.detail = { how: "added", channel: channel, fieldType: d.encoding[channel].type };
       return editOp;
     }
   }
   var scaleEditOps_1 = scaleEditOps;
   async function sameDomain$1(s, d, channel) {
-    const dView = await new vega__default.View(vega__default.parse(vegaLite__default.compile(util$1.duplicate(d)).spec), {
-      renderer: "svg"
-    }).runAsync();
 
-    const sView = await new vega__default.View(vega__default.parse(vegaLite__default.compile(util$1.duplicate(s)).spec), {
-      renderer: "svg"
-    }).runAsync();
+    let dView, sView;
+    try {
+      dView = await new vega__default.View(vega__default.parse(vegaLite__default.compile(util$1.duplicate(d)).spec), {
+        renderer: "svg"
+      }).runAsync();
+
+      sView = await new vega__default.View(vega__default.parse(vegaLite__default.compile(util$1.duplicate(s)).spec), {
+        renderer: "svg"
+      }).runAsync();
+    } catch (e) {
+      return false;
+    }
+
 
     const sScale = sView._runtime.scales[channel].value;
     const dScale = dView._runtime.scales[channel].value;
 
+
     return util$1.deepEqual(sScale.domain(), dScale.domain())
   }
+  var sameDomain_1 = sameDomain$1;
+
   function filterEditOps(s, d, importedFilterEditOps) {
 
     var sFilters = [], dFilters = [];
@@ -25960,7 +26166,7 @@
       editOp.detail = {
         "before": s.encoding[channel]["type"],
         "after": d.encoding[channel]["type"],
-        "channel": channel
+        channel: channel
       };
       return editOp;
     }
@@ -26060,6 +26266,7 @@
   	transformEditOps: transformEditOps_1,
   	transformBasic: transformBasic_1,
   	scaleEditOps: scaleEditOps_1,
+  	sameDomain: sameDomain_1,
   	filterEditOps: filterEditOps_1,
   	getFilters: getFilters_1,
   	parsePredicateFilter: parsePredicateFilter_1,
@@ -26493,11 +26700,17 @@
       }
     } else {
       details.forEach(detail => {
-        if (resultSpec.encoding[detail.channel]) {
+        let fieldDef = resultSpec.encoding[detail.channel];
+        if (fieldDef) {
+          //Todo: cannot apply SCALE if the channel has a different type.
           if (detail.how === "removed"){
-            delete resultSpec.encoding[detail.channel][transformType];
+            delete fieldDef[transformType];
           } else {
-            resultSpec.encoding[detail.channel][transformType] = eSpec.encoding[detail.channel][transformType];
+            // console.log(fieldDef.type, detail.fieldType)
+            if (transformType === "scale" && fieldDef.type !== detail.fieldType) {
+              throw new UnapplicableEditOPError(`Cannot apply ${editOp.name} since it requires "${detail.fieldType}" field instead of "${fieldDef.type}".`)
+            }
+            fieldDef[transformType] = eSpec.encoding[detail.channel][transformType];
           }
         } else {
           throw new UnapplicableEditOPError(`Cannot apply ${editOp.name} since there is no "${detail.channel}" channel.`)
@@ -26572,17 +26785,31 @@
     };
     vegaLite__default.compile(spec, {logger: lg});
 
+    let hasAggregate = false;
     for (const key in spec.encoding) {
       if (spec.encoding.hasOwnProperty(key)) {
         const fieldDef = spec.encoding[key];
+        if (fieldDef.aggregate) {
+          hasAggregate = true;
+        }
         if (fieldDef.field === "*" && !fieldDef.aggregate) {
           warnings.push("'*' field should innclude aggregate.");
         }
       }
     }
+    if (hasAggregate) {
+      const hasNoAggOnQField = Object.keys(spec.encoding)
+        .filter(ch => {
+        return spec.encoding[ch].type === "quantitative" && !spec.encoding[ch].aggregate
+      }).length > 0;
+      if (hasNoAggOnQField) {
+        warnings.push("Aggregate should be applied on all quantitative fields.");
+      }
+    }
+
 
     if ((warnings.length > 0) || (errors.length > 0)) {
-      throw new InvalidVLSpecError(`The resulted spec is not valid Vega-Lite Spec.`)
+      throw new InvalidVLSpecError(`The resulted spec is not valid Vega-Lite Spec.`, {warnings, errors})
     }
   }
   function checkApplyingEditOps(editOps) {
@@ -26602,9 +26829,10 @@
   }
 
   class InvalidVLSpecError extends Error {
-    constructor(message) {
+    constructor(message, info) {
       super(message);
       this.name = "InvalidVLSpecError";
+      this.info = info;
     }
   }
   class UnapplicableEditOpsError extends Error {
@@ -26626,8 +26854,9 @@
 
   const { copy: copy$2, deepEqual: deepEqual$1, partition, permutate: permutate$1, union, intersection} = util$1;
   const apply$1 = apply_1.apply;
+
   // Take two vega-lite specs and enumerate paths [{sequence, editOpPartition (aka transition)}]:
-  async function enumerate(sVLSpec, eVLSpec, editOps, transM) {
+  async function enumerate(sVLSpec, eVLSpec, editOps, transM, withExcluded = false) {
     if (editOps.length < transM) {
       throw new CannotEnumStagesMoreThanTransitions(editOps.length, transM)
     }
@@ -26638,10 +26867,11 @@
       return ordered.concat(permutate$1(pt));
     }, []);
     const sequences = [];
-    const mergedScaleDomain = await scaleModifier(sVLSpec, eVLSpec);
+
+    let excludedPaths = [];
 
     for (const editOpPartition of orderedEditOpPartitions) {
-      const sequence = [copy$2(sVLSpec)];
+      let sequence = [copy$2(sVLSpec)];
       let currSpec = copy$2(sVLSpec);
       let valid = true;
       for (let i = 0; i < editOpPartition.length; i++) {
@@ -26653,26 +26883,12 @@
 
         try {
           currSpec = apply$1(copy$2(currSpec), eVLSpec, editOps);
-
-          for (const channel in mergedScaleDomain) {
-            if (mergedScaleDomain.hasOwnProperty(channel)) {
-              if (currSpec.encoding[channel]) {
-                if (!currSpec.encoding[channel].scale) {
-                  currSpec.encoding[channel].scale = {};
-                }
-                currSpec.encoding[channel].scale.domain = mergedScaleDomain[channel];
-                if (currSpec.encoding[channel].scale.zero !== undefined) {
-
-                  delete currSpec.encoding[channel].scale.zero;
-                }
-              }
-            }
-          }
         } catch(e) {
           if (["UnapplicableEditOPError", "InvalidVLSpecError", "UnapplicableEditOpsError"].indexOf(e.name) < 0) {
             throw e;
           } else {
             valid = false;
+            excludedPaths.push({info: e, editOpPartition, invalidSpec: currSpec});
             break;
           }
         }
@@ -26680,65 +26896,123 @@
         sequence.push(copy$2(currSpec));
       }
 
+      const mergedScaleDomain = await getMergedScale(sequence);
+
+      sequence = sequence.map((currSpec, i) => {
+        if (i===0 || i===sequence.length-1) {
+          return currSpec
+        }
+        return applyMergedScale(currSpec, mergedScaleDomain, editOpPartition[i-1])
+      });
+
       if (valid && validate$3(sequence)) {
         sequences.push({sequence, editOpPartition});
       }
+    }
+    if (withExcluded) {
+      return {sequences, excludedPaths}
     }
 
     return sequences
   }
   var enumerate_2 = enumerate;
 
-  async function scaleModifier(sVLSpec, eVLSpec) {
-    // Todo: get the scales including all data points while doing transitions.
-    const eView = await new vega__default.View(vega__default.parse(vegaLite__default.compile(eVLSpec).spec), {
-      renderer: "svg"
-    }).runAsync();
 
-    const sView = await new vega__default.View(vega__default.parse(vegaLite__default.compile(sVLSpec).spec), {
-      renderer: "svg"
-    }).runAsync();
+  function applyMergedScale(vlSpec, mergedScaleDomain, currEditOps) {
+    let currSpec = copy$2(vlSpec);
+    let sortEditOp = currEditOps.find(eo => eo.name === "SORT");
 
-    let scales = {
-      initial: sView._runtime.scales,
-      final: eView._runtime.scales
-    };
+    for (const channel in mergedScaleDomain) {
+      // When sort editOps are applied, do not change the corresponding scale domain.
+      if (sortEditOp && sortEditOp.detail.find(dt => dt.channel === channel)) {
+        continue;
+      }
+      if (mergedScaleDomain.hasOwnProperty(channel)) {
 
-    return intersection(Object.keys(scales.initial), Object.keys(scales.final))
-      .reduce((newScaleDomain, scaleName) => {
-      let vlField_i = sVLSpec.encoding[scaleName],
-        vlField_f = eVLSpec.encoding[scaleName];
-      let scale_i = scales.initial[scaleName].value;
-      let scale_f = scales.final[scaleName].value;
+        if (currSpec.encoding[channel]) {
+          if (!currSpec.encoding[channel].scale) {
+            currSpec.encoding[channel].scale = {};
+          }
+          currSpec.encoding[channel].scale.domain = mergedScaleDomain[channel];
+          if (currSpec.encoding[channel].scale.zero !== undefined) {
 
-
-      if (vlField_i && vlField_f &&
-        (vlField_i.field === vlField_f.field) &&
-        (vlField_i.type === vlField_f.type) &&
-        (scale_i.type === scale_f.type)
-      ){
-
-        let vlType = vlField_i.type, vgType = scale_i.type;
-
-        if (vlType === "quantitative") {
-          newScaleDomain[scaleName] = [
-            Math.min(scale_i.domain()[0], scale_f.domain()[0]),
-            Math.max(scale_i.domain()[1], scale_f.domain()[1])
-          ];
-
-        } else if (vlType === "nominal" || vlType === "ordinal") {
-          newScaleDomain[scaleName] = union(scale_i.domain(), scale_f.domain());
-        } else if (vlType==="temporal" && vgType === "time") {
-          newScaleDomain[scaleName] = [
-            Math.min(scale_i.domain()[0], scale_f.domain()[0]),
-            Math.max(scale_i.domain()[1], scale_f.domain()[1])
-          ];
+            delete currSpec.encoding[channel].scale.zero;
+          }
         }
       }
-      return newScaleDomain;
+    }
+    return currSpec
+  }
+
+  // Get the scales including all data points while doing transitions.
+  async function getMergedScale(sequence) {
+
+    const views = await Promise.all(sequence.map(vlSpec => {
+      return new vega__default.View(vega__default.parse(vegaLite__default.compile(vlSpec).spec), {renderer: "svg"}).runAsync()
+    }));
+
+    let commonEncoding = sequence.reduce((commonEncoding, vlSpec, i) => {
+      let encoding = Object.keys(vlSpec.encoding).map(channel => {
+        return {
+          channel,
+          ...vlSpec.encoding[channel],
+          runtimeScale: views[i]._runtime.scales[channel]
+        };
+      });
+      if (i===0){
+        return encoding;
+      }
+      return intersection(encoding, commonEncoding, ch => {
+        return [ch.channel, ch.field||"", ch.type||"", ch.runtimeScale ? ch.runtimeScale.type : ""].join("_");
+      })
+    }, []).map(encoding => {
+      return {
+        ...encoding,
+        domains: views.map(view => {
+          return view._runtime.scales[encoding.channel] ? view._runtime.scales[encoding.channel].value.domain() : undefined
+        })
+      }
+    });
+
+    commonEncoding = commonEncoding.filter(encoding => {
+      //if all the domains are the same, then don't need to merge
+      return !encoding.domains
+        .filter(d => d)
+        .reduce((accDomain, domain) => {
+        if (deepEqual$1(domain, accDomain)) {
+          return domain;
+        }
+        return undefined;
+      }, encoding.domains[0])
+    });
+
+    return commonEncoding.reduce((mergedScaleDomains, encoding) => {
+      if (!encoding.runtimeScale) {
+        return mergedScaleDomains;
+      }
+      const vlType = encoding.type,
+        domains = encoding.domains;
+
+      if (vlType === "quantitative") {
+        mergedScaleDomains[encoding.channel] = [
+          Math.min(...domains.map(domain => domain[0])),
+          Math.max(...domains.map(domain => domain[1]))
+        ];
+      } else if (vlType === "nominal" || vlType === "ordinal") {
+        mergedScaleDomains[encoding.channel] = domains.reduce((merged, domain) => {
+          return union(merged, domain)
+        }, []);
+      } else if (vlType==="temporal") {
+        mergedScaleDomains[encoding.channel] = [
+          Math.min(...domains.map(domain => domain[0])),
+          Math.max(...domains.map(domain => domain[1]))
+        ];
+      }
+
+      return mergedScaleDomains;
     }, {})
   }
-  var scaleModifier_1 = scaleModifier;
+  var getMergedScale_1 = getMergedScale;
 
 
   function validate$3(sequence) {
@@ -26765,13 +27039,16 @@
 
   var enumerate_1 = {
   	enumerate: enumerate_2,
-  	scaleModifier: scaleModifier_1,
+  	getMergedScale: getMergedScale_1,
   	validate: validate_1
   };
+
+  const { unique } = util$1;
 
   var HEURISTIC_RULES = [
     {
       name: "filter-then-aggregate",
+      type: "A-Then-B",
       editOps: ["FILTER", "AGGREGATE"],
       condition: (filter, aggregate) => {
         return aggregate.detail && aggregate.detail.find(dt => dt.how === "added")
@@ -26780,6 +27057,7 @@
     },
     {
       name: "disaggregate-then-filter",
+      type: "A-Then-B",
       editOps: ["AGGREGATE", "FILTER"],
       condition: (aggregate, filter) => {
         return aggregate.detail && aggregate.detail.find(dt => dt.how === "removed")
@@ -26787,69 +27065,102 @@
       score: 1
     },
     {
-      name: "bin-then-aggregate",
-      editOps: ["BIN", "AGGREGATE"],
-      condition: (bin, aggregate) => {
-        return aggregate.detail && aggregate.detail.find(dt => dt.how === "added")
+      name: "filter-then-bin",
+      type: "A-Then-B",
+      editOps: ["FILTER", "BIN"],
+      condition: (filter, bin) => {
+        return bin.detail && bin.detail.find(dt => dt.how === "added")
       },
       score: 1
     },
     {
-      name: "disaggregate-then-bin",
+      name: "unbin-then-filter",
+      type: "A-Then-B",
+      editOps: ["BIN", "FILTER"],
+      condition: (bin, filter) => {
+        return bin.detail && bin.detail.find(dt => dt.how === "removed")
+      },
+      score: 1
+    },
+    {
+      name: "no-aggregate-then-bin",
+      type: "A-Then-B",
       editOps: ["AGGREGATE", "BIN"],
       condition: (aggregate, bin) => {
-        return aggregate.detail && aggregate.detail.find(dt => dt.how === "removed")
-      },
-      score: 1
-    },
-    {
-      name: "sort-then-aggregate",
-      editOps: ["SORT", "AGGREGATE"],
-      condition: (sort, aggregate) => {
         return aggregate.detail && aggregate.detail.find(dt => dt.how === "added")
       },
-      score: 1
+      score: -1
     },
     {
-      name: "disaggregate-then-sort",
-      editOps: ["AGGREGATE", "SORT"],
-      condition: (aggregate, sort) => {
+      name: "no-unbin-then-disaggregate",
+      type: "A-Then-B",
+      editOps: ["BIN", "AGGREGATE"],
+      condition: (bin, aggregate) => {
         return aggregate.detail && aggregate.detail.find(dt => dt.how === "removed")
       },
-      score: 1
+      score: -1
     },
+
     {
-      name: "encoding-then-aggregate",
+      name: "encoding(add)-then-aggregate",
+      type: "A-Then-B",
       editOps: ["ENCODING", "AGGREGATE"],
       condition: (encoding, aggregate) => {
-        return aggregate.detail && aggregate.detail.find(dt => dt.how === "added")
+        return encoding.name.indexOf("ADD") >= 0
+          && aggregate.detail
+          && aggregate.detail.find(dt => dt.how === "added")
       },
       score: 1
     },
     {
-      name: "disaggregate-then-encoding",
+      name: "disaggregate-then-encoding(remove)",
+      type: "A-Then-B",
       editOps: ["AGGREGATE", "ENCODING"],
       condition: (aggregate, encoding) => {
-        return aggregate.detail && aggregate.detail.find(dt => dt.how === "removed")
+        return encoding.name.indexOf("REMOVE") >= 0  && aggregate.detail && aggregate.detail.find(dt => dt.how === "removed")
       },
       score: 1
     },
     {
-      name: "aggregate-then-mark",
-      editOps: ["AGGREGATE", "MARK"],
-      condition: (aggregate, mark) => {
+      name: "no-mark-then-aggregate",
+      type: "A-Then-B",
+      editOps: ["MARK", "AGGREGATE" ],
+      condition: (mark, aggregate) => {
 
         return aggregate.detail && aggregate.detail.find(dt => dt.how === "added")
       },
-      score: 1
+      score: -1
     },
     {
-      name: "mark-then-disaggregate",
-      editOps: ["MARK", "AGGREGATE"],
-      condition: (mark, aggregate) => {
+      name: "no-disaggregate-then-mark",
+      type: "A-Then-B",
+      editOps: ["AGGREGATE", "MARK"],
+      condition: (aggregate, mark ) => {
 
         return aggregate.detail && aggregate.detail.find(dt => dt.how === "removed")
       },
+      score: -1
+    },
+    {
+      name: "modifying-with-scale",
+      type: "A-With-B",
+      editOps: ["ENCODING.MODIFY", "SCALE"],
+      score: 1
+    },
+    {
+      name: "no-filtering-with-filtering",
+      type: "A-With-B",
+      editOps: ["FILTER"],
+      condition: (editOps) => {
+
+        return unique(editOps.FILTER, f => f.position).length < editOps.FILTER.length
+      },
+      score: -1
+    },
+    {
+      name: "bin-with-aggregate",
+      type: "A-With-B",
+      editOps: ["AGGREGATE", "BIN"],
       score: 1
     },
     // {
@@ -26887,7 +27198,7 @@
   };
 
   const RULES = evaluateRules.HEURISTIC_RULES;
-  const {copy: copy$3} = util$1;
+  const {copy: copy$3, intersection: intersection$1} = util$1;
 
   function evaluate$1(editOpPartition) {
     let satisfiedRules = findRules(editOpPartition, RULES);
@@ -26904,12 +27215,18 @@
       for (let j = 0; j < rule.editOps.length; j++) {
         const ruleEditOp = rule.editOps[j];
         rule[ruleEditOp] = [];
+
         for (let i = 0; i < editOpPartition.length; i++) {
           const editOpPart = editOpPartition[i];
-          let newFoundEditOp = findEditOp(editOpPart, ruleEditOp);
+          let newFoundEditOps = findEditOps(editOpPart, ruleEditOp);
 
-          if (newFoundEditOp) {
-            rule[ruleEditOp].push({...newFoundEditOp, position: i});
+          if (newFoundEditOps.length > 0) {
+            rule[ruleEditOp] = [
+              ...rule[ruleEditOp],
+              ...newFoundEditOps.map(eo => {
+                return {...eo, position: i}
+              })
+            ];
           }
         }
 
@@ -26918,33 +27235,65 @@
         }
       }
 
+      if (rule.type === "A-With-B"){
+        let foundEditOps = rule.editOps.map(eo => rule[eo]);
 
-      for (let i = 0; i < rule[rule.editOps[0]].length; i++) {
-        const followed = rule[rule.editOps[0]][i];
-        for (let j = 0; j < rule[rule.editOps[1]].length; j++) {
-          const following = rule[rule.editOps[1]][j];
-          if (followed.position >= following.position) {
-            return false
+        if (foundEditOps.filter(eo => !eo).length !== 0) {
+          return false;
+        }
+        let positions = rule.editOps.reduce((positions, eo, i) => {
+          let currPositions = rule[eo].map(d => d.position);
+          if (i === 0){
+            return currPositions
           }
+          return intersection$1(positions, currPositions)
+        }, []);
 
-          if (_rule.condition && !_rule.condition(followed, following)) {
-            return false;
+
+
+        if (positions.length === 0) {
+          return false
+        } else if (_rule.condition) {
+          let mappedFoundEditOps = rule.editOps.reduce((acc, eo) => {
+            acc[eo] = rule[eo];
+            return acc;
+          }, {});
+
+          return _rule.condition(mappedFoundEditOps);
+        }
+        return true;
+
+      } else {
+        for (let i = 0; i < rule[rule.editOps[0]].length; i++) {
+          const followed = rule[rule.editOps[0]][i];
+          for (let j = 0; j < rule[rule.editOps[1]].length; j++) {
+            const following = rule[rule.editOps[1]][j];
+            if (followed.position >= following.position) {
+              return false
+            }
+
+            if (_rule.condition && !_rule.condition(followed, following)) {
+              return false;
+            }
           }
         }
+        return true;
       }
-      return true;
+
     });
   }
   var findRules_1 = findRules;
 
-  function findEditOp(editOps, query) {
-    return editOps.find(eo => {
+  function findEditOps(editOps, query) {
+    return editOps.filter(eo => {
       if (query === "TRANSFORM") {
         return eo.type === "transform"
       } else if (query === "ENCODING") {
         return eo.type === "encoding"
       } else if (query === "MARK") {
         return eo.type === "mark"
+      } else if (query === "ENCODING.MODIFY") {
+        return eo.type === "encoding" && eo.name.indexOf("MODIFY") >= 0
       }
       return (eo.name.indexOf(query) >= 0)
     })
@@ -27023,61 +27372,6 @@
     path: path_1.path
   };
   var src_4 = src.path;
-
-  function vl2vg4gemini(vlSpec) {
-    let vgSpec = vegaLite.compile(vlSpec).spec;
-    vgSpec.axes = mergeDuplicatedAxes(vgSpec.axes);
-    appendNamesOnGuides(vgSpec);
-    return vgSpec;
-  }
-
-
-  function appendNamesOnGuides(vgSpec){
-    if (vgSpec.axes) {
-      vgSpec.axes.forEach(axis => {
-        if (!axis.encode) {
-          axis.encode = {axis: {name: axis.scale}};
-        } else {
-          axis.encode.axis = { ...axis.encode.axis, name: axis.scale };
-        }
-      });
-    }
-    if (vgSpec.legends) {
-      vgSpec.legends.forEach((legend, i) => {
-        if (!legend.encode) {
-          legend.encode = {legend: {name: `legend${i}`}};
-        } else {
-          legend.encode.legend = Object.assign({}, legend.encode.legend, {name: `legend${i}`});
-        }
-      });
-    }
-  }
-
-
-  function mergeDuplicatedAxes(vegaAxes) {
-    if (!vegaAxes || vegaAxes.length <= 0) {
-      return [];
-    }
-    let axesScales = vegaAxes.filter(a => a.grid).map(a => a.scale);
-
-    return d3.rollups(vegaAxes,
-      axes => {
-        let axisWithGrid = axes.find(a => a.grid);
-        let axisWithoutGrid = { ...axes.find(a => !a.grid) };
-
-        if (axisWithGrid) {
-          axisWithoutGrid.grid = true;
-          if (axisWithGrid.gridScale) {
-            axisWithoutGrid.gridScale = axisWithGrid.gridScale;
-          }
-          axisWithoutGrid.zindex = 0;
-        }
-        return axisWithoutGrid;
-      },
-      axis => axis.scale
-    ).map(d => d[1])
-     .sort((a,b) => (axesScales.indexOf(a.scale) - axesScales.indexOf(b.scale)));
-  }
 
   async function recommendKeyframes(sSpec, eSpec, N=0) {
     return await src_4(copy(sSpec),  copy(eSpec), N);
@@ -27210,11 +27504,13 @@
 
   const { animate, animateSequence } = Gemini;
 
+  exports.allAtOnce = allAtOnce;
   exports.animate = animate;
   exports.animateSequence = animateSequence;
   exports.cannotRecommend = cannotRecommend;
   exports.cannotRecommendForSeq = cannotRecommendForSeq;
   exports.cannotRecommendKeyframes = cannotRecommendKeyframes;
+  exports.castVL2VG = castVL2VG;
   exports.compareCost = compareCost;
   exports.recommend = recommend;
   exports.recommendForSeq = recommendForSeq;

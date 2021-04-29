@@ -1,6 +1,6 @@
 import { copy } from "../util/util";
 
-const MIN_POS_DELTA = 10;
+const MIN_POS_DELTA = 3;
 const CHANNEL_TO_ATTRS = [
   { channel: "x", attrs: ["x", "x2", "xc", "width"] },
   { channel: "y", attrs: ["y", "y2", "yc", "height"] },

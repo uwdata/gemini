@@ -565,6 +565,11 @@ function markInterpolate(rawInfo, step, targetElm) {
           primary: scales.final,
           secondary: scales.initial
         });
+        let encodes = {
+          ...encode,
+          primary: encode.final || encodes.final.exit,
+          secondary: encode.initial || encodes.final.exit
+        }
         if (specificScaleFor && specificScaleFor.exit && specificScaleFor.exit.final === "initial") {
           scalesForExit.primary = scales.initial;
         }
@@ -573,7 +578,7 @@ function markInterpolate(rawInfo, step, targetElm) {
           MARK_ATTRS[marktype],
           scalesForExit,
           signals,
-          encode || encodes.final.exit,
+          encodes, // encode || encodes.final.exit,
           prevData
         );
 
