@@ -1,12 +1,12 @@
-import { default as recommend, canRecommend } from "../index"
-import { crossJoinArrays, copy } from "../../util/util";
+import { default as recommend, canRecommend } from "../index.js"
+import { crossJoinArrays, copy } from "../../util/util.js";
 import * as gs from "graphscape";
-import {NSplits} from "../../util/util";
-import {setUpRecomOpt} from "../util";
-import vl2vg4gemini from "../../util/vl2vg4gemini";
+import {NSplits} from "../../util/util.js";
+import {setUpRecomOpt} from "../util.js";
+import vl2vg4gemini from "../../util/vl2vg4gemini.js";
 
-export async function recommendKeyframes(sSpec, eSpec, N=0) {
-  return await gs.path(copy(sSpec),  copy(eSpec), N);
+export async function recommendKeyframes(sSpec, eSpec, M) {
+  return await gs.path(copy(sSpec),  copy(eSpec), M);
 }
 
 

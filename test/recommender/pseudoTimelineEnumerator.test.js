@@ -79,7 +79,7 @@ describe("enumeratePseudoTimelines", () => {
 
   });
 
-  test("should Enuemerate a set of steps (N = targetStepNum) by splitting the diffs. ", () => {
+  test.only("should Enuemerate a set of steps (N = targetStepNum) by splitting the diffs. ", () => {
     let sView = new vega.View(vega.parse(EXAMPLES.addYAxis.sSpec), { renderer: 'svg' });
     let eView = new vega.View(vega.parse(EXAMPLES.addYAxis.eSpec), { renderer: 'svg' });
     //run toSVG to get view.scale("...")
@@ -92,12 +92,7 @@ describe("enumeratePseudoTimelines", () => {
 
     let enumResult = enumeratePseudoTimelines(detected, 2, { sVis, eVis });
 
-    expect(enumResult.length).toEqual(3)
-
-    // expect(enumResult[0].concat[0].sync[2].factorSets.applied).toEqual(["width", "height"]);
-    // expect(enumResult[0].concat[1].sync[0].factorSets.applied).toEqual(["scale.y", "encode.y"])
-
-    // expect(enumResult[6].concat[0].sync[1].factorSets.applied).toEqual(["height"]);
+    expect(enumResult.length).toEqual(6)
   });
 
   test("should Enuemerate a set of steps (N = targetStepNum) by splitting the diffs. ", () => {

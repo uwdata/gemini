@@ -1,6 +1,5 @@
-
-import {Gemini} from "../src/gemini"
-import { default as vl2vg4gemini } from "../src/util/vl2vg4gemini";
+import {Gemini} from "../src/gemini.js"
+import { default as vl2vg4gemini } from "../src/util/vl2vg4gemini.js";
 
 
 describe("AnimationSequence", () => {

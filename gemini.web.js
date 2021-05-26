@@ -20727,6 +20727,69 @@
     }
   }
 
+  function vl2vg4gemini(vlSpec) {
+    let vgSpec = vegaLite.compile(vlSpec).spec;
+    vgSpec.axes = mergeDuplicatedAxes(vgSpec.axes);
+    appendNamesOnGuides(vgSpec);
+    return vgSpec;
+  }
+
+
+  function castVL2VG(vlSpec) {
+    if (vlSpec && vlSpec.$schema && vlSpec.$schema.indexOf("https://vega.github.io/schema/vega-lite") >= 0){
+      return vl2vg4gemini(vlSpec)
+    }
+    return vlSpec
+  }
+
+
+  function appendNamesOnGuides(vgSpec){
+    if (vgSpec.axes) {
+      vgSpec.axes.forEach(axis => {
+        if (!axis.encode) {
+          axis.encode = {axis: {name: axis.scale}};
+        } else {
+          axis.encode.axis = { ...axis.encode.axis, name: axis.scale };
+        }
+      });
+    }
+    if (vgSpec.legends) {
+      vgSpec.legends.forEach((legend, i) => {
+        if (!legend.encode) {
+          legend.encode = {legend: {name: `legend${i}`}};
+        } else {
+          legend.encode.legend = Object.assign({}, legend.encode.legend, {name: `legend${i}`});
+        }
+      });
+    }
+  }
+
+
+  function mergeDuplicatedAxes(vegaAxes) {
+    if (!vegaAxes || vegaAxes.length <= 0) {
+      return [];
+    }
+    let axesScales = vegaAxes.filter(a => a.grid).map(a => a.scale);
+
+    return d3.rollups(vegaAxes,
+      axes => {
+        let axisWithGrid = axes.find(a => a.grid);
+        let axisWithoutGrid = { ...axes.find(a => !a.grid) };
+
+        if (axisWithGrid) {
+          axisWithoutGrid.grid = true;
+          if (axisWithGrid.gridScale) {
+            axisWithoutGrid.gridScale = axisWithGrid.gridScale;
+          }
+          axisWithoutGrid.zindex = 0;
+        }
+        return axisWithoutGrid;
+      },
+      axis => axis.scale
+    ).map(d => d[1])
+     .sort((a,b) => (axesScales.indexOf(a.scale) - axesScales.indexOf(b.scale)));
+  }
+
   function attachAnimTemplates(schedule) {
     schedule.forEach(track => {
       track.steps = track.steps.map(step => {
@@ -20751,8 +20814,8 @@
       const views = new Array(visSequence.length);
       const animations = [];
       for (let i = 1; i < visSequence.length; i++) {
-        const sSpec = visSequence[i-1];
-        const eSpec = visSequence[i];
+        const sSpec = castVL2VG(visSequence[i-1]);
+        const eSpec = castVL2VG(visSequence[i]);
         const gemSpec = animSpecs[i-1];
         const sDiv = document.createElement("div");
         const eDiv = document.createElement("div");
@@ -20788,18 +20851,18 @@
       return new AnimationSequence(animations);
     }
     static async animate(startVisSpec, endVisSpec, geminiSpec) {
-
-      const eView = await new vega.View(vega.parse(endVisSpec), {
+      const sSpec = castVL2VG(startVisSpec), eSpec = (endVisSpec);
+      const eView = await new vega.View(vega.parse(eSpec), {
         renderer: "svg"
       }).runAsync();
 
-      const sView = await new vega.View(vega.parse(startVisSpec), {
+      const sView = await new vega.View(vega.parse(sSpec), {
         renderer: "svg"
       }).runAsync();
 
       const rawInfo = {
-        sVis: { view: sView, spec: startVisSpec },
-        eVis: { view: eView, spec: endVisSpec }
+        sVis: { view: sView, spec: sSpec },
+        eVis: { view: eView, spec: eSpec }
       };
 
 
@@ -23161,69 +23224,6 @@
       },
       {}
     );
-  }
-
-  function vl2vg4gemini(vlSpec) {
-    let vgSpec = vegaLite.compile(vlSpec).spec;
-    vgSpec.axes = mergeDuplicatedAxes(vgSpec.axes);
-    appendNamesOnGuides(vgSpec);
-    return vgSpec;
-  }
-
-
-  function castVL2VG(vlSpec) {
-    if (vlSpec && vlSpec.$schema && vlSpec.$schema.indexOf("https://vega.github.io/schema/vega-lite") >= 0){
-      return vl2vg4gemini(vlSpec)
-    }
-    return vlSpec
-  }
-
-
-  function appendNamesOnGuides(vgSpec){
-    if (vgSpec.axes) {
-      vgSpec.axes.forEach(axis => {
-        if (!axis.encode) {
-          axis.encode = {axis: {name: axis.scale}};
-        } else {
-          axis.encode.axis = { ...axis.encode.axis, name: axis.scale };
-        }
-      });
-    }
-    if (vgSpec.legends) {
-      vgSpec.legends.forEach((legend, i) => {
-        if (!legend.encode) {
-          legend.encode = {legend: {name: `legend${i}`}};
-        } else {
-          legend.encode.legend = Object.assign({}, legend.encode.legend, {name: `legend${i}`});
-        }
-      });
-    }
-  }
-
-
-  function mergeDuplicatedAxes(vegaAxes) {
-    if (!vegaAxes || vegaAxes.length <= 0) {
-      return [];
-    }
-    let axesScales = vegaAxes.filter(a => a.grid).map(a => a.scale);
-
-    return d3.rollups(vegaAxes,
-      axes => {
-        let axisWithGrid = axes.find(a => a.grid);
-        let axisWithoutGrid = { ...axes.find(a => !a.grid) };
-
-        if (axisWithGrid) {
-          axisWithoutGrid.grid = true;
-          if (axisWithGrid.gridScale) {
-            axisWithoutGrid.gridScale = axisWithGrid.gridScale;
-          }
-          axisWithoutGrid.zindex = 0;
-        }
-        return axisWithoutGrid;
-      },
-      axis => axis.scale
-    ).map(d => d[1])
-     .sort((a,b) => (axesScales.indexOf(a.scale) - axesScales.indexOf(b.scale)));
   }
 
   async function recommend (
@@ -27524,8 +27524,8 @@
   };
   var src_4 = src.path;
 
-  async function recommendKeyframes(sSpec, eSpec, N=0) {
-    return await src_4(copy(sSpec),  copy(eSpec), N);
+  async function recommendKeyframes(sSpec, eSpec, M) {
+    return await src_4(copy(sSpec),  copy(eSpec), M);
   }
 
 
