@@ -1,5 +1,5 @@
-import { vegaConfig as vgConfig } from "../vegaConfig";
-
+import { vegaConfig, vegaConfig as vgConfig } from "../vegaConfig";
+import * as util from "../../util/util"
 const EMPTY_ENCODE = {
   enter: { opacity: { value: 0 } },
   exit: { opacity: { value: 0 } },
@@ -159,23 +159,25 @@ function lableAngle(orient, scaleType) {
 }
 function axisTextDpos(attr, spec) {
   const orient = spec ? spec.orient : undefined;
+  const posOffset = (spec.ticks !== false ?
+      ( util.isNumber(spec.tickSize) ? spec.tickSize : vegaConfig.axis.tickSize)
+       : 0)
+    + (util.isNumber(spec.labelPadding) ? spec.labelPadding : vegaConfig.axis.labelPadding);
 
-  if (spec.ticks === false) {
-    return 0;
-  }
+
   if (attr === "dx") {
     if (orient === "right") {
-      return 7;
+      return posOffset;
     }
     if (orient === "left") {
-      return -7;
+      return -posOffset;
     }
   } else if (attr === "dy") {
     if (orient === "bottom") {
-      return 7;
+      return posOffset;
     }
     if (orient === "top") {
-      return -7;
+      return - posOffset;
     }
   }
   return 0;
