@@ -5,7 +5,7 @@ grammar and a recommender system for animating transitions between single-view [
 
 - [Gemini Examples](https://uwdata.github.io/gemini-editor/)
 - [Gemini Grammar](https://github.com/uwdata/gemini/wiki)
-- [Gemini APIs](#gemini-api)
+- [Gemini APIs](#gemini-apis)
 - [Cite Us!](#cite-us)
 
 
@@ -30,23 +30,24 @@ grammar and a recommender system for animating transitions between single-view [
         {"component": {"mark": "marks"}, "timing": {"duration": 1000}}
       ]
     }
+  };
+  const data = { values: [{"Hungry": 50, "Name": "Gemini"}, {"Hungry": 100, "Name": "Cordelia"}] };
+  const sSpec = {
+    data: data,
+    mark: "bar",
+    encoding: {
+      x: { field: "Hungry", type: "quantitative"},
+      y: { field: "Name", type: "nominal"}
+    }
   }
-  const sSpec = gemini.vl2vg4gemini({
-    data: { values: [{"Hungry": 50, "Name": "Gemini"}, {"Hungry": 100, "Name": "Cordelia"}] },
+  const eSpec = {
+    data: data,
     mark: "bar",
     encoding: {
       x: { field: "Hungry", type: "quantitative"},
       y: { field: "Name", type: "nominal"}
     }
-  })
-  const eSpec = gemini.vl2vg4gemini({
-    data: { values: [{"Hungry": 100, "Name": "Gemini"}, {"Hungry": 80, "Name": "Cordelia"}] },
-    mark: "bar",
-    encoding: {
-      x: { field: "Hungry", type: "quantitative"},
-      y: { field: "Name", type: "nominal"}
-    }
-  })
+  }
   vegaEmbed("#view", sSpec, {renderer: "svg"})
   async function play() {
     let anim = await gemini.animate(sSpec, eSpec, gemSpec);
@@ -67,12 +68,13 @@ grammar and a recommender system for animating transitions between single-view [
   - [`.canRecommend`](#canRecommend)
   - [`.recommendForSeq`](#recommendForSeq)
   - [`.canRecommendForSeq`](#canRecommendForSeq)
-  - [`.allAtOnce`](#allAtOnce)
   - [`.recommendKeyframes`](#recommendKeyframes)
   - [`.canRecommendKeyframes`](#canRecommendKeyframes)
   - [`.recommendWithPath`](#recommendWithPath)
 - Utility
   - [`.vg2vl4gemini`](#vl2vg4gemini)
+
+---
 
 ### Animate
 <a name="animate" href="#animate">#</a>
@@ -132,6 +134,8 @@ Play the compiled animation at the place where the start Vega visualization is e
 
 #### Output
 It returns a [promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) that triggers `then` when it completes the animation play. The promise has no success value.
+
+---
 
 ### Automate
 
@@ -195,12 +199,12 @@ Determine if the given inputs are valid to get recommendations.
 | :-------- |:-------------:| :------------- |
 | start | Object | A Vega/Vega-Lite visualization spec for the start state. |
 | end | Object | A Vega/Vega-Lite visualization spec for the end state.|
-| stageN | number | The number of stages for recommendations. |
+| stageN | Number | The number of stages for recommendations. |
 
 
 #### Output
 
-```json
+```js
 {
   "result": false, // boolean. true: Gemini can recommend, false: cannot
   "reason": ... // string or undefined when result===true.
@@ -226,7 +230,7 @@ Enumerates the candidate animation designs of given Vega/Vega-Lite visualization
 ```js
 {
   "specs": [ {"spec": geminiSpec, ... }, ...],
-  "cost": number //total complexity of the gemini specs
+  "cost": Number //total complexity of the gemini specs
 }
 ```
 
@@ -246,7 +250,7 @@ Determine if the given inputs are valid to get recommendations.
 
 #### Output
 
-```json
+```js
 {
   "result": false, // boolean. true: Gemini can recommend, false: cannot
   "reason": ... // string or undefined when result===true.
@@ -303,7 +307,7 @@ Determine if the given inputs are valid to get recommendations.
 
 #### Output
 
-```json
+```js
 {
   "result": false, // boolean. true: Gemini can recommend, false: cannot
   "reason": ... // string or undefined when result===true.
@@ -329,7 +333,7 @@ Enumerates the candidate keyframe sequences (Vega-Lite visualization sequences) 
 #### Output
 
 It returns object with the number of sub-transitions and corresponding recommendations for each [`Path`](#path) as keys and values:
-```json
+```js
 {
   "1": [ {"path": path_1_1, "recommendations": recomsForPath_1_1}, ...],
   "2": [ {"path": path_2_1, "recommendations": recomsForPath_2_1}, ...],
@@ -347,9 +351,6 @@ Compile the given vega-lite spec to the vega spec with the necessary information
 
 
 
-
-
-
 ## Cite us!
 
-If you use Gemini in published research, please cite [this paper](http://idl.cs.washington.edu/papers/gemini/).
+If you use Gemini in published research, please cite these papers: [1](http://idl.cs.washington.edu/papers/gemini/), [TBD](http://idl.cs.washington.edu/papers/gemini2/). 
