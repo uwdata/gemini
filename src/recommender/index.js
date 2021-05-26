@@ -21,8 +21,8 @@ export default async function (
     timing
   } = await initialSetUp(sSpec, eSpec, opt);
 
-  if (cannotRecommend(sSpec, eSpec) && stageN !== 1) {
-    return cannotRecommend(sSpec, eSpec);
+  if (!canRecommend(sSpec, eSpec).result && stageN !== 1) {
+    return canRecommend(sSpec, eSpec);
   }
 
   const detected = detectDiffs(rawInfo, userInput);
@@ -63,39 +63,38 @@ async function initialSetUp(sSpec, eSpec, opt = { marks: {}, axes: {}, legends: 
   const { includeMeta } = opt;
   const timing = { totalDuration: _opt.totalDuration || 2000 };
   _opt = setUpRecomOpt(_opt);
-  const eView = await new vega.View(vega.parse(eSpec), {
+  const eView = await new vega.View(vega.parse(castVL2VG(eSpec)), {
     renderer: "svg"
   }).runAsync();
 
-  const sView = await new vega.View(vega.parse(sSpec), {
+  const sView = await new vega.View(vega.parse(castVL2VG(sSpec)), {
     renderer: "svg"
   }).runAsync();
 
 
   const rawInfo = {
-    sVis: { spec: copy(sSpec), view: sView },
-    eVis: { spec: copy(eSpec), view: eView }
+    sVis: { spec: copy(castVL2VG(sSpec)), view: sView },
+    eVis: { spec: copy(castVL2VG(eSpec)), view: eView }
   };
 
   return { rawInfo, userInput: _opt, stageN, includeMeta, timing}
 }
 
-export function cannotRecommend(sSpec, eSpec) {
+export function canRecommend(sSpec, eSpec, stageN) {
+
   const compDiffs = getChanges(
-    getComponents(sSpec),
-    getComponents(eSpec)
+    getComponents(castVL2VG(sSpec)),
+    getComponents(castVL2VG(eSpec))
   ).filter(match => {
     return (
       ["root", "pathgroup"].indexOf(match.compName) < 0 &&
       match.compType !== "scale"
     );
   })
-  if (compDiffs.filter(comp => comp.compType === "mark").length >= 2) {
-    return {
-      error: "Gemini cannot recomend animations for transitions with multiple marks."
-    }
+  if (compDiffs.filter(comp => comp.compType === "mark").length >= 2 && stageN >1) {
+    return { result: false, reason: "Gemini cannot recomend animations for transitions with multiple marks." };
   }
-  return false;
+  return { result: true };
 }
 
 export async function allAtOnce(sSpec,

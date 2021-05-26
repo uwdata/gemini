@@ -1,4 +1,4 @@
-import { default as recommend, cannotRecommend } from "../index"
+import { default as recommend, canRecommend } from "../index"
 import { crossJoinArrays, copy } from "../../util/util";
 import * as gs from "graphscape";
 import {NSplits} from "../../util/util";
@@ -104,21 +104,23 @@ function sumCost(geminiSpecs) {
   }, 0)
 }
 
-export function cannotRecommendForSeq(sequence) {
+export function canRecommendForSeq(sequence) {
   for (let i = 0; i < (sequence.length - 1); i++) {
     const sVis = sequence[i], eVis = sequence[i+1];
-    if (cannotRecommend(sVis, eVis)) {
-      return cannotRecommend(sVis, eVis);
+    let isRecommendable = canRecommend(sVis, eVis).result;
+    if (isRecommendable.result) {
+      return {result: false, reason: isRecommendable.reason}
     }
   }
-  return false;
+  return {result: true};
 }
 
-export function cannotRecommendKeyframes(sSpec, eSpec) {
+export function canRecommendKeyframes(sSpec, eSpec) {
   //check if specs are single-view vega-lite chart
   if (!isValidVLSpec(sSpec) || !isValidVLSpec(eSpec)) {
-    return { error: "Gemini++ cannot recommend keyframes for the given Vega-Lite charts."}
+    return {result: false, reason: "Gemini++ cannot recommend keyframes for the given Vega-Lite charts."}
   }
+  return {result: true}
 }
 
 

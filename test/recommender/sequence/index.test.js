@@ -2,7 +2,7 @@ import { default as vl2vg4gemini } from "../../../src/util/vl2vg4gemini";
 import { default as EXAMPLES } from "../../exampleLoader";
 import {
   recommendForSeq,
-  cannotRecommendKeyframes,
+  canRecommendKeyframes,
   splitStagesPerTransition,
   recommendWithPath
 } from "../../../src/recommender/sequence/index.js";
@@ -42,16 +42,13 @@ describe("recommendForSeq", () => {
   })
 })
 
-describe("cannotRecommendKeyframes", () => {
+describe("canRecommendKeyframes", () => {
 
   test("should return an error if the given charts are invalid VL charts.", async () => {
     const {start, end} = EXAMPLES.sequence.filter_aggregate;
-    let result = cannotRecommendKeyframes({
-      hconcat: [
-        {mark: "point", encode: {x: {field: "X"}}}
-      ]
-    }, end);
-    expect(!!result.error).toBe(true);
+
+    expect(canRecommendKeyframes({ hconcat: [ {mark: "point", encode: {x: {field: "X"}}}] }, end))
+      .toMatchObject({reason: "Gemini++ cannot recommend keyframes for the given Vega-Lite charts."});
 
   })
 

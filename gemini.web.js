@@ -23245,8 +23245,8 @@
       timing
     } = await initialSetUp(sSpec, eSpec, opt);
 
-    if (cannotRecommend(sSpec, eSpec) && stageN !== 1) {
-      return cannotRecommend(sSpec, eSpec);
+    if (!canRecommend(sSpec, eSpec).result && stageN !== 1) {
+      return canRecommend(sSpec, eSpec);
     }
 
     const detected = detectDiffs(rawInfo, userInput);
@@ -23287,39 +23287,38 @@
     const { includeMeta } = opt;
     const timing = { totalDuration: _opt.totalDuration || 2000 };
     _opt = setUpRecomOpt(_opt);
-    const eView = await new vega.View(vega.parse(eSpec), {
+    const eView = await new vega.View(vega.parse(castVL2VG(eSpec)), {
       renderer: "svg"
     }).runAsync();
 
-    const sView = await new vega.View(vega.parse(sSpec), {
+    const sView = await new vega.View(vega.parse(castVL2VG(sSpec)), {
       renderer: "svg"
     }).runAsync();
 
 
     const rawInfo = {
-      sVis: { spec: copy(sSpec), view: sView },
-      eVis: { spec: copy(eSpec), view: eView }
+      sVis: { spec: copy(castVL2VG(sSpec)), view: sView },
+      eVis: { spec: copy(castVL2VG(eSpec)), view: eView }
     };
 
     return { rawInfo, userInput: _opt, stageN, includeMeta, timing}
   }
 
-  function cannotRecommend(sSpec, eSpec) {
+  function canRecommend(sSpec, eSpec, stageN) {
+
     const compDiffs = getChanges(
-      getComponents(sSpec),
-      getComponents(eSpec)
+      getComponents(castVL2VG(sSpec)),
+      getComponents(castVL2VG(eSpec))
     ).filter(match => {
       return (
         ["root", "pathgroup"].indexOf(match.compName) < 0 &&
         match.compType !== "scale"
       );
     });
-    if (compDiffs.filter(comp => comp.compType === "mark").length >= 2) {
-      return {
-        error: "Gemini cannot recomend animations for transitions with multiple marks."
-      }
+    if (compDiffs.filter(comp => comp.compType === "mark").length >= 2 && stageN >1) {
+      return { result: false, reason: "Gemini cannot recomend animations for transitions with multiple marks." };
     }
-    return false;
+    return { result: true };
   }
 
   async function allAtOnce(sSpec,
@@ -27102,6 +27101,29 @@
     },
 
     {
+      name: "encoding(MODIFY)-then-aggregate",
+      type: "A-Then-B",
+      editOps: ["ENCODING", "AGGREGATE"],
+      condition: (encoding, aggregate) => {
+        return encoding.name.indexOf("MODIFY") >= 0
+          && aggregate.detail
+          && aggregate.detail.find(dt => dt.how === "added")
+      },
+      score: 1
+    },
+    {
+      name: "disaggregate-then-encoding(MODIFY)",
+      type: "A-Then-B",
+      editOps: ["AGGREGATE", "ENCODING"],
+      condition: (aggregate, encoding) => {
+        return encoding.name.indexOf("MODIFY") >= 0
+          && aggregate.detail
+          && aggregate.detail.find(dt => dt.how === "removed")
+      },
+      score: 1
+    },
+
+    {
       name: "encoding(add)-then-aggregate",
       type: "A-Then-B",
       editOps: ["ENCODING", "AGGREGATE"],
@@ -27117,7 +27139,9 @@
       type: "A-Then-B",
       editOps: ["AGGREGATE", "ENCODING"],
       condition: (aggregate, encoding) => {
-        return encoding.name.indexOf("REMOVE") >= 0  && aggregate.detail && aggregate.detail.find(dt => dt.how === "removed")
+        return encoding.name.indexOf("REMOVE") >= 0
+          && aggregate.detail
+          && aggregate.detail.find(dt => dt.how === "removed")
       },
       score: 1
     },
@@ -27308,7 +27332,8 @@
   const { enumerate: enumerate$1 } = enumerate_1;
   const { evaluate: evaluate$2 } = evaluate_1;
   const getTransition = trans.transition;
-  async function path(sSpec, eSpec, transM=0) {
+
+  async function path(sSpec, eSpec, transM) {
     validateInput(sSpec, eSpec);
 
     const transition = await getTransition(copy$4(sSpec),  copy$4(eSpec));
@@ -27318,7 +27343,7 @@
       ...transition.encoding
     ];
     let result = {};
-    if (transM === 0 ) {
+    if (transM === undefined ) {
       for (let m = 1; m <= editOps.length; m++) {
         result[m] = await enumAndEval(sSpec, eSpec, editOps, m);
       }
@@ -27472,21 +27497,23 @@
     }, 0)
   }
 
-  function cannotRecommendForSeq(sequence) {
+  function canRecommendForSeq(sequence) {
     for (let i = 0; i < (sequence.length - 1); i++) {
       const sVis = sequence[i], eVis = sequence[i+1];
-      if (cannotRecommend(sVis, eVis)) {
-        return cannotRecommend(sVis, eVis);
+      let isRecommendable = canRecommend(sVis, eVis).result;
+      if (isRecommendable.result) {
+        return {result: false, reason: isRecommendable.reason}
       }
     }
-    return false;
+    return {result: true};
   }
 
-  function cannotRecommendKeyframes(sSpec, eSpec) {
+  function canRecommendKeyframes(sSpec, eSpec) {
     //check if specs are single-view vega-lite chart
     if (!isValidVLSpec$1(sSpec) || !isValidVLSpec$1(eSpec)) {
-      return { error: "Gemini++ cannot recommend keyframes for the given Vega-Lite charts."}
+      return {result: false, reason: "Gemini++ cannot recommend keyframes for the given Vega-Lite charts."}
     }
+    return {result: true}
   }
 
 
@@ -27507,9 +27534,9 @@
   exports.allAtOnce = allAtOnce;
   exports.animate = animate;
   exports.animateSequence = animateSequence;
-  exports.cannotRecommend = cannotRecommend;
-  exports.cannotRecommendForSeq = cannotRecommendForSeq;
-  exports.cannotRecommendKeyframes = cannotRecommendKeyframes;
+  exports.canRecommend = canRecommend;
+  exports.canRecommendForSeq = canRecommendForSeq;
+  exports.canRecommendKeyframes = canRecommendKeyframes;
   exports.castVL2VG = castVL2VG;
   exports.compareCost = compareCost;
   exports.recommend = recommend;
