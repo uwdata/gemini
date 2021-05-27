@@ -1,8 +1,8 @@
-# Gemini
+# Gemini²
 
-Gemini ([paper](http://idl.cs.washington.edu/papers/gemini/)) is a
-grammar and a recommender system for animating transitions between single-view [Vega](https://vega.github.io/vega)/[Vega-Lite](https://vega.github.io/vega-lite) charts. This repository contains the source code of Gemini.
+Gemini² extends [Gemini](http://idl.cs.washington.edu/papers/gemini/) to support keyframe-oriented aniamted transition between single-view [Vega](https://vega.github.io/vega)/[Vega-Lite](https://vega.github.io/vega-lite) charts. This repository contains the source code of Gemini and Gemini².
 
+- [Gemini² Examples](https://uwdata.github.io/gemini2-editor/)
 - [Gemini Examples](https://uwdata.github.io/gemini-editor/)
 - [Gemini Grammar](https://github.com/uwdata/gemini/wiki)
 - [Gemini APIs](#gemini-apis)
@@ -79,7 +79,7 @@ grammar and a recommender system for animating transitions between single-view [
 ### Animate
 <a name="animate" href="#animate">#</a>
 gemini.<b>animate</b>(<i>start</i>, <i>end</i>, <i>spec</i>)
-[<>](https://github.com/uwdata/gemini/blob/master/src/gemini.js#L27 "Source")
+[<>](https://github.com/uwdata/gemini/blob/master/src/gemini.js#L73 "Source")
 
 Compile the Gemini spec for the transition between the start and end Vega visualizations to an `Animation` object.
 
@@ -98,12 +98,12 @@ Compile the Gemini spec for the transition between the start and end Vega visual
 See more details [here](https://github.com/uwdata/gemini/wiki/Input-Vega-Vega-Lite-Visualization-Specs).
 
 #### Output
-It returns a [promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) that triggers `then` with an [animation](#play) object when it compiles successfully. The [animation](#play) object can be played.
+It returns a [promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) that triggers `then` with an `animation` object when it compiles successfully. The `animation` object can be [played](#play).
 
 
 <a name="animateSequence" href="#animateSequence">#</a>
 gemini.<b>animateSequence</b>(<i>chartSequence</i>, <i>animSpecs</i>)
-[<>](https://github.com/uwdata/gemini/blob/master/src/gemini.js#L27 "Source")
+[<>](https://github.com/uwdata/gemini/blob/master/src/gemini.js#L30 "Source")
 
 Compile the Gemini specs for the Vega chart sequence to an `AnimationSequence` object.
 
@@ -116,7 +116,7 @@ Compile the Gemini specs for the Vega chart sequence to an `AnimationSequence` o
 
 
 #### Output
-It returns a [promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) that triggers `then` with an [animationSequence](#play) object when it compiles successfully. The [animationSequence](#play) object can be played.
+It returns a [promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) that triggers `then` with an `animationSequence` object when it compiles successfully. The `animationSequence` object can be [played](#play).
 
 
 
@@ -138,14 +138,9 @@ It returns a [promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/R
 ---
 
 ### Automate
-
-```js
-const recommendations = gemini.recommend(start, end, {stageN: 2});
-```
-
 <a name="recommend" href="#recommend">#</a>
 gemini.<b>recommend</b>(<i>start</i>, <i>end</i>, <i>options</i>)
-[<>](https://github.com/uwdata/gemini/blob/master/src/recommender/index.js#L8 "Source")
+[<>](https://github.com/uwdata/gemini/blob/master/src/recommender/index.js#L11 "Source")
 
 Enumerates the candidate animation designs of the transition between the given two Vega visualizations in Gemini grammar. It sorts the candidates by their evaluated effectiveness.
 
@@ -189,7 +184,7 @@ It returns an array of objects (`{spec: ...}`), where `spec` is the Gemini spec.
 
 <a name="canRecommend" href="#canRecommend">#</a>
 gemini.<b>canRecommend</b>(<i>start</i>, <i>end</i>, <i>stageN</i>)
-[<>](https://github.com/uwdata/gemini/blob/master/src/recommender/index.js#L8 "Source")
+[<>](https://github.com/uwdata/gemini/blob/master/src/recommender/index.js#L83 "Source")
 
 Determine if the given inputs are valid to get recommendations.
 
@@ -213,7 +208,7 @@ Determine if the given inputs are valid to get recommendations.
 
 <a name="recommendForSeq" href="#recommendForSeq">#</a>
 gemini.<b>recommendForSeq</b>(<i>sequence</i>, <i>options</i>)
-[<>](https://github.com/uwdata/gemini/blob/master/src/recommender/index.js#L8 "Source")
+[<>](https://github.com/uwdata/gemini/blob/master/src/recommender/sequence/index.js#L56 "Source")
 
 Enumerates the candidate animation designs of given Vega/Vega-Lite visualization sequence (keyfreame sequence). It sorts the candidates by their evaluated effectiveness.
 
@@ -237,7 +232,7 @@ Enumerates the candidate animation designs of given Vega/Vega-Lite visualization
 
 <a name="canRecommendForSeq" href="#canRecommendForSeq">#</a>
 gemini.<b>canRecommendForSeq</b>(<i>sequence</i>)
-[<>](https://github.com/uwdata/gemini/blob/master/src/recommender/index.js#L8 "Source")
+[<>](https://github.com/uwdata/gemini/blob/master/src/recommender/sequence/index.js#L108 "Source")
 
 Determine if the given inputs are valid to get recommendations.
 
@@ -259,7 +254,7 @@ Determine if the given inputs are valid to get recommendations.
 
 <a name="recommendKeyframes" href="#recommendKeyframes">#</a>
 gemini.<b>recommendKeyframes</b>(<i>start</i>, <i>end</i>, <i>keyframeM</i>)
-[<>](https://github.com/uwdata/gemini/blob/master/src/recommender/index.js#L8 "Source")
+[<>](https://github.com/uwdata/gemini/blob/master/src/recommender/sequence/index.js#L8 "Source")
 
 By leveraging GraphScape, it enumerates the candidate keyframe sequences (Vega-Lite visualization sequences) for given start and end Vega-Lite charts. It sorts the candidates by their evaluated effectiveness.
 
@@ -293,7 +288,7 @@ Each <a name="Path" href="#Path">`Path`</a> has these properties:
 
 <a name="canRecommendKeyframes" href="#canRecommendKeyframes">#</a>
 gemini.<b>canRecommendKeyframes</b>(<i>start</i>, <i>end</i>)
-[<>](https://github.com/uwdata/gemini/blob/master/src/recommender/index.js#L8 "Source")
+[<>](https://github.com/uwdata/gemini/blob/master/src/recommender/sequence/index.js#L119 "Source")
 
 Determine if the given inputs are valid to get recommendations.
 
@@ -317,7 +312,7 @@ Determine if the given inputs are valid to get recommendations.
 
 <a name="recommendWithPath" href="#recommendWithPath">#</a>
 gemini.<b>recommendWithPath</b>(<i>start</i>, <i>end</i>, <i>option</i>)
-[<>](https://github.com/uwdata/gemini/blob/master/src/recommender/index.js#L8 "Source")
+[<>](https://github.com/uwdata/gemini/blob/master/src/recommender/sequence/index.js#L13 "Source")
 
 Enumerates the candidate keyframe sequences (Vega-Lite visualization sequences) with Gemini animation specs for given start and end Vega-Lite charts. It sorts the candidates by their evaluated effectiveness.
 
@@ -345,7 +340,7 @@ It returns object with the number of sub-transitions and corresponding recommend
 
 <a name="vl2vg4gemini" href="#vl2vg4gemini">#</a>
 gemini.<b>vl2vg4gemini</b>(<i>vlSpec</i>)
-[<>](https://github.com/uwdata/gemini/blob/master/src/util/vl2vg4gemini.js "Source")
+[<>](https://github.com/uwdata/gemini/blob/master/src/util/vl2vg4gemini.js#L4 "Source")
 
 Compile the given vega-lite spec to the vega spec with the necessary information for Gemini, such as each component's name.
 
