@@ -552,7 +552,7 @@
   }
 
   var uri_all = createCommonjsModule(function (module, exports) {
-  /** @license URI.js v4.2.1 (c) 2011 Gary Court. License: http://github.com/garycourt/uri-js */
+  /** @license URI.js v4.4.1 (c) 2011 Gary Court. License: http://github.com/garycourt/uri-js */
   (function (global, factory) {
   	 factory(exports) ;
   }(commonjsGlobal, (function (exports) {
@@ -1475,9 +1475,9 @@
               return "[" + $1 + ($2 ? "%25" + $2 : "") + "]";
           }));
       }
-      if (typeof components.port === "number") {
+      if (typeof components.port === "number" || typeof components.port === "string") {
           uriTokens.push(":");
-          uriTokens.push(components.port.toString(10));
+          uriTokens.push(String(components.port));
       }
       return uriTokens.length ? uriTokens.join("") : undefined;
   }
@@ -1680,8 +1680,9 @@
           return components;
       },
       serialize: function serialize(components, options) {
+          var secure = String(components.scheme).toLowerCase() === "https";
           //normalize the default port
-          if (components.port === (String(components.scheme).toLowerCase() !== "https" ? 80 : 443) || components.port === "") {
+          if (components.port === (secure ? 443 : 80) || components.port === "") {
               components.port = undefined;
           }
           //normalize the empty path
@@ -1700,6 +1701,57 @@
       domainHost: handler.domainHost,
       parse: handler.parse,
       serialize: handler.serialize
+  };
+
+  function isSecure(wsComponents) {
+      return typeof wsComponents.secure === 'boolean' ? wsComponents.secure : String(wsComponents.scheme).toLowerCase() === "wss";
+  }
+  //RFC 6455
+  var handler$2 = {
+      scheme: "ws",
+      domainHost: true,
+      parse: function parse(components, options) {
+          var wsComponents = components;
+          //indicate if the secure flag is set
+          wsComponents.secure = isSecure(wsComponents);
+          //construct resouce name
+          wsComponents.resourceName = (wsComponents.path || '/') + (wsComponents.query ? '?' + wsComponents.query : '');
+          wsComponents.path = undefined;
+          wsComponents.query = undefined;
+          return wsComponents;
+      },
+      serialize: function serialize(wsComponents, options) {
+          //normalize the default port
+          if (wsComponents.port === (isSecure(wsComponents) ? 443 : 80) || wsComponents.port === "") {
+              wsComponents.port = undefined;
+          }
+          //ensure scheme matches secure flag
+          if (typeof wsComponents.secure === 'boolean') {
+              wsComponents.scheme = wsComponents.secure ? 'wss' : 'ws';
+              wsComponents.secure = undefined;
+          }
+          //reconstruct path from resource name
+          if (wsComponents.resourceName) {
+              var _wsComponents$resourc = wsComponents.resourceName.split('?'),
+                  _wsComponents$resourc2 = slicedToArray(_wsComponents$resourc, 2),
+                  path = _wsComponents$resourc2[0],
+                  query = _wsComponents$resourc2[1];
+
+              wsComponents.path = path && path !== '/' ? path : undefined;
+              wsComponents.query = query;
+              wsComponents.resourceName = undefined;
+          }
+          //forbid fragment component
+          wsComponents.fragment = undefined;
+          return wsComponents;
+      }
+  };
+
+  var handler$3 = {
+      scheme: "wss",
+      domainHost: handler$2.domainHost,
+      parse: handler$2.parse,
+      serialize: handler$2.serialize
   };
 
   var O = {};
@@ -1731,7 +1783,7 @@
       var decStr = pctDecChars(str);
       return !decStr.match(UNRESERVED) ? str : decStr;
   }
-  var handler$2 = {
+  var handler$4 = {
       scheme: "mailto",
       parse: function parse$$1(components, options) {
           var mailtoComponents = components;
@@ -1819,7 +1871,7 @@
 
   var URN_PARSE = /^([^\:]+)\:(.*)/;
   //RFC 2141
-  var handler$3 = {
+  var handler$5 = {
       scheme: "urn",
       parse: function parse$$1(components, options) {
           var matches = components.path && components.path.match(URN_PARSE);
@@ -1858,7 +1910,7 @@
 
   var UUID = /^[0-9A-Fa-f]{8}(?:\-[0-9A-Fa-f]{4}){3}\-[0-9A-Fa-f]{12}$/;
   //RFC 4122
-  var handler$4 = {
+  var handler$6 = {
       scheme: "urn:uuid",
       parse: function parse(urnComponents, options) {
           var uuidComponents = urnComponents;
@@ -1882,6 +1934,8 @@
   SCHEMES[handler$2.scheme] = handler$2;
   SCHEMES[handler$3.scheme] = handler$3;
   SCHEMES[handler$4.scheme] = handler$4;
+  SCHEMES[handler$5.scheme] = handler$5;
+  SCHEMES[handler$6.scheme] = handler$6;
 
   exports.SCHEMES = SCHEMES;
   exports.pctEncChar = pctEncChar;
@@ -1980,8 +2034,6 @@
     ucs2length: ucs2length,
     varOccurences: varOccurences,
     varReplace: varReplace,
-    cleanUpCode: cleanUpCode,
-    finalCleanUpCode: finalCleanUpCode,
     schemaHasRules: schemaHasRules,
     schemaHasRulesExcept: schemaHasRulesExcept,
     schemaUnknownRules: schemaUnknownRules,
@@ -2003,7 +2055,7 @@
   }
 
 
-  function checkDataType(dataType, data, negate) {
+  function checkDataType(dataType, data, strictNumbers, negate) {
     var EQUAL = negate ? ' !== ' : ' === '
       , AND = negate ? ' || ' : ' && '
       , OK = negate ? '!' : ''
@@ -2016,15 +2068,18 @@
                             NOT + 'Array.isArray(' + data + '))';
       case 'integer': return '(typeof ' + data + EQUAL + '"number"' + AND +
                              NOT + '(' + data + ' % 1)' +
-                             AND + data + EQUAL + data + ')';
+                             AND + data + EQUAL + data +
+                             (strictNumbers ? (AND + OK + 'isFinite(' + data + ')') : '') + ')';
+      case 'number': return '(typeof ' + data + EQUAL + '"' + dataType + '"' +
+                            (strictNumbers ? (AND + OK + 'isFinite(' + data + ')') : '') + ')';
       default: return 'typeof ' + data + EQUAL + '"' + dataType + '"';
     }
   }
 
 
-  function checkDataTypes(dataTypes, data) {
+  function checkDataTypes(dataTypes, data, strictNumbers) {
     switch (dataTypes.length) {
-      case 1: return checkDataType(dataTypes[0], data, true);
+      case 1: return checkDataType(dataTypes[0], data, strictNumbers, true);
       default:
         var code = '';
         var types = toHash(dataTypes);
@@ -2037,7 +2092,7 @@
         }
         if (types.number) delete types.integer;
         for (var t in types)
-          code += (code ? ' && ' : '' ) + checkDataType(t, data, true);
+          code += (code ? ' && ' : '' ) + checkDataType(t, data, strictNumbers, true);
 
         return code;
     }
@@ -2100,42 +2155,6 @@
     dataVar += '([^0-9])';
     expr = expr.replace(/\$/g, '$$$$');
     return str.replace(new RegExp(dataVar, 'g'), expr + '$1');
-  }
-
-
-  var EMPTY_ELSE = /else\s*{\s*}/g
-    , EMPTY_IF_NO_ELSE = /if\s*\([^)]+\)\s*\{\s*\}(?!\s*else)/g
-    , EMPTY_IF_WITH_ELSE = /if\s*\(([^)]+)\)\s*\{\s*\}\s*else(?!\s*if)/g;
-  function cleanUpCode(out) {
-    return out.replace(EMPTY_ELSE, '')
-              .replace(EMPTY_IF_NO_ELSE, '')
-              .replace(EMPTY_IF_WITH_ELSE, 'if (!($1))');
-  }
-
-
-  var ERRORS_REGEXP = /[^v.]errors/g
-    , REMOVE_ERRORS = /var errors = 0;|var vErrors = null;|validate.errors = vErrors;/g
-    , REMOVE_ERRORS_ASYNC = /var errors = 0;|var vErrors = null;/g
-    , RETURN_VALID = 'return errors === 0;'
-    , RETURN_TRUE = 'validate.errors = null; return true;'
-    , RETURN_ASYNC = /if \(errors === 0\) return data;\s*else throw new ValidationError\(vErrors\);/
-    , RETURN_DATA_ASYNC = 'return data;'
-    , ROOTDATA_REGEXP = /[^A-Za-z_$]rootData[^A-Za-z0-9_$]/g
-    , REMOVE_ROOTDATA = /if \(rootData === undefined\) rootData = data;/;
-
-  function finalCleanUpCode(out, async) {
-    var matches = out.match(ERRORS_REGEXP);
-    if (matches && matches.length == 2) {
-      out = async
-            ? out.replace(REMOVE_ERRORS_ASYNC, '')
-                 .replace(RETURN_ASYNC, RETURN_DATA_ASYNC)
-            : out.replace(REMOVE_ERRORS, '')
-                 .replace(RETURN_VALID, RETURN_TRUE);
-    }
-
-    matches = out.match(ROOTDATA_REGEXP);
-    if (!matches || matches.length !== 3) return out;
-    return out.replace(REMOVE_ROOTDATA, '');
   }
 
 
@@ -2217,7 +2236,7 @@
 
   function joinPaths (a, b) {
     if (a == '""') return b;
-    return (a + ' + ' + b).replace(/' \+ '/g, '');
+    return (a + ' + ' + b).replace(/([^\\])' \+ '/g, '$1');
   }
 
 
@@ -2781,7 +2800,7 @@
       it.rootId = it.resolve.fullPath(it.self._getId(it.root.schema));
       it.baseId = it.baseId || it.rootId;
       delete it.isTop;
-      it.dataPathArr = [undefined];
+      it.dataPathArr = [""];
       if (it.schema.default !== undefined && it.opts.useDefaults && it.opts.strictDefaults) {
         var $defaultMsg = 'default is ignored in the schema root';
         if (it.opts.strictDefaults === 'log') it.logger.warn($defaultMsg);
@@ -2839,47 +2858,39 @@
         var $schemaPath = it.schemaPath + '.type',
           $errSchemaPath = it.errSchemaPath + '/type',
           $method = $typeIsArray ? 'checkDataTypes' : 'checkDataType';
-        out += ' if (' + (it.util[$method]($typeSchema, $data, true)) + ') { ';
+        out += ' if (' + (it.util[$method]($typeSchema, $data, it.opts.strictNumbers, true)) + ') { ';
         if ($coerceToTypes) {
           var $dataType = 'dataType' + $lvl,
             $coerced = 'coerced' + $lvl;
-          out += ' var ' + ($dataType) + ' = typeof ' + ($data) + '; ';
+          out += ' var ' + ($dataType) + ' = typeof ' + ($data) + '; var ' + ($coerced) + ' = undefined; ';
           if (it.opts.coerceTypes == 'array') {
-            out += ' if (' + ($dataType) + ' == \'object\' && Array.isArray(' + ($data) + ')) ' + ($dataType) + ' = \'array\'; ';
+            out += ' if (' + ($dataType) + ' == \'object\' && Array.isArray(' + ($data) + ') && ' + ($data) + '.length == 1) { ' + ($data) + ' = ' + ($data) + '[0]; ' + ($dataType) + ' = typeof ' + ($data) + '; if (' + (it.util.checkDataType(it.schema.type, $data, it.opts.strictNumbers)) + ') ' + ($coerced) + ' = ' + ($data) + '; } ';
           }
-          out += ' var ' + ($coerced) + ' = undefined; ';
-          var $bracesCoercion = '';
+          out += ' if (' + ($coerced) + ' !== undefined) ; ';
           var arr1 = $coerceToTypes;
           if (arr1) {
             var $type, $i = -1,
               l1 = arr1.length - 1;
             while ($i < l1) {
               $type = arr1[$i += 1];
-              if ($i) {
-                out += ' if (' + ($coerced) + ' === undefined) { ';
-                $bracesCoercion += '}';
-              }
-              if (it.opts.coerceTypes == 'array' && $type != 'array') {
-                out += ' if (' + ($dataType) + ' == \'array\' && ' + ($data) + '.length == 1) { ' + ($coerced) + ' = ' + ($data) + ' = ' + ($data) + '[0]; ' + ($dataType) + ' = typeof ' + ($data) + ';  } ';
-              }
               if ($type == 'string') {
-                out += ' if (' + ($dataType) + ' == \'number\' || ' + ($dataType) + ' == \'boolean\') ' + ($coerced) + ' = \'\' + ' + ($data) + '; else if (' + ($data) + ' === null) ' + ($coerced) + ' = \'\'; ';
+                out += ' else if (' + ($dataType) + ' == \'number\' || ' + ($dataType) + ' == \'boolean\') ' + ($coerced) + ' = \'\' + ' + ($data) + '; else if (' + ($data) + ' === null) ' + ($coerced) + ' = \'\'; ';
               } else if ($type == 'number' || $type == 'integer') {
-                out += ' if (' + ($dataType) + ' == \'boolean\' || ' + ($data) + ' === null || (' + ($dataType) + ' == \'string\' && ' + ($data) + ' && ' + ($data) + ' == +' + ($data) + ' ';
+                out += ' else if (' + ($dataType) + ' == \'boolean\' || ' + ($data) + ' === null || (' + ($dataType) + ' == \'string\' && ' + ($data) + ' && ' + ($data) + ' == +' + ($data) + ' ';
                 if ($type == 'integer') {
                   out += ' && !(' + ($data) + ' % 1)';
                 }
                 out += ')) ' + ($coerced) + ' = +' + ($data) + '; ';
               } else if ($type == 'boolean') {
-                out += ' if (' + ($data) + ' === \'false\' || ' + ($data) + ' === 0 || ' + ($data) + ' === null) ' + ($coerced) + ' = false; else if (' + ($data) + ' === \'true\' || ' + ($data) + ' === 1) ' + ($coerced) + ' = true; ';
+                out += ' else if (' + ($data) + ' === \'false\' || ' + ($data) + ' === 0 || ' + ($data) + ' === null) ' + ($coerced) + ' = false; else if (' + ($data) + ' === \'true\' || ' + ($data) + ' === 1) ' + ($coerced) + ' = true; ';
               } else if ($type == 'null') {
-                out += ' if (' + ($data) + ' === \'\' || ' + ($data) + ' === 0 || ' + ($data) + ' === false) ' + ($coerced) + ' = null; ';
+                out += ' else if (' + ($data) + ' === \'\' || ' + ($data) + ' === 0 || ' + ($data) + ' === false) ' + ($coerced) + ' = null; ';
               } else if (it.opts.coerceTypes == 'array' && $type == 'array') {
-                out += ' if (' + ($dataType) + ' == \'string\' || ' + ($dataType) + ' == \'number\' || ' + ($dataType) + ' == \'boolean\' || ' + ($data) + ' == null) ' + ($coerced) + ' = [' + ($data) + ']; ';
+                out += ' else if (' + ($dataType) + ' == \'string\' || ' + ($dataType) + ' == \'number\' || ' + ($dataType) + ' == \'boolean\' || ' + ($data) + ' == null) ' + ($coerced) + ' = [' + ($data) + ']; ';
               }
             }
           }
-          out += ' ' + ($bracesCoercion) + ' if (' + ($coerced) + ' === undefined) {   ';
+          out += ' else {   ';
           var $$outStack = $$outStack || [];
           $$outStack.push(out);
           out = ''; /* istanbul ignore else */
@@ -2919,7 +2930,7 @@
           } else {
             out += ' var err = ' + (__err) + ';  if (vErrors === null) vErrors = [err]; else vErrors.push(err); errors++; ';
           }
-          out += ' } else {  ';
+          out += ' } if (' + ($coerced) + ' !== undefined) {  ';
           var $parentData = $dataLvl ? 'data' + (($dataLvl - 1) || '') : 'parentData',
             $parentDataProperty = $dataLvl ? it.dataPathArr[$dataLvl] : 'parentDataProperty';
           out += ' ' + ($data) + ' = ' + ($coerced) + '; ';
@@ -2992,7 +3003,7 @@
           $rulesGroup = arr2[i2 += 1];
           if ($shouldUseGroup($rulesGroup)) {
             if ($rulesGroup.type) {
-              out += ' if (' + (it.util.checkDataType($rulesGroup.type, $data)) + ') { ';
+              out += ' if (' + (it.util.checkDataType($rulesGroup.type, $data, it.opts.strictNumbers)) + ') { ';
             }
             if (it.opts.useDefaults) {
               if ($rulesGroup.type == 'object' && it.schema.properties) {
@@ -3160,10 +3171,6 @@
     } else {
       out += ' var ' + ($valid) + ' = errors === errs_' + ($lvl) + ';';
     }
-    out = it.util.cleanUpCode(out);
-    if ($top) {
-      out = it.util.finalCleanUpCode(out, $async);
-    }
 
     function $shouldUseGroup($rulesGroup) {
       var rules = $rulesGroup.rules;
@@ -3289,7 +3296,7 @@
                      + vars(defaults, defaultCode) + vars(customRules, customRuleCode)
                      + sourceCode;
 
-      if (opts.processCode) sourceCode = opts.processCode(sourceCode);
+      if (opts.processCode) sourceCode = opts.processCode(sourceCode, _schema);
       // console.log('\n\n\n *** \n', JSON.stringify(sourceCode));
       var validate$1;
       try {
@@ -3601,8 +3608,8 @@
   // For the source: https://gist.github.com/dperini/729294
   // For test cases: https://mathiasbynens.be/demo/url-regex
   // @todo Delete current URL in favour of the commented out URL rule when this issue is fixed https://github.com/eslint/eslint/issues/7983.
-  // var URL = /^(?:(?:https?|ftp):\/\/)(?:\S+(?::\S*)?@)?(?:(?!10(?:\.\d{1,3}){3})(?!127(?:\.\d{1,3}){3})(?!169\.254(?:\.\d{1,3}){2})(?!192\.168(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u{00a1}-\u{ffff}0-9]+-?)*[a-z\u{00a1}-\u{ffff}0-9]+)(?:\.(?:[a-z\u{00a1}-\u{ffff}0-9]+-?)*[a-z\u{00a1}-\u{ffff}0-9]+)*(?:\.(?:[a-z\u{00a1}-\u{ffff}]{2,})))(?::\d{2,5})?(?:\/[^\s]*)?$/iu;
-  var URL = /^(?:(?:http[s\u017F]?|ftp):\/\/)(?:(?:[\0-\x08\x0E-\x1F!-\x9F\xA1-\u167F\u1681-\u1FFF\u200B-\u2027\u202A-\u202E\u2030-\u205E\u2060-\u2FFF\u3001-\uD7FF\uE000-\uFEFE\uFF00-\uFFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF])+(?::(?:[\0-\x08\x0E-\x1F!-\x9F\xA1-\u167F\u1681-\u1FFF\u200B-\u2027\u202A-\u202E\u2030-\u205E\u2060-\u2FFF\u3001-\uD7FF\uE000-\uFEFE\uFF00-\uFFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF])*)?@)?(?:(?!10(?:\.[0-9]{1,3}){3})(?!127(?:\.[0-9]{1,3}){3})(?!169\.254(?:\.[0-9]{1,3}){2})(?!192\.168(?:\.[0-9]{1,3}){2})(?!172\.(?:1[6-9]|2[0-9]|3[01])(?:\.[0-9]{1,3}){2})(?:[1-9][0-9]?|1[0-9][0-9]|2[01][0-9]|22[0-3])(?:\.(?:1?[0-9]{1,2}|2[0-4][0-9]|25[0-5])){2}(?:\.(?:[1-9][0-9]?|1[0-9][0-9]|2[0-4][0-9]|25[0-4]))|(?:(?:(?:[0-9KSa-z\xA1-\uD7FF\uE000-\uFFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF])+-?)*(?:[0-9KSa-z\xA1-\uD7FF\uE000-\uFFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF])+)(?:\.(?:(?:[0-9KSa-z\xA1-\uD7FF\uE000-\uFFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF])+-?)*(?:[0-9KSa-z\xA1-\uD7FF\uE000-\uFFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF])+)*(?:\.(?:(?:[KSa-z\xA1-\uD7FF\uE000-\uFFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF]){2,})))(?::[0-9]{2,5})?(?:\/(?:[\0-\x08\x0E-\x1F!-\x9F\xA1-\u167F\u1681-\u1FFF\u200B-\u2027\u202A-\u202E\u2030-\u205E\u2060-\u2FFF\u3001-\uD7FF\uE000-\uFEFE\uFF00-\uFFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF])*)?$/i;
+  // var URL = /^(?:(?:https?|ftp):\/\/)(?:\S+(?::\S*)?@)?(?:(?!10(?:\.\d{1,3}){3})(?!127(?:\.\d{1,3}){3})(?!169\.254(?:\.\d{1,3}){2})(?!192\.168(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u{00a1}-\u{ffff}0-9]+-)*[a-z\u{00a1}-\u{ffff}0-9]+)(?:\.(?:[a-z\u{00a1}-\u{ffff}0-9]+-)*[a-z\u{00a1}-\u{ffff}0-9]+)*(?:\.(?:[a-z\u{00a1}-\u{ffff}]{2,})))(?::\d{2,5})?(?:\/[^\s]*)?$/iu;
+  var URL = /^(?:(?:http[s\u017F]?|ftp):\/\/)(?:(?:[\0-\x08\x0E-\x1F!-\x9F\xA1-\u167F\u1681-\u1FFF\u200B-\u2027\u202A-\u202E\u2030-\u205E\u2060-\u2FFF\u3001-\uD7FF\uE000-\uFEFE\uFF00-\uFFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF])+(?::(?:[\0-\x08\x0E-\x1F!-\x9F\xA1-\u167F\u1681-\u1FFF\u200B-\u2027\u202A-\u202E\u2030-\u205E\u2060-\u2FFF\u3001-\uD7FF\uE000-\uFEFE\uFF00-\uFFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF])*)?@)?(?:(?!10(?:\.[0-9]{1,3}){3})(?!127(?:\.[0-9]{1,3}){3})(?!169\.254(?:\.[0-9]{1,3}){2})(?!192\.168(?:\.[0-9]{1,3}){2})(?!172\.(?:1[6-9]|2[0-9]|3[01])(?:\.[0-9]{1,3}){2})(?:[1-9][0-9]?|1[0-9][0-9]|2[01][0-9]|22[0-3])(?:\.(?:1?[0-9]{1,2}|2[0-4][0-9]|25[0-5])){2}(?:\.(?:[1-9][0-9]?|1[0-9][0-9]|2[0-4][0-9]|25[0-4]))|(?:(?:(?:[0-9a-z\xA1-\uD7FF\uE000-\uFFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF])+-)*(?:[0-9a-z\xA1-\uD7FF\uE000-\uFFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF])+)(?:\.(?:(?:[0-9a-z\xA1-\uD7FF\uE000-\uFFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF])+-)*(?:[0-9a-z\xA1-\uD7FF\uE000-\uFFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF])+)*(?:\.(?:(?:[a-z\xA1-\uD7FF\uE000-\uFFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF]){2,})))(?::[0-9]{2,5})?(?:\/(?:[\0-\x08\x0E-\x1F!-\x9F\xA1-\u167F\u1681-\u1FFF\u200B-\u2027\u202A-\u202E\u2030-\u205E\u2060-\u2FFF\u3001-\uD7FF\uE000-\uFEFE\uFF00-\uFFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF])*)?$/i;
   var UUID = /^(?:urn:uuid:)?[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i;
   var JSON_POINTER$1 = /^(?:\/(?:[^~/]|~0|~1)*)*$/;
   var JSON_POINTER_URI_FRAGMENT = /^#(?:\/(?:[a-z0-9_\-.!$&'()*+,;:=@]|%[0-9a-f]{2}|~0|~1)*)*$/i;
@@ -3624,8 +3631,8 @@
     time: /^(?:[0-2]\d:[0-5]\d:[0-5]\d|23:59:60)(?:\.\d+)?(?:z|[+-]\d\d(?::?\d\d)?)?$/i,
     'date-time': /^\d\d\d\d-[0-1]\d-[0-3]\d[t\s](?:[0-2]\d:[0-5]\d:[0-5]\d|23:59:60)(?:\.\d+)?(?:z|[+-]\d\d(?::?\d\d)?)$/i,
     // uri: https://github.com/mafintosh/is-my-json-valid/blob/master/formats.js
-    uri: /^(?:[a-z][a-z0-9+-.]*:)(?:\/?\/)?[^\s]*$/i,
-    'uri-reference': /^(?:(?:[a-z][a-z0-9+-.]*:)?\/?\/)?(?:[^\\\s#][^\s#]*)?(?:#[^\\\s]*)?$/i,
+    uri: /^(?:[a-z][a-z0-9+\-.]*:)(?:\/?\/)?[^\s]*$/i,
+    'uri-reference': /^(?:(?:[a-z][a-z0-9+\-.]*:)?\/?\/)?(?:[^\\\s#][^\s#]*)?(?:#[^\\\s]*)?$/i,
     'uri-template': URITEMPLATE,
     url: URL,
     // email (sources from jsen validator):
@@ -3871,7 +3878,7 @@
         l1 = arr1.length - 1;
       while ($i < l1) {
         $sch = arr1[$i += 1];
-        if ((it.opts.strictKeywords ? typeof $sch == 'object' && Object.keys($sch).length > 0 : it.util.schemaHasRules($sch, it.RULES.all))) {
+        if ((it.opts.strictKeywords ? (typeof $sch == 'object' && Object.keys($sch).length > 0) || $sch === false : it.util.schemaHasRules($sch, it.RULES.all))) {
           $allSchemasEmpty = false;
           $it.schema = $sch;
           $it.schemaPath = $schemaPath + '[' + $i + ']';
@@ -3892,7 +3899,6 @@
         out += ' ' + ($closingBraces.slice(0, -1)) + ' ';
       }
     }
-    out = it.util.cleanUpCode(out);
     return out;
   };
 
@@ -3912,7 +3918,7 @@
     $it.level++;
     var $nextValid = 'valid' + $it.level;
     var $noEmptySchema = $schema.every(function($sch) {
-      return (it.opts.strictKeywords ? typeof $sch == 'object' && Object.keys($sch).length > 0 : it.util.schemaHasRules($sch, it.RULES.all));
+      return (it.opts.strictKeywords ? (typeof $sch == 'object' && Object.keys($sch).length > 0) || $sch === false : it.util.schemaHasRules($sch, it.RULES.all));
     });
     if ($noEmptySchema) {
       var $currentBaseId = $it.baseId;
@@ -3961,7 +3967,6 @@
       if (it.opts.allErrors) {
         out += ' } ';
       }
-      out = it.util.cleanUpCode(out);
     } else {
       if ($breakOnError) {
         out += ' if (true) { ';
@@ -4055,7 +4060,7 @@
       $dataNxt = $it.dataLevel = it.dataLevel + 1,
       $nextData = 'data' + $dataNxt,
       $currentBaseId = it.baseId,
-      $nonEmptySchema = (it.opts.strictKeywords ? typeof $schema == 'object' && Object.keys($schema).length > 0 : it.util.schemaHasRules($schema, it.RULES.all));
+      $nonEmptySchema = (it.opts.strictKeywords ? (typeof $schema == 'object' && Object.keys($schema).length > 0) || $schema === false : it.util.schemaHasRules($schema, it.RULES.all));
     out += 'var ' + ($errs) + ' = errors;var ' + ($valid) + ';';
     if ($nonEmptySchema) {
       var $wasComposite = it.compositeRule;
@@ -4114,7 +4119,6 @@
     if (it.opts.allErrors) {
       out += ' } ';
     }
-    out = it.util.cleanUpCode(out);
     return out;
   };
 
@@ -4136,6 +4140,7 @@
       $propertyDeps = {},
       $ownProperties = it.opts.ownProperties;
     for ($property in $schema) {
+      if ($property == '__proto__') continue;
       var $sch = $schema[$property];
       var $deps = Array.isArray($sch) ? $propertyDeps : $schemaDeps;
       $deps[$property] = $sch;
@@ -4261,7 +4266,7 @@
     var $currentBaseId = $it.baseId;
     for (var $property in $schemaDeps) {
       var $sch = $schemaDeps[$property];
-      if ((it.opts.strictKeywords ? typeof $sch == 'object' && Object.keys($sch).length > 0 : it.util.schemaHasRules($sch, it.RULES.all))) {
+      if ((it.opts.strictKeywords ? (typeof $sch == 'object' && Object.keys($sch).length > 0) || $sch === false : it.util.schemaHasRules($sch, it.RULES.all))) {
         out += ' ' + ($nextValid) + ' = true; if ( ' + ($data) + (it.util.getProperty($property)) + ' !== undefined ';
         if ($ownProperties) {
           out += ' && Object.prototype.hasOwnProperty.call(' + ($data) + ', \'' + (it.util.escapeQuotes($property)) + '\') ';
@@ -4282,7 +4287,6 @@
     if ($breakOnError) {
       out += '   ' + ($closingBraces) + ' if (' + ($errs) + ' == errors) {';
     }
-    out = it.util.cleanUpCode(out);
     return out;
   };
 
@@ -4514,8 +4518,8 @@
     var $nextValid = 'valid' + $it.level;
     var $thenSch = it.schema['then'],
       $elseSch = it.schema['else'],
-      $thenPresent = $thenSch !== undefined && (it.opts.strictKeywords ? typeof $thenSch == 'object' && Object.keys($thenSch).length > 0 : it.util.schemaHasRules($thenSch, it.RULES.all)),
-      $elsePresent = $elseSch !== undefined && (it.opts.strictKeywords ? typeof $elseSch == 'object' && Object.keys($elseSch).length > 0 : it.util.schemaHasRules($elseSch, it.RULES.all)),
+      $thenPresent = $thenSch !== undefined && (it.opts.strictKeywords ? (typeof $thenSch == 'object' && Object.keys($thenSch).length > 0) || $thenSch === false : it.util.schemaHasRules($thenSch, it.RULES.all)),
+      $elsePresent = $elseSch !== undefined && (it.opts.strictKeywords ? (typeof $elseSch == 'object' && Object.keys($elseSch).length > 0) || $elseSch === false : it.util.schemaHasRules($elseSch, it.RULES.all)),
       $currentBaseId = $it.baseId;
     if ($thenPresent || $elsePresent) {
       var $ifClause;
@@ -4593,7 +4597,6 @@
       if ($breakOnError) {
         out += ' else { ';
       }
-      out = it.util.cleanUpCode(out);
     } else {
       if ($breakOnError) {
         out += ' if (true) { ';
@@ -4669,7 +4672,7 @@
           l1 = arr1.length - 1;
         while ($i < l1) {
           $sch = arr1[$i += 1];
-          if ((it.opts.strictKeywords ? typeof $sch == 'object' && Object.keys($sch).length > 0 : it.util.schemaHasRules($sch, it.RULES.all))) {
+          if ((it.opts.strictKeywords ? (typeof $sch == 'object' && Object.keys($sch).length > 0) || $sch === false : it.util.schemaHasRules($sch, it.RULES.all))) {
             out += ' ' + ($nextValid) + ' = true; if (' + ($data) + '.length > ' + ($i) + ') { ';
             var $passData = $data + '[' + $i + ']';
             $it.schema = $sch;
@@ -4692,7 +4695,7 @@
           }
         }
       }
-      if (typeof $additionalItems == 'object' && (it.opts.strictKeywords ? typeof $additionalItems == 'object' && Object.keys($additionalItems).length > 0 : it.util.schemaHasRules($additionalItems, it.RULES.all))) {
+      if (typeof $additionalItems == 'object' && (it.opts.strictKeywords ? (typeof $additionalItems == 'object' && Object.keys($additionalItems).length > 0) || $additionalItems === false : it.util.schemaHasRules($additionalItems, it.RULES.all))) {
         $it.schema = $additionalItems;
         $it.schemaPath = it.schemaPath + '.additionalItems';
         $it.errSchemaPath = it.errSchemaPath + '/additionalItems';
@@ -4716,7 +4719,7 @@
           $closingBraces += '}';
         }
       }
-    } else if ((it.opts.strictKeywords ? typeof $schema == 'object' && Object.keys($schema).length > 0 : it.util.schemaHasRules($schema, it.RULES.all))) {
+    } else if ((it.opts.strictKeywords ? (typeof $schema == 'object' && Object.keys($schema).length > 0) || $schema === false : it.util.schemaHasRules($schema, it.RULES.all))) {
       $it.schema = $schema;
       $it.schemaPath = $schemaPath;
       $it.errSchemaPath = $errSchemaPath;
@@ -4739,7 +4742,6 @@
     if ($breakOnError) {
       out += ' ' + ($closingBraces) + ' if (' + ($errs) + ' == errors) {';
     }
-    out = it.util.cleanUpCode(out);
     return out;
   };
 
@@ -4768,6 +4770,12 @@
       $op = $isMax ? '<' : '>',
       $notOp = $isMax ? '>' : '<',
       $errorKeyword = undefined;
+    if (!($isData || typeof $schema == 'number' || $schema === undefined)) {
+      throw new Error($keyword + ' must be number');
+    }
+    if (!($isDataExcl || $schemaExcl === undefined || typeof $schemaExcl == 'number' || typeof $schemaExcl == 'boolean')) {
+      throw new Error($exclusiveKeyword + ' must be number or boolean');
+    }
     if ($isDataExcl) {
       var $schemaValueExcl = it.util.getData($schemaExcl.$data, $dataLvl, it.dataPathArr),
         $exclusive = 'exclusive' + $lvl,
@@ -4918,6 +4926,9 @@
     } else {
       $schemaValue = $schema;
     }
+    if (!($isData || typeof $schema == 'number')) {
+      throw new Error($keyword + ' must be number');
+    }
     var $op = $keyword == 'maxItems' ? '>' : '<';
     out += 'if ( ';
     if ($isData) {
@@ -4994,6 +5005,9 @@
       $schemaValue = 'schema' + $lvl;
     } else {
       $schemaValue = $schema;
+    }
+    if (!($isData || typeof $schema == 'number')) {
+      throw new Error($keyword + ' must be number');
     }
     var $op = $keyword == 'maxLength' ? '>' : '<';
     out += 'if ( ';
@@ -5077,6 +5091,9 @@
     } else {
       $schemaValue = $schema;
     }
+    if (!($isData || typeof $schema == 'number')) {
+      throw new Error($keyword + ' must be number');
+    }
     var $op = $keyword == 'maxProperties' ? '>' : '<';
     out += 'if ( ';
     if ($isData) {
@@ -5153,6 +5170,9 @@
     } else {
       $schemaValue = $schema;
     }
+    if (!($isData || typeof $schema == 'number')) {
+      throw new Error($keyword + ' must be number');
+    }
     out += 'var division' + ($lvl) + ';if (';
     if ($isData) {
       out += ' ' + ($schemaValue) + ' !== undefined && ( typeof ' + ($schemaValue) + ' != \'number\' || ';
@@ -5226,7 +5246,7 @@
     var $it = it.util.copy(it);
     $it.level++;
     var $nextValid = 'valid' + $it.level;
-    if ((it.opts.strictKeywords ? typeof $schema == 'object' && Object.keys($schema).length > 0 : it.util.schemaHasRules($schema, it.RULES.all))) {
+    if ((it.opts.strictKeywords ? (typeof $schema == 'object' && Object.keys($schema).length > 0) || $schema === false : it.util.schemaHasRules($schema, it.RULES.all))) {
       $it.schema = $schema;
       $it.schemaPath = $schemaPath;
       $it.errSchemaPath = $errSchemaPath;
@@ -5324,7 +5344,7 @@
         l1 = arr1.length - 1;
       while ($i < l1) {
         $sch = arr1[$i += 1];
-        if ((it.opts.strictKeywords ? typeof $sch == 'object' && Object.keys($sch).length > 0 : it.util.schemaHasRules($sch, it.RULES.all))) {
+        if ((it.opts.strictKeywords ? (typeof $sch == 'object' && Object.keys($sch).length > 0) || $sch === false : it.util.schemaHasRules($sch, it.RULES.all))) {
           $it.schema = $sch;
           $it.schemaPath = $schemaPath + '[' + $i + ']';
           $it.errSchemaPath = $errSchemaPath + '/' + $i;
@@ -5464,9 +5484,9 @@
       $dataNxt = $it.dataLevel = it.dataLevel + 1,
       $nextData = 'data' + $dataNxt,
       $dataProperties = 'dataProperties' + $lvl;
-    var $schemaKeys = Object.keys($schema || {}),
+    var $schemaKeys = Object.keys($schema || {}).filter(notProto),
       $pProperties = it.schema.patternProperties || {},
-      $pPropertyKeys = Object.keys($pProperties),
+      $pPropertyKeys = Object.keys($pProperties).filter(notProto),
       $aProperties = it.schema.additionalProperties,
       $someProperties = $schemaKeys.length || $pPropertyKeys.length,
       $noAdditional = $aProperties === false,
@@ -5476,7 +5496,13 @@
       $ownProperties = it.opts.ownProperties,
       $currentBaseId = it.baseId;
     var $required = it.schema.required;
-    if ($required && !(it.opts.$data && $required.$data) && $required.length < it.opts.loopRequired) var $requiredHash = it.util.toHash($required);
+    if ($required && !(it.opts.$data && $required.$data) && $required.length < it.opts.loopRequired) {
+      var $requiredHash = it.util.toHash($required);
+    }
+
+    function notProto(p) {
+      return p !== '__proto__';
+    }
     out += 'var ' + ($errs) + ' = errors;var ' + ($nextValid) + ' = true;';
     if ($ownProperties) {
       out += ' var ' + ($dataProperties) + ' = undefined;';
@@ -5629,7 +5655,7 @@
         while (i3 < l3) {
           $propertyKey = arr3[i3 += 1];
           var $sch = $schema[$propertyKey];
-          if ((it.opts.strictKeywords ? typeof $sch == 'object' && Object.keys($sch).length > 0 : it.util.schemaHasRules($sch, it.RULES.all))) {
+          if ((it.opts.strictKeywords ? (typeof $sch == 'object' && Object.keys($sch).length > 0) || $sch === false : it.util.schemaHasRules($sch, it.RULES.all))) {
             var $prop = it.util.getProperty($propertyKey),
               $passData = $data + $prop,
               $hasDefault = $useDefaults && $sch.default !== undefined;
@@ -5732,7 +5758,7 @@
         while (i4 < l4) {
           $pProperty = arr4[i4 += 1];
           var $sch = $pProperties[$pProperty];
-          if ((it.opts.strictKeywords ? typeof $sch == 'object' && Object.keys($sch).length > 0 : it.util.schemaHasRules($sch, it.RULES.all))) {
+          if ((it.opts.strictKeywords ? (typeof $sch == 'object' && Object.keys($sch).length > 0) || $sch === false : it.util.schemaHasRules($sch, it.RULES.all))) {
             $it.schema = $sch;
             $it.schemaPath = it.schemaPath + '.patternProperties' + it.util.getProperty($pProperty);
             $it.errSchemaPath = it.errSchemaPath + '/patternProperties/' + it.util.escapeFragment($pProperty);
@@ -5771,7 +5797,6 @@
     if ($breakOnError) {
       out += ' ' + ($closingBraces) + ' if (' + ($errs) + ' == errors) {';
     }
-    out = it.util.cleanUpCode(out);
     return out;
   };
 
@@ -5790,7 +5815,7 @@
     $it.level++;
     var $nextValid = 'valid' + $it.level;
     out += 'var ' + ($errs) + ' = errors;';
-    if ((it.opts.strictKeywords ? typeof $schema == 'object' && Object.keys($schema).length > 0 : it.util.schemaHasRules($schema, it.RULES.all))) {
+    if ((it.opts.strictKeywords ? (typeof $schema == 'object' && Object.keys($schema).length > 0) || $schema === false : it.util.schemaHasRules($schema, it.RULES.all))) {
       $it.schema = $schema;
       $it.schemaPath = $schemaPath;
       $it.errSchemaPath = $errSchemaPath;
@@ -5853,7 +5878,6 @@
     if ($breakOnError) {
       out += ' ' + ($closingBraces) + ' if (' + ($errs) + ' == errors) {';
     }
-    out = it.util.cleanUpCode(out);
     return out;
   };
 
@@ -5882,7 +5906,7 @@
           while (i1 < l1) {
             $property = arr1[i1 += 1];
             var $propertySch = it.schema.properties[$property];
-            if (!($propertySch && (it.opts.strictKeywords ? typeof $propertySch == 'object' && Object.keys($propertySch).length > 0 : it.util.schemaHasRules($propertySch, it.RULES.all)))) {
+            if (!($propertySch && (it.opts.strictKeywords ? (typeof $propertySch == 'object' && Object.keys($propertySch).length > 0) || $propertySch === false : it.util.schemaHasRules($propertySch, it.RULES.all)))) {
               $required[$required.length] = $property;
             }
           }
@@ -6153,7 +6177,7 @@
       } else {
         out += ' var itemIndices = {}, item; for (;i--;) { var item = ' + ($data) + '[i]; ';
         var $method = 'checkDataType' + ($typeIsArray ? 's' : '');
-        out += ' if (' + (it.util[$method]($itemType, 'item', true)) + ') continue; ';
+        out += ' if (' + (it.util[$method]($itemType, 'item', it.opts.strictNumbers, true)) + ') continue; ';
         if ($typeIsArray) {
           out += ' if (typeof item == \'string\') item = \'"\' + item; ';
         }
@@ -6343,7 +6367,7 @@
           keywords[key] = {
             anyOf: [
               schema,
-              { $ref: 'https://raw.githubusercontent.com/epoberezkin/ajv/master/lib/refs/data.json#' }
+              { $ref: 'https://raw.githubusercontent.com/ajv-validator/ajv/master/lib/refs/data.json#' }
             ]
           };
         }
@@ -6936,7 +6960,7 @@
   var require$$2 = getCjsExportFromNamespace(jsonSchemaDraft07$1);
 
   var definition_schema = {
-    $id: 'https://github.com/epoberezkin/ajv/blob/master/lib/definition_schema.js',
+    $id: 'https://github.com/ajv-validator/ajv/blob/master/lib/definition_schema.js',
     definitions: {
       simpleTypes: require$$2.definitions.simpleTypes
     },
@@ -7015,7 +7039,7 @@
           metaSchema = {
             anyOf: [
               metaSchema,
-              { '$ref': 'https://raw.githubusercontent.com/epoberezkin/ajv/master/lib/refs/data.json#' }
+              { '$ref': 'https://raw.githubusercontent.com/ajv-validator/ajv/master/lib/refs/data.json#' }
             ]
           };
         }
@@ -7115,7 +7139,7 @@
   }
 
   var $schema$1 = "http://json-schema.org/draft-07/schema#";
-  var $id$1 = "https://raw.githubusercontent.com/epoberezkin/ajv/master/lib/refs/data.json#";
+  var $id$1 = "https://raw.githubusercontent.com/ajv-validator/ajv/master/lib/refs/data.json#";
   var description = "Meta-schema for $data reference (JSON Schema extension proposal)";
   var type$1 = "object";
   var required$1 = [
@@ -8015,30 +8039,30 @@
     return true;
   }
 
-  var RawCode = 'RawCode';
-  var Literal = 'Literal';
-  var Property = 'Property';
-  var Identifier = 'Identifier';
+  const RawCode = 'RawCode';
+  const Literal = 'Literal';
+  const Property = 'Property';
+  const Identifier = 'Identifier';
 
-  var ArrayExpression = 'ArrayExpression';
-  var BinaryExpression = 'BinaryExpression';
-  var CallExpression = 'CallExpression';
-  var ConditionalExpression = 'ConditionalExpression';
-  var LogicalExpression = 'LogicalExpression';
-  var MemberExpression = 'MemberExpression';
-  var ObjectExpression = 'ObjectExpression';
-  var UnaryExpression = 'UnaryExpression';
+  const ArrayExpression = 'ArrayExpression';
+  const BinaryExpression = 'BinaryExpression';
+  const CallExpression = 'CallExpression';
+  const ConditionalExpression = 'ConditionalExpression';
+  const LogicalExpression = 'LogicalExpression';
+  const MemberExpression = 'MemberExpression';
+  const ObjectExpression = 'ObjectExpression';
+  const UnaryExpression = 'UnaryExpression';
 
   function ASTNode(type) {
     this.type = type;
   }
 
   ASTNode.prototype.visit = function(visitor) {
-    var node = this, c, i, n;
+    let c, i, n;
 
-    if (visitor(node)) return 1;
+    if (visitor(this)) return 1;
 
-    for (c=children(node), i=0, n=c.length; i<n; ++i) {
+    for (c=children(this), i=0, n=c.length; i<n; ++i) {
       if (c[i].visit(visitor)) return 1;
     }
   };
@@ -8051,9 +8075,7 @@
       case LogicalExpression:
         return [node.left, node.right];
       case CallExpression:
-        var args = node.arguments.slice();
-        args.unshift(node.callee);
-        return args;
+        return [node.callee].concat(node.arguments);
       case ConditionalExpression:
         return [node.test, node.consequent, node.alternate];
       case MemberExpression:
@@ -8163,9 +8185,9 @@
       DISABLED = 'Disabled.';
 
   // See also tools/generate-unicode-regex.py.
-  var RegexNonAsciiIdentifierStart = new RegExp("[\\xAA\\xB5\\xBA\\xC0-\\xD6\\xD8-\\xF6\\xF8-\\u02C1\\u02C6-\\u02D1\\u02E0-\\u02E4\\u02EC\\u02EE\\u0370-\\u0374\\u0376\\u0377\\u037A-\\u037D\\u037F\\u0386\\u0388-\\u038A\\u038C\\u038E-\\u03A1\\u03A3-\\u03F5\\u03F7-\\u0481\\u048A-\\u052F\\u0531-\\u0556\\u0559\\u0561-\\u0587\\u05D0-\\u05EA\\u05F0-\\u05F2\\u0620-\\u064A\\u066E\\u066F\\u0671-\\u06D3\\u06D5\\u06E5\\u06E6\\u06EE\\u06EF\\u06FA-\\u06FC\\u06FF\\u0710\\u0712-\\u072F\\u074D-\\u07A5\\u07B1\\u07CA-\\u07EA\\u07F4\\u07F5\\u07FA\\u0800-\\u0815\\u081A\\u0824\\u0828\\u0840-\\u0858\\u08A0-\\u08B2\\u0904-\\u0939\\u093D\\u0950\\u0958-\\u0961\\u0971-\\u0980\\u0985-\\u098C\\u098F\\u0990\\u0993-\\u09A8\\u09AA-\\u09B0\\u09B2\\u09B6-\\u09B9\\u09BD\\u09CE\\u09DC\\u09DD\\u09DF-\\u09E1\\u09F0\\u09F1\\u0A05-\\u0A0A\\u0A0F\\u0A10\\u0A13-\\u0A28\\u0A2A-\\u0A30\\u0A32\\u0A33\\u0A35\\u0A36\\u0A38\\u0A39\\u0A59-\\u0A5C\\u0A5E\\u0A72-\\u0A74\\u0A85-\\u0A8D\\u0A8F-\\u0A91\\u0A93-\\u0AA8\\u0AAA-\\u0AB0\\u0AB2\\u0AB3\\u0AB5-\\u0AB9\\u0ABD\\u0AD0\\u0AE0\\u0AE1\\u0B05-\\u0B0C\\u0B0F\\u0B10\\u0B13-\\u0B28\\u0B2A-\\u0B30\\u0B32\\u0B33\\u0B35-\\u0B39\\u0B3D\\u0B5C\\u0B5D\\u0B5F-\\u0B61\\u0B71\\u0B83\\u0B85-\\u0B8A\\u0B8E-\\u0B90\\u0B92-\\u0B95\\u0B99\\u0B9A\\u0B9C\\u0B9E\\u0B9F\\u0BA3\\u0BA4\\u0BA8-\\u0BAA\\u0BAE-\\u0BB9\\u0BD0\\u0C05-\\u0C0C\\u0C0E-\\u0C10\\u0C12-\\u0C28\\u0C2A-\\u0C39\\u0C3D\\u0C58\\u0C59\\u0C60\\u0C61\\u0C85-\\u0C8C\\u0C8E-\\u0C90\\u0C92-\\u0CA8\\u0CAA-\\u0CB3\\u0CB5-\\u0CB9\\u0CBD\\u0CDE\\u0CE0\\u0CE1\\u0CF1\\u0CF2\\u0D05-\\u0D0C\\u0D0E-\\u0D10\\u0D12-\\u0D3A\\u0D3D\\u0D4E\\u0D60\\u0D61\\u0D7A-\\u0D7F\\u0D85-\\u0D96\\u0D9A-\\u0DB1\\u0DB3-\\u0DBB\\u0DBD\\u0DC0-\\u0DC6\\u0E01-\\u0E30\\u0E32\\u0E33\\u0E40-\\u0E46\\u0E81\\u0E82\\u0E84\\u0E87\\u0E88\\u0E8A\\u0E8D\\u0E94-\\u0E97\\u0E99-\\u0E9F\\u0EA1-\\u0EA3\\u0EA5\\u0EA7\\u0EAA\\u0EAB\\u0EAD-\\u0EB0\\u0EB2\\u0EB3\\u0EBD\\u0EC0-\\u0EC4\\u0EC6\\u0EDC-\\u0EDF\\u0F00\\u0F40-\\u0F47\\u0F49-\\u0F6C\\u0F88-\\u0F8C\\u1000-\\u102A\\u103F\\u1050-\\u1055\\u105A-\\u105D\\u1061\\u1065\\u1066\\u106E-\\u1070\\u1075-\\u1081\\u108E\\u10A0-\\u10C5\\u10C7\\u10CD\\u10D0-\\u10FA\\u10FC-\\u1248\\u124A-\\u124D\\u1250-\\u1256\\u1258\\u125A-\\u125D\\u1260-\\u1288\\u128A-\\u128D\\u1290-\\u12B0\\u12B2-\\u12B5\\u12B8-\\u12BE\\u12C0\\u12C2-\\u12C5\\u12C8-\\u12D6\\u12D8-\\u1310\\u1312-\\u1315\\u1318-\\u135A\\u1380-\\u138F\\u13A0-\\u13F4\\u1401-\\u166C\\u166F-\\u167F\\u1681-\\u169A\\u16A0-\\u16EA\\u16EE-\\u16F8\\u1700-\\u170C\\u170E-\\u1711\\u1720-\\u1731\\u1740-\\u1751\\u1760-\\u176C\\u176E-\\u1770\\u1780-\\u17B3\\u17D7\\u17DC\\u1820-\\u1877\\u1880-\\u18A8\\u18AA\\u18B0-\\u18F5\\u1900-\\u191E\\u1950-\\u196D\\u1970-\\u1974\\u1980-\\u19AB\\u19C1-\\u19C7\\u1A00-\\u1A16\\u1A20-\\u1A54\\u1AA7\\u1B05-\\u1B33\\u1B45-\\u1B4B\\u1B83-\\u1BA0\\u1BAE\\u1BAF\\u1BBA-\\u1BE5\\u1C00-\\u1C23\\u1C4D-\\u1C4F\\u1C5A-\\u1C7D\\u1CE9-\\u1CEC\\u1CEE-\\u1CF1\\u1CF5\\u1CF6\\u1D00-\\u1DBF\\u1E00-\\u1F15\\u1F18-\\u1F1D\\u1F20-\\u1F45\\u1F48-\\u1F4D\\u1F50-\\u1F57\\u1F59\\u1F5B\\u1F5D\\u1F5F-\\u1F7D\\u1F80-\\u1FB4\\u1FB6-\\u1FBC\\u1FBE\\u1FC2-\\u1FC4\\u1FC6-\\u1FCC\\u1FD0-\\u1FD3\\u1FD6-\\u1FDB\\u1FE0-\\u1FEC\\u1FF2-\\u1FF4\\u1FF6-\\u1FFC\\u2071\\u207F\\u2090-\\u209C\\u2102\\u2107\\u210A-\\u2113\\u2115\\u2119-\\u211D\\u2124\\u2126\\u2128\\u212A-\\u212D\\u212F-\\u2139\\u213C-\\u213F\\u2145-\\u2149\\u214E\\u2160-\\u2188\\u2C00-\\u2C2E\\u2C30-\\u2C5E\\u2C60-\\u2CE4\\u2CEB-\\u2CEE\\u2CF2\\u2CF3\\u2D00-\\u2D25\\u2D27\\u2D2D\\u2D30-\\u2D67\\u2D6F\\u2D80-\\u2D96\\u2DA0-\\u2DA6\\u2DA8-\\u2DAE\\u2DB0-\\u2DB6\\u2DB8-\\u2DBE\\u2DC0-\\u2DC6\\u2DC8-\\u2DCE\\u2DD0-\\u2DD6\\u2DD8-\\u2DDE\\u2E2F\\u3005-\\u3007\\u3021-\\u3029\\u3031-\\u3035\\u3038-\\u303C\\u3041-\\u3096\\u309D-\\u309F\\u30A1-\\u30FA\\u30FC-\\u30FF\\u3105-\\u312D\\u3131-\\u318E\\u31A0-\\u31BA\\u31F0-\\u31FF\\u3400-\\u4DB5\\u4E00-\\u9FCC\\uA000-\\uA48C\\uA4D0-\\uA4FD\\uA500-\\uA60C\\uA610-\\uA61F\\uA62A\\uA62B\\uA640-\\uA66E\\uA67F-\\uA69D\\uA6A0-\\uA6EF\\uA717-\\uA71F\\uA722-\\uA788\\uA78B-\\uA78E\\uA790-\\uA7AD\\uA7B0\\uA7B1\\uA7F7-\\uA801\\uA803-\\uA805\\uA807-\\uA80A\\uA80C-\\uA822\\uA840-\\uA873\\uA882-\\uA8B3\\uA8F2-\\uA8F7\\uA8FB\\uA90A-\\uA925\\uA930-\\uA946\\uA960-\\uA97C\\uA984-\\uA9B2\\uA9CF\\uA9E0-\\uA9E4\\uA9E6-\\uA9EF\\uA9FA-\\uA9FE\\uAA00-\\uAA28\\uAA40-\\uAA42\\uAA44-\\uAA4B\\uAA60-\\uAA76\\uAA7A\\uAA7E-\\uAAAF\\uAAB1\\uAAB5\\uAAB6\\uAAB9-\\uAABD\\uAAC0\\uAAC2\\uAADB-\\uAADD\\uAAE0-\\uAAEA\\uAAF2-\\uAAF4\\uAB01-\\uAB06\\uAB09-\\uAB0E\\uAB11-\\uAB16\\uAB20-\\uAB26\\uAB28-\\uAB2E\\uAB30-\\uAB5A\\uAB5C-\\uAB5F\\uAB64\\uAB65\\uABC0-\\uABE2\\uAC00-\\uD7A3\\uD7B0-\\uD7C6\\uD7CB-\\uD7FB\\uF900-\\uFA6D\\uFA70-\\uFAD9\\uFB00-\\uFB06\\uFB13-\\uFB17\\uFB1D\\uFB1F-\\uFB28\\uFB2A-\\uFB36\\uFB38-\\uFB3C\\uFB3E\\uFB40\\uFB41\\uFB43\\uFB44\\uFB46-\\uFBB1\\uFBD3-\\uFD3D\\uFD50-\\uFD8F\\uFD92-\\uFDC7\\uFDF0-\\uFDFB\\uFE70-\\uFE74\\uFE76-\\uFEFC\\uFF21-\\uFF3A\\uFF41-\\uFF5A\\uFF66-\\uFFBE\\uFFC2-\\uFFC7\\uFFCA-\\uFFCF\\uFFD2-\\uFFD7\\uFFDA-\\uFFDC]"),
+  var RegexNonAsciiIdentifierStart = new RegExp('[\\xAA\\xB5\\xBA\\xC0-\\xD6\\xD8-\\xF6\\xF8-\\u02C1\\u02C6-\\u02D1\\u02E0-\\u02E4\\u02EC\\u02EE\\u0370-\\u0374\\u0376\\u0377\\u037A-\\u037D\\u037F\\u0386\\u0388-\\u038A\\u038C\\u038E-\\u03A1\\u03A3-\\u03F5\\u03F7-\\u0481\\u048A-\\u052F\\u0531-\\u0556\\u0559\\u0561-\\u0587\\u05D0-\\u05EA\\u05F0-\\u05F2\\u0620-\\u064A\\u066E\\u066F\\u0671-\\u06D3\\u06D5\\u06E5\\u06E6\\u06EE\\u06EF\\u06FA-\\u06FC\\u06FF\\u0710\\u0712-\\u072F\\u074D-\\u07A5\\u07B1\\u07CA-\\u07EA\\u07F4\\u07F5\\u07FA\\u0800-\\u0815\\u081A\\u0824\\u0828\\u0840-\\u0858\\u08A0-\\u08B2\\u0904-\\u0939\\u093D\\u0950\\u0958-\\u0961\\u0971-\\u0980\\u0985-\\u098C\\u098F\\u0990\\u0993-\\u09A8\\u09AA-\\u09B0\\u09B2\\u09B6-\\u09B9\\u09BD\\u09CE\\u09DC\\u09DD\\u09DF-\\u09E1\\u09F0\\u09F1\\u0A05-\\u0A0A\\u0A0F\\u0A10\\u0A13-\\u0A28\\u0A2A-\\u0A30\\u0A32\\u0A33\\u0A35\\u0A36\\u0A38\\u0A39\\u0A59-\\u0A5C\\u0A5E\\u0A72-\\u0A74\\u0A85-\\u0A8D\\u0A8F-\\u0A91\\u0A93-\\u0AA8\\u0AAA-\\u0AB0\\u0AB2\\u0AB3\\u0AB5-\\u0AB9\\u0ABD\\u0AD0\\u0AE0\\u0AE1\\u0B05-\\u0B0C\\u0B0F\\u0B10\\u0B13-\\u0B28\\u0B2A-\\u0B30\\u0B32\\u0B33\\u0B35-\\u0B39\\u0B3D\\u0B5C\\u0B5D\\u0B5F-\\u0B61\\u0B71\\u0B83\\u0B85-\\u0B8A\\u0B8E-\\u0B90\\u0B92-\\u0B95\\u0B99\\u0B9A\\u0B9C\\u0B9E\\u0B9F\\u0BA3\\u0BA4\\u0BA8-\\u0BAA\\u0BAE-\\u0BB9\\u0BD0\\u0C05-\\u0C0C\\u0C0E-\\u0C10\\u0C12-\\u0C28\\u0C2A-\\u0C39\\u0C3D\\u0C58\\u0C59\\u0C60\\u0C61\\u0C85-\\u0C8C\\u0C8E-\\u0C90\\u0C92-\\u0CA8\\u0CAA-\\u0CB3\\u0CB5-\\u0CB9\\u0CBD\\u0CDE\\u0CE0\\u0CE1\\u0CF1\\u0CF2\\u0D05-\\u0D0C\\u0D0E-\\u0D10\\u0D12-\\u0D3A\\u0D3D\\u0D4E\\u0D60\\u0D61\\u0D7A-\\u0D7F\\u0D85-\\u0D96\\u0D9A-\\u0DB1\\u0DB3-\\u0DBB\\u0DBD\\u0DC0-\\u0DC6\\u0E01-\\u0E30\\u0E32\\u0E33\\u0E40-\\u0E46\\u0E81\\u0E82\\u0E84\\u0E87\\u0E88\\u0E8A\\u0E8D\\u0E94-\\u0E97\\u0E99-\\u0E9F\\u0EA1-\\u0EA3\\u0EA5\\u0EA7\\u0EAA\\u0EAB\\u0EAD-\\u0EB0\\u0EB2\\u0EB3\\u0EBD\\u0EC0-\\u0EC4\\u0EC6\\u0EDC-\\u0EDF\\u0F00\\u0F40-\\u0F47\\u0F49-\\u0F6C\\u0F88-\\u0F8C\\u1000-\\u102A\\u103F\\u1050-\\u1055\\u105A-\\u105D\\u1061\\u1065\\u1066\\u106E-\\u1070\\u1075-\\u1081\\u108E\\u10A0-\\u10C5\\u10C7\\u10CD\\u10D0-\\u10FA\\u10FC-\\u1248\\u124A-\\u124D\\u1250-\\u1256\\u1258\\u125A-\\u125D\\u1260-\\u1288\\u128A-\\u128D\\u1290-\\u12B0\\u12B2-\\u12B5\\u12B8-\\u12BE\\u12C0\\u12C2-\\u12C5\\u12C8-\\u12D6\\u12D8-\\u1310\\u1312-\\u1315\\u1318-\\u135A\\u1380-\\u138F\\u13A0-\\u13F4\\u1401-\\u166C\\u166F-\\u167F\\u1681-\\u169A\\u16A0-\\u16EA\\u16EE-\\u16F8\\u1700-\\u170C\\u170E-\\u1711\\u1720-\\u1731\\u1740-\\u1751\\u1760-\\u176C\\u176E-\\u1770\\u1780-\\u17B3\\u17D7\\u17DC\\u1820-\\u1877\\u1880-\\u18A8\\u18AA\\u18B0-\\u18F5\\u1900-\\u191E\\u1950-\\u196D\\u1970-\\u1974\\u1980-\\u19AB\\u19C1-\\u19C7\\u1A00-\\u1A16\\u1A20-\\u1A54\\u1AA7\\u1B05-\\u1B33\\u1B45-\\u1B4B\\u1B83-\\u1BA0\\u1BAE\\u1BAF\\u1BBA-\\u1BE5\\u1C00-\\u1C23\\u1C4D-\\u1C4F\\u1C5A-\\u1C7D\\u1CE9-\\u1CEC\\u1CEE-\\u1CF1\\u1CF5\\u1CF6\\u1D00-\\u1DBF\\u1E00-\\u1F15\\u1F18-\\u1F1D\\u1F20-\\u1F45\\u1F48-\\u1F4D\\u1F50-\\u1F57\\u1F59\\u1F5B\\u1F5D\\u1F5F-\\u1F7D\\u1F80-\\u1FB4\\u1FB6-\\u1FBC\\u1FBE\\u1FC2-\\u1FC4\\u1FC6-\\u1FCC\\u1FD0-\\u1FD3\\u1FD6-\\u1FDB\\u1FE0-\\u1FEC\\u1FF2-\\u1FF4\\u1FF6-\\u1FFC\\u2071\\u207F\\u2090-\\u209C\\u2102\\u2107\\u210A-\\u2113\\u2115\\u2119-\\u211D\\u2124\\u2126\\u2128\\u212A-\\u212D\\u212F-\\u2139\\u213C-\\u213F\\u2145-\\u2149\\u214E\\u2160-\\u2188\\u2C00-\\u2C2E\\u2C30-\\u2C5E\\u2C60-\\u2CE4\\u2CEB-\\u2CEE\\u2CF2\\u2CF3\\u2D00-\\u2D25\\u2D27\\u2D2D\\u2D30-\\u2D67\\u2D6F\\u2D80-\\u2D96\\u2DA0-\\u2DA6\\u2DA8-\\u2DAE\\u2DB0-\\u2DB6\\u2DB8-\\u2DBE\\u2DC0-\\u2DC6\\u2DC8-\\u2DCE\\u2DD0-\\u2DD6\\u2DD8-\\u2DDE\\u2E2F\\u3005-\\u3007\\u3021-\\u3029\\u3031-\\u3035\\u3038-\\u303C\\u3041-\\u3096\\u309D-\\u309F\\u30A1-\\u30FA\\u30FC-\\u30FF\\u3105-\\u312D\\u3131-\\u318E\\u31A0-\\u31BA\\u31F0-\\u31FF\\u3400-\\u4DB5\\u4E00-\\u9FCC\\uA000-\\uA48C\\uA4D0-\\uA4FD\\uA500-\\uA60C\\uA610-\\uA61F\\uA62A\\uA62B\\uA640-\\uA66E\\uA67F-\\uA69D\\uA6A0-\\uA6EF\\uA717-\\uA71F\\uA722-\\uA788\\uA78B-\\uA78E\\uA790-\\uA7AD\\uA7B0\\uA7B1\\uA7F7-\\uA801\\uA803-\\uA805\\uA807-\\uA80A\\uA80C-\\uA822\\uA840-\\uA873\\uA882-\\uA8B3\\uA8F2-\\uA8F7\\uA8FB\\uA90A-\\uA925\\uA930-\\uA946\\uA960-\\uA97C\\uA984-\\uA9B2\\uA9CF\\uA9E0-\\uA9E4\\uA9E6-\\uA9EF\\uA9FA-\\uA9FE\\uAA00-\\uAA28\\uAA40-\\uAA42\\uAA44-\\uAA4B\\uAA60-\\uAA76\\uAA7A\\uAA7E-\\uAAAF\\uAAB1\\uAAB5\\uAAB6\\uAAB9-\\uAABD\\uAAC0\\uAAC2\\uAADB-\\uAADD\\uAAE0-\\uAAEA\\uAAF2-\\uAAF4\\uAB01-\\uAB06\\uAB09-\\uAB0E\\uAB11-\\uAB16\\uAB20-\\uAB26\\uAB28-\\uAB2E\\uAB30-\\uAB5A\\uAB5C-\\uAB5F\\uAB64\\uAB65\\uABC0-\\uABE2\\uAC00-\\uD7A3\\uD7B0-\\uD7C6\\uD7CB-\\uD7FB\\uF900-\\uFA6D\\uFA70-\\uFAD9\\uFB00-\\uFB06\\uFB13-\\uFB17\\uFB1D\\uFB1F-\\uFB28\\uFB2A-\\uFB36\\uFB38-\\uFB3C\\uFB3E\\uFB40\\uFB41\\uFB43\\uFB44\\uFB46-\\uFBB1\\uFBD3-\\uFD3D\\uFD50-\\uFD8F\\uFD92-\\uFDC7\\uFDF0-\\uFDFB\\uFE70-\\uFE74\\uFE76-\\uFEFC\\uFF21-\\uFF3A\\uFF41-\\uFF5A\\uFF66-\\uFFBE\\uFFC2-\\uFFC7\\uFFCA-\\uFFCF\\uFFD2-\\uFFD7\\uFFDA-\\uFFDC]'),
       // eslint-disable-next-line no-misleading-character-class
-      RegexNonAsciiIdentifierPart = new RegExp("[\\xAA\\xB5\\xBA\\xC0-\\xD6\\xD8-\\xF6\\xF8-\\u02C1\\u02C6-\\u02D1\\u02E0-\\u02E4\\u02EC\\u02EE\\u0300-\\u0374\\u0376\\u0377\\u037A-\\u037D\\u037F\\u0386\\u0388-\\u038A\\u038C\\u038E-\\u03A1\\u03A3-\\u03F5\\u03F7-\\u0481\\u0483-\\u0487\\u048A-\\u052F\\u0531-\\u0556\\u0559\\u0561-\\u0587\\u0591-\\u05BD\\u05BF\\u05C1\\u05C2\\u05C4\\u05C5\\u05C7\\u05D0-\\u05EA\\u05F0-\\u05F2\\u0610-\\u061A\\u0620-\\u0669\\u066E-\\u06D3\\u06D5-\\u06DC\\u06DF-\\u06E8\\u06EA-\\u06FC\\u06FF\\u0710-\\u074A\\u074D-\\u07B1\\u07C0-\\u07F5\\u07FA\\u0800-\\u082D\\u0840-\\u085B\\u08A0-\\u08B2\\u08E4-\\u0963\\u0966-\\u096F\\u0971-\\u0983\\u0985-\\u098C\\u098F\\u0990\\u0993-\\u09A8\\u09AA-\\u09B0\\u09B2\\u09B6-\\u09B9\\u09BC-\\u09C4\\u09C7\\u09C8\\u09CB-\\u09CE\\u09D7\\u09DC\\u09DD\\u09DF-\\u09E3\\u09E6-\\u09F1\\u0A01-\\u0A03\\u0A05-\\u0A0A\\u0A0F\\u0A10\\u0A13-\\u0A28\\u0A2A-\\u0A30\\u0A32\\u0A33\\u0A35\\u0A36\\u0A38\\u0A39\\u0A3C\\u0A3E-\\u0A42\\u0A47\\u0A48\\u0A4B-\\u0A4D\\u0A51\\u0A59-\\u0A5C\\u0A5E\\u0A66-\\u0A75\\u0A81-\\u0A83\\u0A85-\\u0A8D\\u0A8F-\\u0A91\\u0A93-\\u0AA8\\u0AAA-\\u0AB0\\u0AB2\\u0AB3\\u0AB5-\\u0AB9\\u0ABC-\\u0AC5\\u0AC7-\\u0AC9\\u0ACB-\\u0ACD\\u0AD0\\u0AE0-\\u0AE3\\u0AE6-\\u0AEF\\u0B01-\\u0B03\\u0B05-\\u0B0C\\u0B0F\\u0B10\\u0B13-\\u0B28\\u0B2A-\\u0B30\\u0B32\\u0B33\\u0B35-\\u0B39\\u0B3C-\\u0B44\\u0B47\\u0B48\\u0B4B-\\u0B4D\\u0B56\\u0B57\\u0B5C\\u0B5D\\u0B5F-\\u0B63\\u0B66-\\u0B6F\\u0B71\\u0B82\\u0B83\\u0B85-\\u0B8A\\u0B8E-\\u0B90\\u0B92-\\u0B95\\u0B99\\u0B9A\\u0B9C\\u0B9E\\u0B9F\\u0BA3\\u0BA4\\u0BA8-\\u0BAA\\u0BAE-\\u0BB9\\u0BBE-\\u0BC2\\u0BC6-\\u0BC8\\u0BCA-\\u0BCD\\u0BD0\\u0BD7\\u0BE6-\\u0BEF\\u0C00-\\u0C03\\u0C05-\\u0C0C\\u0C0E-\\u0C10\\u0C12-\\u0C28\\u0C2A-\\u0C39\\u0C3D-\\u0C44\\u0C46-\\u0C48\\u0C4A-\\u0C4D\\u0C55\\u0C56\\u0C58\\u0C59\\u0C60-\\u0C63\\u0C66-\\u0C6F\\u0C81-\\u0C83\\u0C85-\\u0C8C\\u0C8E-\\u0C90\\u0C92-\\u0CA8\\u0CAA-\\u0CB3\\u0CB5-\\u0CB9\\u0CBC-\\u0CC4\\u0CC6-\\u0CC8\\u0CCA-\\u0CCD\\u0CD5\\u0CD6\\u0CDE\\u0CE0-\\u0CE3\\u0CE6-\\u0CEF\\u0CF1\\u0CF2\\u0D01-\\u0D03\\u0D05-\\u0D0C\\u0D0E-\\u0D10\\u0D12-\\u0D3A\\u0D3D-\\u0D44\\u0D46-\\u0D48\\u0D4A-\\u0D4E\\u0D57\\u0D60-\\u0D63\\u0D66-\\u0D6F\\u0D7A-\\u0D7F\\u0D82\\u0D83\\u0D85-\\u0D96\\u0D9A-\\u0DB1\\u0DB3-\\u0DBB\\u0DBD\\u0DC0-\\u0DC6\\u0DCA\\u0DCF-\\u0DD4\\u0DD6\\u0DD8-\\u0DDF\\u0DE6-\\u0DEF\\u0DF2\\u0DF3\\u0E01-\\u0E3A\\u0E40-\\u0E4E\\u0E50-\\u0E59\\u0E81\\u0E82\\u0E84\\u0E87\\u0E88\\u0E8A\\u0E8D\\u0E94-\\u0E97\\u0E99-\\u0E9F\\u0EA1-\\u0EA3\\u0EA5\\u0EA7\\u0EAA\\u0EAB\\u0EAD-\\u0EB9\\u0EBB-\\u0EBD\\u0EC0-\\u0EC4\\u0EC6\\u0EC8-\\u0ECD\\u0ED0-\\u0ED9\\u0EDC-\\u0EDF\\u0F00\\u0F18\\u0F19\\u0F20-\\u0F29\\u0F35\\u0F37\\u0F39\\u0F3E-\\u0F47\\u0F49-\\u0F6C\\u0F71-\\u0F84\\u0F86-\\u0F97\\u0F99-\\u0FBC\\u0FC6\\u1000-\\u1049\\u1050-\\u109D\\u10A0-\\u10C5\\u10C7\\u10CD\\u10D0-\\u10FA\\u10FC-\\u1248\\u124A-\\u124D\\u1250-\\u1256\\u1258\\u125A-\\u125D\\u1260-\\u1288\\u128A-\\u128D\\u1290-\\u12B0\\u12B2-\\u12B5\\u12B8-\\u12BE\\u12C0\\u12C2-\\u12C5\\u12C8-\\u12D6\\u12D8-\\u1310\\u1312-\\u1315\\u1318-\\u135A\\u135D-\\u135F\\u1380-\\u138F\\u13A0-\\u13F4\\u1401-\\u166C\\u166F-\\u167F\\u1681-\\u169A\\u16A0-\\u16EA\\u16EE-\\u16F8\\u1700-\\u170C\\u170E-\\u1714\\u1720-\\u1734\\u1740-\\u1753\\u1760-\\u176C\\u176E-\\u1770\\u1772\\u1773\\u1780-\\u17D3\\u17D7\\u17DC\\u17DD\\u17E0-\\u17E9\\u180B-\\u180D\\u1810-\\u1819\\u1820-\\u1877\\u1880-\\u18AA\\u18B0-\\u18F5\\u1900-\\u191E\\u1920-\\u192B\\u1930-\\u193B\\u1946-\\u196D\\u1970-\\u1974\\u1980-\\u19AB\\u19B0-\\u19C9\\u19D0-\\u19D9\\u1A00-\\u1A1B\\u1A20-\\u1A5E\\u1A60-\\u1A7C\\u1A7F-\\u1A89\\u1A90-\\u1A99\\u1AA7\\u1AB0-\\u1ABD\\u1B00-\\u1B4B\\u1B50-\\u1B59\\u1B6B-\\u1B73\\u1B80-\\u1BF3\\u1C00-\\u1C37\\u1C40-\\u1C49\\u1C4D-\\u1C7D\\u1CD0-\\u1CD2\\u1CD4-\\u1CF6\\u1CF8\\u1CF9\\u1D00-\\u1DF5\\u1DFC-\\u1F15\\u1F18-\\u1F1D\\u1F20-\\u1F45\\u1F48-\\u1F4D\\u1F50-\\u1F57\\u1F59\\u1F5B\\u1F5D\\u1F5F-\\u1F7D\\u1F80-\\u1FB4\\u1FB6-\\u1FBC\\u1FBE\\u1FC2-\\u1FC4\\u1FC6-\\u1FCC\\u1FD0-\\u1FD3\\u1FD6-\\u1FDB\\u1FE0-\\u1FEC\\u1FF2-\\u1FF4\\u1FF6-\\u1FFC\\u200C\\u200D\\u203F\\u2040\\u2054\\u2071\\u207F\\u2090-\\u209C\\u20D0-\\u20DC\\u20E1\\u20E5-\\u20F0\\u2102\\u2107\\u210A-\\u2113\\u2115\\u2119-\\u211D\\u2124\\u2126\\u2128\\u212A-\\u212D\\u212F-\\u2139\\u213C-\\u213F\\u2145-\\u2149\\u214E\\u2160-\\u2188\\u2C00-\\u2C2E\\u2C30-\\u2C5E\\u2C60-\\u2CE4\\u2CEB-\\u2CF3\\u2D00-\\u2D25\\u2D27\\u2D2D\\u2D30-\\u2D67\\u2D6F\\u2D7F-\\u2D96\\u2DA0-\\u2DA6\\u2DA8-\\u2DAE\\u2DB0-\\u2DB6\\u2DB8-\\u2DBE\\u2DC0-\\u2DC6\\u2DC8-\\u2DCE\\u2DD0-\\u2DD6\\u2DD8-\\u2DDE\\u2DE0-\\u2DFF\\u2E2F\\u3005-\\u3007\\u3021-\\u302F\\u3031-\\u3035\\u3038-\\u303C\\u3041-\\u3096\\u3099\\u309A\\u309D-\\u309F\\u30A1-\\u30FA\\u30FC-\\u30FF\\u3105-\\u312D\\u3131-\\u318E\\u31A0-\\u31BA\\u31F0-\\u31FF\\u3400-\\u4DB5\\u4E00-\\u9FCC\\uA000-\\uA48C\\uA4D0-\\uA4FD\\uA500-\\uA60C\\uA610-\\uA62B\\uA640-\\uA66F\\uA674-\\uA67D\\uA67F-\\uA69D\\uA69F-\\uA6F1\\uA717-\\uA71F\\uA722-\\uA788\\uA78B-\\uA78E\\uA790-\\uA7AD\\uA7B0\\uA7B1\\uA7F7-\\uA827\\uA840-\\uA873\\uA880-\\uA8C4\\uA8D0-\\uA8D9\\uA8E0-\\uA8F7\\uA8FB\\uA900-\\uA92D\\uA930-\\uA953\\uA960-\\uA97C\\uA980-\\uA9C0\\uA9CF-\\uA9D9\\uA9E0-\\uA9FE\\uAA00-\\uAA36\\uAA40-\\uAA4D\\uAA50-\\uAA59\\uAA60-\\uAA76\\uAA7A-\\uAAC2\\uAADB-\\uAADD\\uAAE0-\\uAAEF\\uAAF2-\\uAAF6\\uAB01-\\uAB06\\uAB09-\\uAB0E\\uAB11-\\uAB16\\uAB20-\\uAB26\\uAB28-\\uAB2E\\uAB30-\\uAB5A\\uAB5C-\\uAB5F\\uAB64\\uAB65\\uABC0-\\uABEA\\uABEC\\uABED\\uABF0-\\uABF9\\uAC00-\\uD7A3\\uD7B0-\\uD7C6\\uD7CB-\\uD7FB\\uF900-\\uFA6D\\uFA70-\\uFAD9\\uFB00-\\uFB06\\uFB13-\\uFB17\\uFB1D-\\uFB28\\uFB2A-\\uFB36\\uFB38-\\uFB3C\\uFB3E\\uFB40\\uFB41\\uFB43\\uFB44\\uFB46-\\uFBB1\\uFBD3-\\uFD3D\\uFD50-\\uFD8F\\uFD92-\\uFDC7\\uFDF0-\\uFDFB\\uFE00-\\uFE0F\\uFE20-\\uFE2D\\uFE33\\uFE34\\uFE4D-\\uFE4F\\uFE70-\\uFE74\\uFE76-\\uFEFC\\uFF10-\\uFF19\\uFF21-\\uFF3A\\uFF3F\\uFF41-\\uFF5A\\uFF66-\\uFFBE\\uFFC2-\\uFFC7\\uFFCA-\\uFFCF\\uFFD2-\\uFFD7\\uFFDA-\\uFFDC]");
+      RegexNonAsciiIdentifierPart = new RegExp('[\\xAA\\xB5\\xBA\\xC0-\\xD6\\xD8-\\xF6\\xF8-\\u02C1\\u02C6-\\u02D1\\u02E0-\\u02E4\\u02EC\\u02EE\\u0300-\\u0374\\u0376\\u0377\\u037A-\\u037D\\u037F\\u0386\\u0388-\\u038A\\u038C\\u038E-\\u03A1\\u03A3-\\u03F5\\u03F7-\\u0481\\u0483-\\u0487\\u048A-\\u052F\\u0531-\\u0556\\u0559\\u0561-\\u0587\\u0591-\\u05BD\\u05BF\\u05C1\\u05C2\\u05C4\\u05C5\\u05C7\\u05D0-\\u05EA\\u05F0-\\u05F2\\u0610-\\u061A\\u0620-\\u0669\\u066E-\\u06D3\\u06D5-\\u06DC\\u06DF-\\u06E8\\u06EA-\\u06FC\\u06FF\\u0710-\\u074A\\u074D-\\u07B1\\u07C0-\\u07F5\\u07FA\\u0800-\\u082D\\u0840-\\u085B\\u08A0-\\u08B2\\u08E4-\\u0963\\u0966-\\u096F\\u0971-\\u0983\\u0985-\\u098C\\u098F\\u0990\\u0993-\\u09A8\\u09AA-\\u09B0\\u09B2\\u09B6-\\u09B9\\u09BC-\\u09C4\\u09C7\\u09C8\\u09CB-\\u09CE\\u09D7\\u09DC\\u09DD\\u09DF-\\u09E3\\u09E6-\\u09F1\\u0A01-\\u0A03\\u0A05-\\u0A0A\\u0A0F\\u0A10\\u0A13-\\u0A28\\u0A2A-\\u0A30\\u0A32\\u0A33\\u0A35\\u0A36\\u0A38\\u0A39\\u0A3C\\u0A3E-\\u0A42\\u0A47\\u0A48\\u0A4B-\\u0A4D\\u0A51\\u0A59-\\u0A5C\\u0A5E\\u0A66-\\u0A75\\u0A81-\\u0A83\\u0A85-\\u0A8D\\u0A8F-\\u0A91\\u0A93-\\u0AA8\\u0AAA-\\u0AB0\\u0AB2\\u0AB3\\u0AB5-\\u0AB9\\u0ABC-\\u0AC5\\u0AC7-\\u0AC9\\u0ACB-\\u0ACD\\u0AD0\\u0AE0-\\u0AE3\\u0AE6-\\u0AEF\\u0B01-\\u0B03\\u0B05-\\u0B0C\\u0B0F\\u0B10\\u0B13-\\u0B28\\u0B2A-\\u0B30\\u0B32\\u0B33\\u0B35-\\u0B39\\u0B3C-\\u0B44\\u0B47\\u0B48\\u0B4B-\\u0B4D\\u0B56\\u0B57\\u0B5C\\u0B5D\\u0B5F-\\u0B63\\u0B66-\\u0B6F\\u0B71\\u0B82\\u0B83\\u0B85-\\u0B8A\\u0B8E-\\u0B90\\u0B92-\\u0B95\\u0B99\\u0B9A\\u0B9C\\u0B9E\\u0B9F\\u0BA3\\u0BA4\\u0BA8-\\u0BAA\\u0BAE-\\u0BB9\\u0BBE-\\u0BC2\\u0BC6-\\u0BC8\\u0BCA-\\u0BCD\\u0BD0\\u0BD7\\u0BE6-\\u0BEF\\u0C00-\\u0C03\\u0C05-\\u0C0C\\u0C0E-\\u0C10\\u0C12-\\u0C28\\u0C2A-\\u0C39\\u0C3D-\\u0C44\\u0C46-\\u0C48\\u0C4A-\\u0C4D\\u0C55\\u0C56\\u0C58\\u0C59\\u0C60-\\u0C63\\u0C66-\\u0C6F\\u0C81-\\u0C83\\u0C85-\\u0C8C\\u0C8E-\\u0C90\\u0C92-\\u0CA8\\u0CAA-\\u0CB3\\u0CB5-\\u0CB9\\u0CBC-\\u0CC4\\u0CC6-\\u0CC8\\u0CCA-\\u0CCD\\u0CD5\\u0CD6\\u0CDE\\u0CE0-\\u0CE3\\u0CE6-\\u0CEF\\u0CF1\\u0CF2\\u0D01-\\u0D03\\u0D05-\\u0D0C\\u0D0E-\\u0D10\\u0D12-\\u0D3A\\u0D3D-\\u0D44\\u0D46-\\u0D48\\u0D4A-\\u0D4E\\u0D57\\u0D60-\\u0D63\\u0D66-\\u0D6F\\u0D7A-\\u0D7F\\u0D82\\u0D83\\u0D85-\\u0D96\\u0D9A-\\u0DB1\\u0DB3-\\u0DBB\\u0DBD\\u0DC0-\\u0DC6\\u0DCA\\u0DCF-\\u0DD4\\u0DD6\\u0DD8-\\u0DDF\\u0DE6-\\u0DEF\\u0DF2\\u0DF3\\u0E01-\\u0E3A\\u0E40-\\u0E4E\\u0E50-\\u0E59\\u0E81\\u0E82\\u0E84\\u0E87\\u0E88\\u0E8A\\u0E8D\\u0E94-\\u0E97\\u0E99-\\u0E9F\\u0EA1-\\u0EA3\\u0EA5\\u0EA7\\u0EAA\\u0EAB\\u0EAD-\\u0EB9\\u0EBB-\\u0EBD\\u0EC0-\\u0EC4\\u0EC6\\u0EC8-\\u0ECD\\u0ED0-\\u0ED9\\u0EDC-\\u0EDF\\u0F00\\u0F18\\u0F19\\u0F20-\\u0F29\\u0F35\\u0F37\\u0F39\\u0F3E-\\u0F47\\u0F49-\\u0F6C\\u0F71-\\u0F84\\u0F86-\\u0F97\\u0F99-\\u0FBC\\u0FC6\\u1000-\\u1049\\u1050-\\u109D\\u10A0-\\u10C5\\u10C7\\u10CD\\u10D0-\\u10FA\\u10FC-\\u1248\\u124A-\\u124D\\u1250-\\u1256\\u1258\\u125A-\\u125D\\u1260-\\u1288\\u128A-\\u128D\\u1290-\\u12B0\\u12B2-\\u12B5\\u12B8-\\u12BE\\u12C0\\u12C2-\\u12C5\\u12C8-\\u12D6\\u12D8-\\u1310\\u1312-\\u1315\\u1318-\\u135A\\u135D-\\u135F\\u1380-\\u138F\\u13A0-\\u13F4\\u1401-\\u166C\\u166F-\\u167F\\u1681-\\u169A\\u16A0-\\u16EA\\u16EE-\\u16F8\\u1700-\\u170C\\u170E-\\u1714\\u1720-\\u1734\\u1740-\\u1753\\u1760-\\u176C\\u176E-\\u1770\\u1772\\u1773\\u1780-\\u17D3\\u17D7\\u17DC\\u17DD\\u17E0-\\u17E9\\u180B-\\u180D\\u1810-\\u1819\\u1820-\\u1877\\u1880-\\u18AA\\u18B0-\\u18F5\\u1900-\\u191E\\u1920-\\u192B\\u1930-\\u193B\\u1946-\\u196D\\u1970-\\u1974\\u1980-\\u19AB\\u19B0-\\u19C9\\u19D0-\\u19D9\\u1A00-\\u1A1B\\u1A20-\\u1A5E\\u1A60-\\u1A7C\\u1A7F-\\u1A89\\u1A90-\\u1A99\\u1AA7\\u1AB0-\\u1ABD\\u1B00-\\u1B4B\\u1B50-\\u1B59\\u1B6B-\\u1B73\\u1B80-\\u1BF3\\u1C00-\\u1C37\\u1C40-\\u1C49\\u1C4D-\\u1C7D\\u1CD0-\\u1CD2\\u1CD4-\\u1CF6\\u1CF8\\u1CF9\\u1D00-\\u1DF5\\u1DFC-\\u1F15\\u1F18-\\u1F1D\\u1F20-\\u1F45\\u1F48-\\u1F4D\\u1F50-\\u1F57\\u1F59\\u1F5B\\u1F5D\\u1F5F-\\u1F7D\\u1F80-\\u1FB4\\u1FB6-\\u1FBC\\u1FBE\\u1FC2-\\u1FC4\\u1FC6-\\u1FCC\\u1FD0-\\u1FD3\\u1FD6-\\u1FDB\\u1FE0-\\u1FEC\\u1FF2-\\u1FF4\\u1FF6-\\u1FFC\\u200C\\u200D\\u203F\\u2040\\u2054\\u2071\\u207F\\u2090-\\u209C\\u20D0-\\u20DC\\u20E1\\u20E5-\\u20F0\\u2102\\u2107\\u210A-\\u2113\\u2115\\u2119-\\u211D\\u2124\\u2126\\u2128\\u212A-\\u212D\\u212F-\\u2139\\u213C-\\u213F\\u2145-\\u2149\\u214E\\u2160-\\u2188\\u2C00-\\u2C2E\\u2C30-\\u2C5E\\u2C60-\\u2CE4\\u2CEB-\\u2CF3\\u2D00-\\u2D25\\u2D27\\u2D2D\\u2D30-\\u2D67\\u2D6F\\u2D7F-\\u2D96\\u2DA0-\\u2DA6\\u2DA8-\\u2DAE\\u2DB0-\\u2DB6\\u2DB8-\\u2DBE\\u2DC0-\\u2DC6\\u2DC8-\\u2DCE\\u2DD0-\\u2DD6\\u2DD8-\\u2DDE\\u2DE0-\\u2DFF\\u2E2F\\u3005-\\u3007\\u3021-\\u302F\\u3031-\\u3035\\u3038-\\u303C\\u3041-\\u3096\\u3099\\u309A\\u309D-\\u309F\\u30A1-\\u30FA\\u30FC-\\u30FF\\u3105-\\u312D\\u3131-\\u318E\\u31A0-\\u31BA\\u31F0-\\u31FF\\u3400-\\u4DB5\\u4E00-\\u9FCC\\uA000-\\uA48C\\uA4D0-\\uA4FD\\uA500-\\uA60C\\uA610-\\uA62B\\uA640-\\uA66F\\uA674-\\uA67D\\uA67F-\\uA69D\\uA69F-\\uA6F1\\uA717-\\uA71F\\uA722-\\uA788\\uA78B-\\uA78E\\uA790-\\uA7AD\\uA7B0\\uA7B1\\uA7F7-\\uA827\\uA840-\\uA873\\uA880-\\uA8C4\\uA8D0-\\uA8D9\\uA8E0-\\uA8F7\\uA8FB\\uA900-\\uA92D\\uA930-\\uA953\\uA960-\\uA97C\\uA980-\\uA9C0\\uA9CF-\\uA9D9\\uA9E0-\\uA9FE\\uAA00-\\uAA36\\uAA40-\\uAA4D\\uAA50-\\uAA59\\uAA60-\\uAA76\\uAA7A-\\uAAC2\\uAADB-\\uAADD\\uAAE0-\\uAAEF\\uAAF2-\\uAAF6\\uAB01-\\uAB06\\uAB09-\\uAB0E\\uAB11-\\uAB16\\uAB20-\\uAB26\\uAB28-\\uAB2E\\uAB30-\\uAB5A\\uAB5C-\\uAB5F\\uAB64\\uAB65\\uABC0-\\uABEA\\uABEC\\uABED\\uABF0-\\uABF9\\uAC00-\\uD7A3\\uD7B0-\\uD7C6\\uD7CB-\\uD7FB\\uF900-\\uFA6D\\uFA70-\\uFAD9\\uFB00-\\uFB06\\uFB13-\\uFB17\\uFB1D-\\uFB28\\uFB2A-\\uFB36\\uFB38-\\uFB3C\\uFB3E\\uFB40\\uFB41\\uFB43\\uFB44\\uFB46-\\uFBB1\\uFBD3-\\uFD3D\\uFD50-\\uFD8F\\uFD92-\\uFDC7\\uFDF0-\\uFDFB\\uFE00-\\uFE0F\\uFE20-\\uFE2D\\uFE33\\uFE34\\uFE4D-\\uFE4F\\uFE70-\\uFE74\\uFE76-\\uFEFC\\uFF10-\\uFF19\\uFF21-\\uFF3A\\uFF3F\\uFF41-\\uFF5A\\uFF66-\\uFFBE\\uFFC2-\\uFFC7\\uFFCA-\\uFFCF\\uFFD2-\\uFFD7\\uFFDA-\\uFFDC]');
 
   // Ensure the condition is true, otherwise throw an error.
   // This is only to have a better contract semantic, i.e. another safety net
@@ -8764,7 +8786,7 @@
       // perfectly valid pattern that is equivalent to `[a-b]`, but it
       // would be replaced by `[x-b]` which throws an error.
       tmp = tmp
-        .replace(/\\u\{([0-9a-fA-F]+)\}/g, function($0, $1) {
+        .replace(/\\u\{([0-9a-fA-F]+)\}/g, ($0, $1) => {
           if (parseInt($1, 16) <= 0x10FFFF) {
             return 'x';
           }
@@ -9051,7 +9073,7 @@
       args = Array.prototype.slice.call(arguments, 2),
       msg = messageFormat.replace(
         /%(\d)/g,
-        function(whole, index) {
+        (whole, index) => {
           assert(index < args.length, 'Message reference must be in range');
           return args[index];
         }
@@ -9236,8 +9258,7 @@
   // 11.1 Primary Expressions
 
   var legalKeywords = {
-    "if": 1,
-    "this": 1
+    'if': 1
   };
 
   function parsePrimaryExpression() {
@@ -9565,7 +9586,7 @@
     var expr = parseExpression();
 
     if (lookahead.type !== TokenEOF) {
-      throw new Error("Unexpect token after expression.");
+      throw new Error('Unexpect token after expression.');
     }
     return expr;
   }
@@ -9584,24 +9605,44 @@
     MAX_VALUE: 'Number.MAX_VALUE'
   };
 
-  function accessor(fn, fields, name) {
+  function accessor (fn, fields, name) {
     fn.fields = fields || [];
     fn.fname = name;
     return fn;
   }
 
-  function error(message) {
+  function getter (path) {
+    return path.length === 1 ? get1(path[0]) : getN(path);
+  }
+
+  const get1 = field => function (obj) {
+    return obj[field];
+  };
+
+  const getN = path => {
+    const len = path.length;
+    return function (obj) {
+      for (let i = 0; i < len; ++i) {
+        obj = obj[path[i]];
+      }
+
+      return obj;
+    };
+  };
+
+  function error (message) {
     throw Error(message);
   }
 
-  function splitAccessPath(p) {
-    var path = [],
-        q = null,
+  function splitAccessPath (p) {
+    const path = [],
+          n = p.length;
+    let q = null,
         b = 0,
-        n = p.length,
         s = '',
-        i, j, c;
-
+        i,
+        j,
+        c;
     p = p + '';
 
     function push() {
@@ -9610,8 +9651,9 @@
       i = j + 1;
     }
 
-    for (i=j=0; j<n; ++j) {
+    for (i = j = 0; j < n; ++j) {
       c = p[j];
+
       if (c === '\\') {
         s += p.substring(i, j);
         s += p.substring(++j, ++j);
@@ -9656,69 +9698,45 @@
     return path;
   }
 
-  var isArray = Array.isArray;
-
-  function isObject(_) {
-    return _ === Object(_);
+  function field (field, name, opt) {
+    const path = splitAccessPath(field);
+    field = path.length === 1 ? path[0] : field;
+    return accessor((opt && opt.get || getter)(path), [field], name || field);
   }
 
-  function isString(_) {
-    return typeof _ === 'string';
-  }
+  const id = field('id');
+  const identity = accessor(_ => _, [], 'identity');
+  const zero = accessor(() => 0, [], 'zero');
+  const one = accessor(() => 1, [], 'one');
+  const truthy = accessor(() => true, [], 'true');
+  const falsy = accessor(() => false, [], 'false');
 
-  function $(x) {
-    return isArray(x) ? '[' + x.map($) + ']'
-      : isObject(x) || isString(x) ?
-        // Output valid JSON and JS source strings.
-        // See http://timelessrepo.com/json-isnt-a-javascript-subset
-        JSON.stringify(x).replace('\u2028','\\u2028').replace('\u2029', '\\u2029')
-      : x;
-  }
-
-  function field(field, name) {
-    var path = splitAccessPath(field),
-        code = 'return _[' + path.map($).join('][') + '];';
-
-    return accessor(
-      Function('_', code),
-      [(field = path.length===1 ? path[0] : field)],
-      name || field
-    );
-  }
-
-  var empty = [];
-
-  var id = field('id');
-
-  var identity = accessor(function(_) { return _; }, empty, 'identity');
-
-  var zero = accessor(function() { return 0; }, empty, 'zero');
-
-  var one = accessor(function() { return 1; }, empty, 'one');
-
-  var truthy = accessor(function() { return true; }, empty, 'true');
-
-  var falsy = accessor(function() { return false; }, empty, 'false');
-
-  function isFunction(_) {
+  function isFunction (_) {
     return typeof _ === 'function';
   }
 
   const hop = Object.prototype.hasOwnProperty;
-
-  function hasOwnProperty(object, property) {
+  function has (object, property) {
     return hop.call(object, property);
   }
 
-  function toSet(_) {
-    for (var s={}, i=0, n=_.length; i<n; ++i) s[_[i]] = true;
+  function isString (_) {
+    return typeof _ === 'string';
+  }
+
+  function toSet (_) {
+    const s = {},
+          n = _.length;
+
+    for (let i = 0; i < n; ++i) s[_[i]] = true;
+
     return s;
   }
 
   function Functions(codegen) {
 
     function fncall(name, args, cast, type) {
-      var obj = codegen(args[0]);
+      let obj = codegen(args[0]);
       if (cast) {
         obj = cast + '(' + obj + ')';
         if (cast.lastIndexOf('new ', 0) === 0) obj = '(' + obj + ')';
@@ -9729,14 +9747,12 @@
     }
 
     function fn(name, cast, type) {
-      return function(args) {
-        return fncall(name, args, cast, type);
-      };
+      return args => fncall(name, args, cast, type);
     }
 
-    var DATE = 'new Date',
-        STRING = 'String',
-        REGEXP = 'RegExp';
+    const DATE = 'new Date',
+          STRING = 'String',
+          REGEXP = 'RegExp';
 
     return {
       // MATH functions
@@ -9764,7 +9780,7 @@
       clamp: function(args) {
         if (args.length < 3) error('Missing arguments to clamp function.');
         if (args.length > 3) error('Too many arguments to clamp function.');
-        var a = args.map(codegen);
+        const a = args.map(codegen);
         return 'Math.max('+a[1]+', Math.min('+a[2]+','+a[0]+'))';
       },
 
@@ -9820,14 +9836,14 @@
       if: function(args) {
           if (args.length < 3) error('Missing arguments to if function.');
           if (args.length > 3) error('Too many arguments to if function.');
-          var a = args.map(codegen);
+          const a = args.map(codegen);
           return '('+a[0]+'?'+a[1]+':'+a[2]+')';
         }
     };
   }
 
   function stripQuotes(s) {
-    var n = s && s.length - 1;
+    const n = s && s.length - 1;
     return n && (
         (s[0]==='"' && s[n]==='"') ||
         (s[0]==='\'' && s[n]==='\'')
@@ -9837,41 +9853,39 @@
   function vgCodegen(opt) {
     opt = opt || {};
 
-    var whitelist = opt.whitelist ? toSet(opt.whitelist) : {},
-        blacklist = opt.blacklist ? toSet(opt.blacklist) : {},
-        constants = opt.constants || Constants,
-        functions = (opt.functions || Functions)(visit),
-        globalvar = opt.globalvar,
-        fieldvar = opt.fieldvar,
-        globals = {},
+    const whitelist = opt.whitelist ? toSet(opt.whitelist) : {},
+          blacklist = opt.blacklist ? toSet(opt.blacklist) : {},
+          constants = opt.constants || Constants,
+          functions = (opt.functions || Functions)(visit),
+          globalvar = opt.globalvar,
+          fieldvar = opt.fieldvar,
+          outputGlobal = isFunction(globalvar)
+            ? globalvar
+            : id => `${globalvar}["${id}"]`;
+
+    let globals = {},
         fields = {},
         memberDepth = 0;
 
-    var outputGlobal = isFunction(globalvar)
-      ? globalvar
-      : function (id) { return globalvar + '["' + id + '"]'; };
-
     function visit(ast) {
       if (isString(ast)) return ast;
-      var generator = Generators[ast.type];
+      const generator = Generators[ast.type];
       if (generator == null) error('Unsupported type: ' + ast.type);
       return generator(ast);
     }
 
-    var Generators = {
-      Literal: function(n) {
-          return n.raw;
-        },
+    const Generators = {
+      Literal: n => n.raw,
 
-      Identifier: function(n) {
-        var id = n.name;
+      Identifier: n => {
+        const id = n.name;
         if (memberDepth > 0) {
           return id;
-        } else if (hasOwnProperty(blacklist, id)) {
+        } else if (has(blacklist, id)) {
           return error('Illegal identifier: ' + id);
-        } else if (hasOwnProperty(constants, id)) {
+        } else if (has(constants, id)) {
           return constants[id];
-        } else if (hasOwnProperty(whitelist, id)) {
+        } else if (has(whitelist, id)) {
           return id;
         } else {
           globals[id] = 1;
@@ -9879,11 +9893,11 @@
         }
       },
 
-      MemberExpression: function(n) {
-          var d = !n.computed;
-          var o = visit(n.object);
+      MemberExpression: n => {
+          const d = !n.computed,
+                o = visit(n.object);
           if (d) memberDepth += 1;
-          var p = visit(n.property);
+          const p = visit(n.property);
           if (o === fieldvar) {
             // strip quotes to sanitize field name (#1653)
             fields[stripQuotes(p)] = 1;
@@ -9892,56 +9906,50 @@
           return o + (d ? '.'+p : '['+p+']');
         },
 
-      CallExpression: function(n) {
+      CallExpression: n => {
           if (n.callee.type !== 'Identifier') {
             error('Illegal callee type: ' + n.callee.type);
           }
-          var callee = n.callee.name;
-          var args = n.arguments;
-          var fn = hasOwnProperty(functions, callee) && functions[callee];
+          const callee = n.callee.name,
+                args = n.arguments,
+                fn = has(functions, callee) && functions[callee];
           if (!fn) error('Unrecognized function: ' + callee);
           return isFunction(fn)
             ? fn(args)
             : fn + '(' + args.map(visit).join(',') + ')';
         },
 
-      ArrayExpression: function(n) {
-          return '[' + n.elements.map(visit).join(',') + ']';
-        },
+      ArrayExpression: n =>
+          '[' + n.elements.map(visit).join(',') + ']',
 
-      BinaryExpression: function(n) {
-          return '(' + visit(n.left) + n.operator + visit(n.right) + ')';
-        },
+      BinaryExpression: n =>
+          '(' + visit(n.left) + n.operator + visit(n.right) + ')',
 
-      UnaryExpression: function(n) {
-          return '(' + n.operator + visit(n.argument) + ')';
-        },
+      UnaryExpression: n =>
+          '(' + n.operator + visit(n.argument) + ')',
 
-      ConditionalExpression: function(n) {
-          return '(' + visit(n.test) +
+      ConditionalExpression: n =>
+          '(' + visit(n.test) +
             '?' + visit(n.consequent) +
             ':' + visit(n.alternate) +
-            ')';
-        },
+            ')',
 
-      LogicalExpression: function(n) {
-          return '(' + visit(n.left) + n.operator + visit(n.right) + ')';
-        },
+      LogicalExpression: n =>
+          '(' + visit(n.left) + n.operator + visit(n.right) + ')',
 
-      ObjectExpression: function(n) {
-          return '{' + n.properties.map(visit).join(',') + '}';
-        },
+      ObjectExpression: n =>
+          '{' + n.properties.map(visit).join(',') + '}',
 
-      Property: function(n) {
+      Property: n => {
           memberDepth += 1;
-          var k = visit(n.key);
+          const k = visit(n.key);
           memberDepth -= 1;
           return k + ':' + visit(n.value);
         }
     };
 
     function codegen(ast) {
-      var result = {
+      const result = {
         code:    visit(ast),
         globals: Object.keys(globals),
         fields:  Object.keys(fields)
@@ -28318,15 +28326,8 @@
 
   });
 
-  var graphscape$1 = unwrapExports(graphscape);
+  unwrapExports(graphscape);
   var graphscape_1 = graphscape.path;
-
-  var gs = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    'default': graphscape$1,
-    __moduleExports: graphscape,
-    path: graphscape_1
-  });
 
   async function recommendKeyframes(sSpec, eSpec, M) {
     return await graphscape_1(copy(sSpec),  copy(eSpec), M);
@@ -28341,7 +28342,7 @@
     _opt = setUpRecomOpt(_opt);
 
     const recommendations = {};
-    console.log(gs);
+
     for (let transM = 1; transM <= _opt.stageN; transM++) {
       let paths;
       try {
