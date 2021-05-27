@@ -4329,17 +4329,10 @@ graceful-fs@^4.1.11, graceful-fs@^4.1.15, graceful-fs@^4.1.2:
   resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.2.3.tgz#4a12ff1b60376ef09862c2093edd908328be8423"
   integrity sha512-a30VEBm4PEdx1dRB7MFK7BejejvCvBronbLjht+sHuGYj8PHs7M/5Z+rt5lw551vZ7yfTCj4Vuyy3mSJytDWRQ==
 
-"graphscape@file:.yalc/graphscape":
-  version "0.0.1"
-  dependencies:
-    d3 "^6.5.0"
-    graphscape "file:../../../Library/Caches/Yarn/v6/npm-graphscape-0.0.1-21bb0fc4-62b0-442c-b48d-65014eb5ade6-1622069684110/node_modules/graphscape/.yalc/graphscape"
-    vega "^5.19.1"
-    vega-expression "^3.0.1"
-    vega-lite "^4.17.0"
-
-"graphscape@file:.yalc/graphscape/.yalc/graphscape":
-  version "0.0.1"
+graphscape@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/graphscape/-/graphscape-1.1.0.tgz#d61b424a7d0ac18dc0e12deb043ff6b7598896c1"
+  integrity sha512-WuT3uI5P5ZeJXiaNmea7JdHmhJn8O0HFtoQ8MGvdXTsWlUoeold/PcY5sX36/8KZlcyT5MW/SM6w7GL/pkCTZw==
   dependencies:
     d3 "^6.5.0"
     vega "^5.19.1"

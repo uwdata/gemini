@@ -31,6 +31,14 @@ export default {
     }
   }
   ],
-  plugins: [nodeResolve(), commonjs(), json(), sourcemaps()],
+  plugins: [
+    nodeResolve(),
+    commonjs({
+      namedExports: {
+        "graphscape": ["path"]
+      }
+    }),
+    json(),
+    sourcemaps()],
   external: ["vega", "vega-lite", "d3", "vega-embed"]
 };
