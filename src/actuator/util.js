@@ -84,10 +84,10 @@ function propMap(prop) {
     result = result.concat([
       { type: "text", val: "text" },
       { type: "attr", val: "transform" },
-      { type: "style", val: "opacity" },
-      { type: "style", val: "font" },
-      { type: "style", val: "fontSize" },
-      { type: "style", val: "fontWeight" },
+      { type: "attr", val: "opacity" },
+      { type: "attr", val: "font" },
+      { type: "attr", val: "fontSize" },
+      { type: "attr", val: "fontWeight" },
       { type: "style", val: "fill" }
     ]);
     break;
@@ -95,10 +95,10 @@ function propMap(prop) {
     result = result.concat([
       { type: "text", val: "text" },
       { type: "attr", val: "transform" },
-      { type: "style", val: "opacity" },
-      { type: "style", val: "font" },
-      { type: "style", val: "fontSize" },
-      { type: "style", val: "fontWeight" },
+      { type: "attr", val: "opacity" },
+      { type: "attr", val: "font" },
+      { type: "attr", val: "fontSize" },
+      { type: "attr", val: "fontWeight" },
       { type: "style", val: "fill" }
     ]);
     break;

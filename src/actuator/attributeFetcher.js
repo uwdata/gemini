@@ -42,7 +42,11 @@ export function fetchAttributes(d3Selection, props, scales, signal, encode, prev
       } else if (p.type === "attr") {
         d3Selection.attr(getStyle(p.val), function(d) {
           const oldD = prevData ? prevData.get(this) : undefined;
-          return getPropVal.bind(this)(p, encode, scales, signal, d, oldD);
+          let v = getPropVal.bind(this)(p, encode, scales, signal, d, oldD);
+          if (p.val==="fontSize" && isNumber(v)) {
+            return v + "px";
+          }
+          return v;
         });
       } else if (p.type === "text") {
         d3Selection.text(function(d) {

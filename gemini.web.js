@@ -10867,10 +10867,10 @@
       result = result.concat([
         { type: "text", val: "text" },
         { type: "attr", val: "transform" },
-        { type: "style", val: "opacity" },
-        { type: "style", val: "font" },
-        { type: "style", val: "fontSize" },
-        { type: "style", val: "fontWeight" },
+        { type: "attr", val: "opacity" },
+        { type: "attr", val: "font" },
+        { type: "attr", val: "fontSize" },
+        { type: "attr", val: "fontWeight" },
         { type: "style", val: "fill" }
       ]);
       break;
@@ -10878,10 +10878,10 @@
       result = result.concat([
         { type: "text", val: "text" },
         { type: "attr", val: "transform" },
-        { type: "style", val: "opacity" },
-        { type: "style", val: "font" },
-        { type: "style", val: "fontSize" },
-        { type: "style", val: "fontWeight" },
+        { type: "attr", val: "opacity" },
+        { type: "attr", val: "font" },
+        { type: "attr", val: "fontSize" },
+        { type: "attr", val: "fontWeight" },
         { type: "style", val: "fill" }
       ]);
       break;
@@ -15474,7 +15474,11 @@
         } else if (p.type === "attr") {
           d3Selection.attr(getStyle(p.val), function(d) {
             const oldD = prevData ? prevData.get(this) : undefined;
-            return getPropVal.bind(this)(p, encode, scales, signal, d, oldD);
+            let v = getPropVal.bind(this)(p, encode, scales, signal, d, oldD);
+            if (p.val==="fontSize" && isNumber(v)) {
+              return v + "px";
+            }
+            return v;
           });
         } else if (p.type === "text") {
           d3Selection.text(function(d) {
