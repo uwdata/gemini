@@ -1,6 +1,6 @@
 # Gemini²
 
-Gemini² extends [Gemini](http://idl.cs.washington.edu/papers/gemini/) to support keyframe-oriented aniamted transition between single-view [Vega](https://vega.github.io/vega)/[Vega-Lite](https://vega.github.io/vega-lite) charts. This repository contains the source code of Gemini and Gemini².
+Gemini² extends [Gemini](http://idl.cs.washington.edu/papers/gemini/) to support keyframe-oriented animated transition between single-view [Vega](https://vega.github.io/vega)/[Vega-Lite](https://vega.github.io/vega-lite) charts. This repository contains the source code of Gemini and Gemini².
 
 - [Gemini² Examples](https://uwdata.github.io/gemini2-editor/)
 - [Gemini Examples](https://uwdata.github.io/gemini-editor/)
